@@ -1,0 +1,261 @@
+---
+title: "R Notebook"
+output: 
+  html_notebook:
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r setup}
+
+# Load packages
+
+library(tidyverse)
+library(haven)
+library(labelled)
+library(scales)
+library(ggrepel)
+
+# Load datasets
+
+adult_1819 <- read_sas("../Full SAS Datasets/adult_1819.sas7bdat")
+hbai1819 <- read_sas("../Full SAS Datasets/hbai1819.sas7bdat")
+person18 <- read_sas("../Full SAS Datasets/person18.sas7bdat")
+hhold18 <- read_sas("../Full SAS Datasets/hhold18.sas7bdat")
+
+```
+
+# Income
+
+## Income components
+
+In SHS and FRS, which income sources contribute how much to total income?
+
+```{r make_tidy_data}
+
+# Create tidy SHS dataset
+
+tidyshs <- hhold18 %>%
+  replace_na(list(MSCINC01 = 0, MSCINC02 = 0, MSCINC03 = 0, MSCINC04 = 0, MSCINC05 = 0, 
+                  MSCINC06 = 0, MSCINC07 = 0,  MSCINC08 = 0, MSCINC09 = 0, MSCINC10 = 0,
+                  EARNINC = 0, BENINC= 0)) %>%
+  mutate(total_earn = EARNINC,
+         total_ben = BENINC,
+         total_privben = MSCINC02 + MSCINC06,
+         total_occ = MSCINC01,
+         total_inv = MSCINC07,
+         total_oth = MSCINC03 + MSCINC04 + MSCINC05 + MSCINC08 + MSCINC09 + MSCINC10,
+         total = total_earn + total_ben + total_privben + total_occ + total_inv + total_oth)  %>%
+  select(total, total_earn, total_ben, total_privben, total_occ, total_inv, total_oth) %>%
+  mutate_all(., function(col){hhold18$LA_GRWT*col})  %>%
+  summarise_all(sum, na.rm = TRUE) %>%
+  gather(key = type, value = amount) %>%
+  mutate(survey = "SHS") 
+
+# Create tidy HBAI dataset
+
+weight <- hbai1819 %>%
+  filter(GVTREGN == 12, BENUNIT == 1) %>%
+  select(gs_newhh)
+
+weight <- weight$gs_newhh
+
+tidyhbai <- hbai1819 %>%
+  filter(GVTREGN == 12,
+         BENUNIT == 1) %>%
+  mutate(total_earn = enternhh,
+         total_ben = ebeninhh,
+         total_privben = epribnhh,
+         total_occ = hntocchh,
+         total_inv = hntinvhh,
+         total_oth =  emiscihh,
+         total = total_earn + total_ben + total_privben + total_occ + total_inv + total_oth) %>%
+  select(total, total_earn, total_ben, total_privben, total_occ, total_inv, total_oth) %>%
+  mutate_all(., function(col){weight*col*52})  %>%
+  summarise_all(sum, na.rm = TRUE) %>%
+  gather(key = type, value = amount) %>%
+  mutate(survey = "HBAI") 
+
+# Combine datasets
+
+tidydata <- rbind(tidyhbai, tidyshs) %>%
+  mutate(type = factor(type, 
+                       levels = c("total", "total_earn", "total_ben", "total_occ",
+                                  "total_inv", "total_privben", "total_oth"), 
+                       ordered = TRUE),
+         survey = factor(survey), ordered = TRUE)
+
+```
+
+```{r chart_compare_inc_components}
+
+# Make chart showing total income amount and components
+
+ggplot(tidydata, 
+       aes(x = type,
+           y = amount,
+           fill = survey,
+           label = ifelse(survey == "SHS", '', comma(amount, 
+                         scale = 1E-9, 
+                         accuracy = 0.1, 
+                         prefix = "£", 
+                         suffix = " billion")))) +
+  geom_bar(stat = 'identity',
+           position = 'dodge') +
+  geom_text_repel(fontface = "bold", aes(colour = survey) )
+
+```
+
+Which income components contribute most to the differences?
+
+```{r table_compare_inc_components}
+
+# Make table showing differences in income and income compononents
+
+data <- tidydata %>%
+  spread(key = survey, value = amount) %>%
+  mutate(reldiff = (SHS/HBAI-1)*HBAI/HBAI[1],
+         diff_contribution = percent(reldiff, 0.1),
+         diff = SHS - HBAI,
+         diff = comma(diff, scale = 1E-9, prefix = "£", suffix = " billion", accuracy = 0.1),
+         HBAI = comma(HBAI, scale = 1E-9, prefix = "£", suffix = " billion", accuracy = 0.1),
+         SHS = comma(SHS, scale = 1E-9, prefix = "£", suffix = " billion", accuracy = 0.1)) %>%
+  arrange(desc(abs(reldiff))) %>%
+  select(type, HBAI, SHS, diff, diff_contribution)
+
+data
+  
+```
+
+SHS total income is `r str_sub(data$diff_contribution[1], 2,5)` lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions and higher earnings. Little would be gained from investigating private benefit and other income as these contribute only little to the overall differences in income.
+
+## Benefit income
+
+Which benefits are the biggest and differ the most between SHS and HBAI? 
+
+- List benefit amounts for SHS and FRS. 
+- Check differences and identify which benefits contribute most to overall beenfit income discrepancy
+- Check caseload and amounts
+- Also against admin data
+
+### State pension
+
+### Low income benefits
+
+### Child benefit
+
+### Disability benefits
+
+
+## Investment income
+
+## Occupational pensions income
+
+## Employed earnings income
+
+## Self-employed earnings income
+
+## Total income
+
+look at distributions, median, quartiles etc
+
+
+# Characteristics of low income households
+
+We may understand now the differences in income measured in SHS and FRS. So what does that mean for poverty? Do SHS and FRS identify the same kind of households as being in poverty?
+
+## Household characteristics
+
+Hhld type (working-age/pensioners, children, number of adults), economic status, tenure, ethnicity(?)
+
+## Area characteristics
+
+LA, urban/rural
+
+# Annex - Survey variables
+
+Relevant variable names in SHS and FRS datasets. 
+
+* SHS variable list (see SHS income project - SHS Household Variables.xlsx)
+* [SHS questionnaires](https://www2.gov.scot/Topics/Statistics/16002/PublicationQuestionnaire)
+
+SHS variables:
+
+* ANNETINC_BROAD
+* EARNINC
+* BENINC
+* MSCINC
+* LA_GRWT
+
+BENINC = sum(BENINC_HIHSP, BENINC_OA1, BENINC_OA2, BENINC_OA3) for BENINC01-BENINC40
+
+      (1) Universal Credit
+      (2) Housing Benefit
+      (3) Council Tax Reduction
+      (4) Working Tax Credit
+      (5) Child Tax Credit
+      (6) Income Support
+      (7) Jobseeker’s Allowance
+      (8) Employment and Support Allowance
+      (9) Carer’s Allowance
+      (10) Child Benefit
+      (11) Guardian’s Allowance
+      (12) Maternity Allowance
+      (13) Statutory Maternity/Paternity pay, Statutory Adoption Pay
+      (14) Statutory sick pay
+      (15) Personal Independence Payments
+      (16) Disability Living Allowance
+      (17) Attendance allowance
+      (18) Severe disablement allowance
+      (19) Incapacity benefit
+      (20) Industrial Injuries Disablement Benefit
+      (21) Pension Credit
+      (22) State Retirement Pension
+      (23) Widow’s Pension, Bereavement Allowance, or Widowed Parent’s Allowance
+      (24) Armed Forces Compensation Scheme
+      (25) War Widow’s/Widower’s Pension
+      (26) Funeral Expenses Payment
+      (27) Sure Start Maternity Grant
+      (28) Best Start Grant
+      (29) Discretionary Housing Payment
+      (30) Loan or grant from DWP
+      (31) Loan or grant from Local Authority
+      (32) Winter Fuel Payments
+      (33) Cold Weather Payments
+      (34) Extended payment of Housing Benefit
+      (35) Bereavement Payment
+      (36) Return to Work Payment
+      (37) Community Care Grant from the Scottish Welfare Fund
+      (38) Crisis Grant from the Scottish Welfare Fund
+      (39) Budgeting Loan from Social Fund/Budgeting Advances from Universal Credit
+      (40) Healthy Start Vouchers
+
+MSCINC = sum(MSCINC_HIHSP, MSCINC_OA1, MSCINC_OA2, MSCINC_OA3) for MSCINC01-MSCINC10)
+
+      (1) Income from Occupational/employer (non-State) pension(s)
+      (2) Income from Benefit from annuity, trust or covenant
+      (3) Income from Maintenance payments
+      (4) Income from Rent from property or subletting, including boarders
+      (5) Income from Dig money from other household members
+      (6) Income from Benefit from accident/sickness scheme etc
+      (7) Income from Investment income (eg Dividends from shares/interest from savings)
+      (8) Income from Student loan
+      (9) Income from Grant
+      (10) Income from Regular non-work income, from any other source (please specify)
+
+HBAI variables:
+
+* GVTREGN
+* gs_newhh
+* ehcost
+* entinchh
+* ebeninhh
+* enternhh
+* hntinvhh
+* hntocchh
+* epribnhh
+* emiscih
