@@ -32,16 +32,19 @@ hhold18 <- read_sas("../Full SAS Datasets/hhold18.sas7bdat")
 
 # Introduction
 
-The general idea is to look at income first. Identify the areas of income measurement with the biggest discrepancies, dig deep, until the differences can be explained. Once the differences are understood, identify households in poverty and investigate if they show the same characteristics as those identified in the HBAI.
+The general idea is to look at income first. Identify the areas of income measurement with the biggest discrepancies, dig deep, until the differences can be explained. Once the differences are understood, identify households in poverty and see if they show the same characteristics as those identified in the HBAI.
 
 Documents:
 
 * [PID (on eRDM)](https://erdm.scotland.gov.uk:8443/documents/A27886326/details)
 * [Project plan (on eRDM)](https://erdm.scotland.gov.uk:8443/documents/A28035002/details)
 
-# Income
 
-## Income components
+# Total income
+
+look at distributions, median, quartiles etc
+
+# Income components
 
 In SHS and FRS, which income sources contribute how much to total income?
 
@@ -143,7 +146,7 @@ data
 
 SHS total income is `r str_sub(data$diff_contribution[1], 2,5)` lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions and higher earnings. Little would be gained from investigating private benefit and other income as these contribute only little to the overall differences in income.
 
-## Benefit income
+# Benefit income
 
 Which benefits are the biggest and differ the most between SHS and HBAI? 
 
@@ -152,26 +155,23 @@ Which benefits are the biggest and differ the most between SHS and HBAI?
 - Check caseload and amounts
 - Also against admin data
 
-### State pension
+## State pension
 
-### Low income benefits
+## Low income benefits
 
-### Child benefit
+## Child benefit
 
-### Disability benefits
+## Disability benefits
 
 
-## Investment income
+# Investment income
 
-## Occupational pensions income
+# Occupational pensions income
 
-## Employed earnings income
+# Employed earnings income
 
-## Self-employed earnings income
+# Self-employed earnings income
 
-## Total income
-
-look at distributions, median, quartiles etc
 
 
 # Characteristics of low income households
