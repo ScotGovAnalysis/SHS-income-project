@@ -1,5 +1,5 @@
 ---
-title: "R Notebook"
+title: "SHS income project"
 output: 
   html_notebook:
     code_folding: hide
@@ -28,6 +28,16 @@ person18 <- read_sas("../Full SAS Datasets/person18.sas7bdat")
 hhold18 <- read_sas("../Full SAS Datasets/hhold18.sas7bdat")
 
 ```
+
+
+# Introduction
+
+The general idea is to look at income first. Identify the areas of income measurement with the biggest discrepancies, dig deep, until the differences can be explained. Once the differences are understood, identify households in poverty and investigate if they show the same characteristics as those identified in the HBAI.
+
+Documents:
+
+* [PID (on eRDM)](https://erdm.scotland.gov.uk:8443/documents/A27886326/details)
+* [Project plan (on eRDM)](https://erdm.scotland.gov.uk:8443/documents/A28035002/details)
 
 # Income
 
