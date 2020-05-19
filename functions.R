@@ -407,6 +407,10 @@ groupwiseMedian3 =
 
 # Strings ----
 
+## Income types
+
+inctypes <- c("total", "earn", "ben", "occ", "inv", "oth", "privben")
+
 ## Council names
 
 FRScodes <- c(194, 195, 196, 287, 289, 291, 292, 
@@ -467,36 +471,58 @@ agegrouplevels <- c("People", "Children", "WorkingAgeAdults", "Pensioners")
 
 # Hholdtypes
 
-hhtypecodes <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+hhtypecodes <- c(1, 2, 3, 4, 5, 6, 7, 8, 9)
 hhtypenames <- c("Single adult", "Two adults", 
                  "Three+ adults", "Single adult with children", 
-                 "Two adults with children", "Three+ adults with children", 
-                 "Single pensioner", "Two pensioners",  
-                 "One adult, one pensioner", "Other")
+                 "Two adults with children", "Single pensioner", 
+                 "Two pensioners", "One adult, one pensioner", 
+                 "Other")
 
-FRShhcodes <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)
-FRShhrecode <- c(7, 7, 1, 1, 8, 9, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6)
+# Economic status
 
-# HOUSEHOL	HHCOMPS	HHCOMPS	Household comp - revised	
-# 1	One male adult, no children over pension age      7
-# 2	One female adult, no children over pension age    7
-# 3	One male adult, no children, under pension age    1
-# 4	One female adult, no children, under pension age  1
-# 5	Two adults, no children, both over pension age    8
-# 6	Two adults, no children, one over pension age     9
-# 7	Two adults, no children, both under pension age   2
-# 8	Three or more adults, no children                 3
-# 9	One adult, one child                              4
-# 10	One adult, two children                         4
-# 11	One adult, three or more children               4
-# 12	Two adults, one child                           5
-# 13	Two adults, two children                        5
-# 14	Two adults, three or more children              5
-# 15	Three or more adults, one child                 6
-# 16	Three or more adults, two children              6
-# 17	Three or more adults, three or more children    6
+# SHS HA7 codes
+# (1) Self employed [1]
+# (2) Employed full time [2]
+# (3) Employed part time [3]
+# (4) Looking after the home or family [4]
+# (5) Permanently retired from work [5]
+# (6) Unemployed and seeking work [6]
+# (7) At school [7]
+# (8) In further/higher education [8]
+# (9) Government work or training scheme [9]
+# (10) Permanently sick or disabled [10]
+# (11) Unable to work due to short-term illness or injury [11]
+# (12) Pre school/Not yet at school [12]
+# (13) Other, please say what [specify] [13] 
+
+SHS_HIHECONcodes <- c(seq(1, 13))
+SHS_HIHECONrecode <-c(3, 1, 2, 7, 5, 4, 7, 7, 7, 6, 7, 7, 7)
 
 
+# ADULT	EMPSTATI	EMPSTATI	Adult - Employment Status - ILO definition	
+# 1	Full-time Employee
+# 2	Part-time Employee
+# 3	Full-time Self-Employed
+# 4	Part-time Self-Employed
+# 5	Unemployed
+# 6	Retired
+# 7	Student
+# 8	Looking after family/home
+# 9	Permanently sick/disabled
+# 10	Temporarily sick/injured
+# 11	Other Inactive
+
+FRS_empstatcodes <- c(seq(1, 11))
+FRS_empstatrecode <- c(1, 2, 3, 3, 4, 5, 7, 7, 6, 7, 7)
+
+empstatcodes <- c(seq(1, 10))
+empstatnames <- c("Full-time Employee", 
+                  "Part-time Employee",
+                  "Self-Employed", 
+                  "Unemployed", 
+                  "Retired",
+                  "Permanently sick/disabled", 
+                  "Other Inactive")
 
 ## Colours
 
