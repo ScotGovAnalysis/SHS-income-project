@@ -132,12 +132,13 @@ tidyshs <- hhold18 %>%
                                               ifelse(ch >= 1 & wa == 2 & pn == 0, 5, 
                                                      ifelse(pp == 1 & pn == 1, 6, 
                                                             ifelse(pp == 2 & pn == 2, 7, 
-                                                                   ifelse(pp == 2 & wa == 1 & pn == 1, 8, 9))))))))) %>%
-  select(weight, chwgt, wawgt, pnwgt, 
+                                                                   ifelse(pp == 2 & wa == 1 & pn == 1, 8, 9)))))))),
+         ID = row_number()) %>%
+  select(ID, weight, chwgt, wawgt, pnwgt, 
          total, earn, ben, privben, occ, inv, oth, 
          council, urbrur, hhtype, HIHemp, pp, ch, wa, pn) %>%
   remove_labels() %>%
-  gather(key = type, value = amount, -weight, -chwgt, -wawgt, -pnwgt, 
+  gather(key = type, value = amount, -ID, -weight, -chwgt, -wawgt, -pnwgt, 
          -council, -urbrur, -hhtype, -HIHemp, -pp, -ch, -wa, -pn) %>%
   mutate(survey = "SHS")
 
@@ -215,11 +216,12 @@ tidyhbai <- hbai1819 %>%
                                               ifelse(ch >= 1 & wa == 2 & pn == 0, 5, 
                                                      ifelse(pp == 1 & pn == 1, 6, 
                                                             ifelse(pp == 2 & pn == 2, 7, 
-                                                                   ifelse(pp == 2 & wa == 1 & pn == 1, 8, 9))))))))) %>%
-  select(weight, chwgt, wawgt, pnwgt, hhtype, HIHemp, pp, ch, wa, pn, 
+                                                                   ifelse(pp == 2 & wa == 1 & pn == 1, 8, 9)))))))),
+         ID = row_number()) %>%
+  select(ID, weight, chwgt, wawgt, pnwgt, hhtype, HIHemp, pp, ch, wa, pn, 
          total, earn, ben, privben, occ, inv, oth, SERNUM) %>%
   left_join(tidyhousehol, by = "SERNUM") %>%
-  gather(key = type, value = amount, -SERNUM, -weight, -chwgt, -wawgt, -pnwgt, -pp, -ch, -wa, -pn, -council, -urbrur, -hhtype, - HIHemp) %>%
+  gather(key = type, value = amount, -ID, -SERNUM, -weight, -chwgt, -wawgt, -pnwgt, -pp, -ch, -wa, -pn, -council, -urbrur, -hhtype, - HIHemp) %>%
   mutate(survey = "HBAI") %>%
   select(-SERNUM) %>%
   remove_labels() 
@@ -252,6 +254,41 @@ tidydata$HIHemp <- decode(tidydata$HIHemp,
 
 tidydata$type <- factor(tidydata$type, levels = inctypes)
 
+
+# Get decile points
+
+ decilepoints <- tidydata %>%
+  filter(type == "total") %>%
+  group_by(survey) %>% 
+  summarise(x=list(enframe(wtd.quantile(amount, probs=c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), weights = weight)))) %>%
+  unnest(x) %>%
+  mutate(name = str_c("dec", str_sub(name, 1L, 2L))) %>%
+  spread(name, value)
+
+deciles <- tidydata %>%
+  filter(type == "total") %>%
+  select(ID, survey, amount) %>%
+  left_join(decilepoints, by = "survey") %>%
+  mutate(decile = ifelse(amount < dec10, 1,
+                         ifelse(amount < dec20, 2,
+                                ifelse(amount < dec30, 3,
+                                       ifelse(amount < dec40, 4,
+                                              ifelse(amount < dec50, 5, 
+                                                     ifelse(amount < dec60, 6,
+                                                            ifelse(amount < dec70, 7,
+                                                                   ifelse(amount < dec80, 8,
+                                                                          ifelse(amount < dec90, 9, 10)))))))))) %>%
+  select(ID, survey, decile)
+
+tidydata <- tidydata %>%
+  left_join(deciles, by = c("survey", "ID"))
+
+tidydata$quintile <- decode(tidydata$decile,
+                            search = c(seq(1,10)),
+                            replace = c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5),
+                            default = NA)
+
+# Check for missing data
 
 # View(miss_var_summary(tidyhbai))
 # View(miss_var_summary(tidyshs))
@@ -1017,6 +1054,50 @@ select(components, type, HBAI, SHS, absdiff, diffcontr)
 SHS total income is `r components$reldiff[1]` lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions. Little would be gained from further investigating the other income components as these contribute only little to the overall differences in income.
 
 Do investment incomes matter for poverty (= low income) measurement though?
+
+```{r aggr_comp_quintiles}
+
+# Make chart showing total income amount and components
+
+ggplot(tidydata, 
+       aes(x = type,
+           weight = weight*amount,
+           fill = survey)) +
+  geom_bar(position = 'dodge') +
+  scale_fill_manual(values = cols_survey) +
+  scale_y_continuous(label = comma_format(scale = 1E-6, prefix = "£", suffix = " mn", accuracy = 1)) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(title = "Aggregated weekly income by income type and income quintile",
+       subtitle = "Note different y axes",
+       x = NULL, y = NULL) +
+  facet_wrap(vars(quintile), scales = "free_y")
+
+```
+
+
+```{r aggr_comp_quintiles_table, include = FALSE}
+
+# Make table showing differences in income and income compononents
+
+tidydata %>%
+  group_by(survey, quintile, type) %>%
+  summarise(amount = sum(amount*weight)) %>%
+  unite(temp, survey, quintile) %>%
+  spread(temp, amount) %>%
+  ungroup() %>%
+  mutate(totdiff_1 = HBAI_1[1] - SHS_1[1],
+         diff_1 = HBAI_1 - SHS_1,
+         diffcontr_1 = diff_1/totdiff_1) %>%
+  mutate_at(c("HBAI_1", "HBAI_2", "HBAI_3", "HBAI_4","HBAI_5", 
+              "SHS_1","SHS_2","SHS_3","SHS_4","SHS_5","diff_1"),  
+            comma_format(scale = 1E-6, prefix = "£", suffix = " million", accuracy = 1)) %>%
+  mutate(dec1 = percent(diffcontr_1)) %>%
+  select(type, HBAI_1, SHS_1, diff_1, dec1)
+
+
+```
+
 
 # Employment income
 
