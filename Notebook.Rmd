@@ -105,14 +105,12 @@ personshs <- person18 %>%
 # check <- filter(personshs, wa == 0 & pn == 0)
 
 tidyshs <- hhold18 %>%
-  select(UNIQID, MSCINC01:MSCINC10, EARNINC, BENINC, LA_GRWT, COUNCIL, SHS_6CLA, HIHECON) %>%
+  select(UNIQID, MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, LA_GRWT, COUNCIL, SHS_6CLA, HIHECON) %>%
   left_join(personshs, by = "UNIQID") %>%
-  replace_na(list(MSCINC01 = 0, MSCINC02 = 0, MSCINC03 = 0, MSCINC04 = 0, MSCINC05 = 0, 
-                  MSCINC06 = 0, MSCINC07 = 0,  MSCINC08 = 0, MSCINC09 = 0, MSCINC10 = 0,
-                  EARNINC = 0, BENINC= 0)) %>%
+  mutate_at(vars(MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3), ~replace_na(., 0)) %>%
   mutate(equ = 0.67 + (pp-u14-1)*0.33 + u14*0.2,
          earn = EARNINC*7/(365*equ),
-         ben = BENINC*7/365,
+         ben = BENINC*7/(365*equ),
          privben = (MSCINC02 + MSCINC06)*7/(365*equ),
          occ = MSCINC01*7/(365*equ),
          inv = MSCINC07*7/(365*equ),
@@ -136,10 +134,11 @@ tidyshs <- hhold18 %>%
          ID = row_number()) %>%
   select(ID, weight, chwgt, wawgt, pnwgt, 
          total, earn, ben, privben, occ, inv, oth, equ,
-         council, urbrur, hhtype, HIHemp, pp, ch, wa, pn) %>%
+         council, urbrur, hhtype, HIHemp, pp, ch, wa, pn, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3) %>%
   remove_labels() %>%
   gather(key = type, value = amount, -ID, -weight, -chwgt, -wawgt, -pnwgt, 
-         -council, -urbrur, -hhtype, -HIHemp, -pp, -ch, -wa, -pn, -equ) %>%
+         -council, -urbrur, -hhtype, -HIHemp, -pp, -ch, -wa, -pn, -equ, 
+         -(BENINC01:BENINC40), -(BENINC01_OA1:BENINC40_OA3)) %>%
   mutate(survey = "SHS")
 
 tidyshs$council <- decode(tidyshs$council,
@@ -156,6 +155,14 @@ tidyshs$HIHemp <- decode(tidyshs$HIHemp,
                           search = SHS_HIHECONcodes, 
                           replace = SHS_HIHECONrecode,
                           default = 7)
+
+# Create dataset with detailed benefits
+
+tidyshsbens <- filter(tidyshs, type == "ben")
+
+# Remove extra benefit information
+
+tidyshs <- select(tidyshs, -(BENINC01:BENINC40), -(BENINC01_OA1:BENINC40_OA3))
 
 # Create tidy HBAI dataset
 
@@ -1272,6 +1279,12 @@ ggplot(data = earn_CI) +
 
 ```
 
+## Conclusions for earnings income
+
+- earnings by hhld income quintile match well
+- earnings of fulltime and part-time employed match ok
+- earnings of the self-employed don't match well
+
 # Benefit income
 
 - median benefit income
@@ -1288,6 +1301,8 @@ Which benefits are the biggest (amountt and/or caseload) and differ the most bet
 - Check differences and identify which benefits contribute most to overall beenfit income discrepancy
 - Check caseload and amounts
 - Also against admin data
+
+## Total benefit income by household type
 
 ```{r benefits}
 
@@ -1357,7 +1372,71 @@ tidydata %>%
 
 ```
 
-```{r bens_ci}
+```{r bens_ci1}
+
+# Note that HBAI bootstrap mechanism is SRS!
+
+ben_HBAI_CI <- groupwiseMedian2(var = "amount",
+                group = "HIHemp",
+                data = filter(tidydata, 
+                              type == "ben", 
+                              survey == "HBAI", 
+                              amount > 0) ,
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+# SHS bootstrap mechanism includes council strata
+
+ben_SHS_CI <- groupwiseMedian3(var = "amount",
+                group = "HIHemp",
+                data = filter(tidydata, 
+                              type == "ben", 
+                              survey == "SHS", 
+                              amount > 0),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+ben_SHS_CI$survey <- "SHS"
+ben_HBAI_CI$survey <- "HBAI"
+
+ben_CI <- rbind(ben_HBAI_CI, ben_SHS_CI) %>%
+  mutate(Median = ifelse(n < 50, NA, Median),
+         Normal.lower = ifelse(n < 50, NA, Normal.lower),
+         Normal.upper = ifelse(n < 50, NA, Normal.upper)) %>%
+  filter(!is.na(Median))
+
+ben_CI$HIHemp = factor(ben_CI$HIHemp, levels = empstatnames)
+
+ggplot(data = ben_CI) +
+  geom_point(aes(x = fct_rev(HIHemp), y = Median, colour = survey), size = 2) +
+  geom_segment(aes(x = HIHemp,
+                   xend = HIHemp,
+                 y = Normal.lower, 
+                 yend = Normal.upper,
+                 colour = survey),
+               size = 3,
+               alpha = 0.5) +
+    scale_colour_manual(values = cols_survey) +
+    labs(x = NULL,
+         y = "Median and 95% C.I",
+         title = 'Median household benefit income, SHS 2018 and HBAI 1819',
+         subtitle = "Households with zero benefit income excluded") +
+  scale_y_continuous(labels = comma_format(prefix = "£")) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+    coord_flip(ylim = c(0, 500)) 
+
+```
+
+```{r bens_ci2}
 
 # Note that HBAI bootstrap mechanism is SRS!
 
@@ -1413,7 +1492,7 @@ ggplot(data = ben_CI) +
     labs(x = NULL,
          y = "Median and 95% C.I",
          title = 'Median household benefit income, SHS 2018 and HBAI 1819',
-         subtitle = "Households with zero benefits excluded") +
+         subtitle = "Households with zero benefit income excluded") +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
   theme(legend.position = "top",
         legend.title = element_blank()) +
@@ -1422,6 +1501,60 @@ ggplot(data = ben_CI) +
 ```
 
 
+## Types of benefits
+
+```{r ben_types}
+
+bentypesSHS <- tidyshsbens %>%
+  select(ID, bencodes, bencodesoa)
+
+for (i in seq(1, 40)){
+   bentypesSHS[, i+1] = bentypesSHS[, i+1] + bentypesSHS[, i+41] + bentypesSHS[, i+42] + bentypesSHS[, i+43] }
+
+bentypesSHS <- bentypesSHS %>%
+  select(ID, bencodes)
+
+tidyshsbens2 <- tidyshsbens %>%
+  select(-bencodesoa, -bencodes) %>%
+  left_join(bentypesSHS, by = "ID") %>%
+  
+  select(-type, -amount, -pp, -ch, -wa, -pn) %>%
+  gather(type, amount, -ID, -weight, -chwgt, -wawgt, -pnwgt, -council, -urbrur,
+         -hhtype, -HIHemp, -survey, -equ) %>%
+  mutate(amount = amount*7/(365*equ)) %>%
+  group_by(type) %>%
+  summarise(amount = sum(amount*weight)) %>%
+  ungroup() %>%
+  mutate(type = factor(type)) %>%
+  arrange(desc(amount)) %>%
+  mutate(type = fct_reorder(type, amount),
+         share = amount/sum(amount),
+         cumshare = cumsum(share),
+         total = sum(amount),
+         amount = comma(amount, 
+                        scale = 1E-6, 
+                        prefix = "£", 
+                        suffix  = " million", 
+                        accuracy = 0.1),
+         share = percent(share, 0.01),
+         cumshare = percent(cumshare, 0.1))
+
+tidyshsbens2$type <- decode(tidyshsbens2$type,
+                           search = bencodes,
+                           replace = bennames)
+
+tidyshsbens2
+
+
+```
+
+
+
+## Conclusions for benefit income
+
+- benefit income of most household types matches ok
+- benefit income of single adults and pensioner couples don't match
+- benefit income of retired and permanently sick/disabled don't match
 
 ## State pension
 
@@ -1469,7 +1602,11 @@ SHS variables:
 * MSCINC
 * LA_GRWT
 
-BENINC = sum(BENINC_HIHSP, BENINC_OA1, BENINC_OA2, BENINC_OA3) for BENINC01-BENINC40
+BENINC = sum(BENINC_HIHSP, BENINC_OA1, BENINC_OA2, BENINC_OA3)
+
+BENINC_HIHSP = sum(BENINC01, ..., BENINC40)
+
+BENINC = sum(BENINC01, BENINC01_OA1, BENINC01_OA2, BENINC01_OA3, ..., BENINC40_OA3) 
 
       (1) Universal Credit
       (2) Housing Benefit

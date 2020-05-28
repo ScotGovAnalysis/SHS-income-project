@@ -524,6 +524,55 @@ empstatnames <- c("Full-time Employee",
                   "Permanently sick/disabled", 
                   "Other Inactive")
 
+# Benefit names SHS
+
+bencodes <- sprintf("BENINC%02d", 1:40)
+bencodesoa <- c(sprintf("BENINC%02d_OA1", 1:40), 
+                sprintf("BENINC%02d_OA2", 1:40), 
+                sprintf("BENINC%02d_OA3", 1:40))
+    
+
+bennames <- c("Universal Credit",
+              "Housing Benefit",
+              "Council Tax Reduction",
+              "Working Tax Credit",
+              "Child Tax Credit",
+              "Income Support",
+              "Jobseeker’s Allowance",
+              "Employment and Support Allowance",
+              "Carer’s Allowance",
+              "Child Benefit",
+              "Guardian’s Allowance",
+              "Maternity Allowance",
+              "Statutory Maternity/Paternity pay, Statutory Adoption Pay",
+              "Statutory sick pay",
+              "Personal Independence Payments",
+              "Disability Living Allowance",
+              "Attendance allowance",
+              "Severe disablement allowance",
+              "Incapacity benefit",
+              "Industrial Injuries Disablement Benefit",
+              "Pension Credit",
+              "State Retirement Pension",
+              "Widow’s Pension, Bereavement Allowance, or Widowed Parent’s Allowance",
+              "Armed Forces Compensation Scheme",
+              "War Widow’s/Widower’s Pension",
+              "Funeral Expenses Payment",
+              "Sure Start Maternity Grant",
+              "Best Start Grant",
+              "Discretionary Housing Payment",
+              "Loan or grant from DWP",
+              "Loan or grant from Local Authority",
+              "Winter Fuel Payments",
+              "Cold Weather Payments",
+              "Extended payment of Housing Benefit",
+              "Bereavement Payment",
+              "Return to Work Payment",
+              "Community Care Grant from the Scottish Welfare Fund",
+              "Crisis Grant from the Scottish Welfare Fund",
+              "Budgeting Loan from Social Fund/Budgeting Advances from Universal Credit",
+              "Healthy Start Vouchers")
+
 ## Colours
 
 ### Moonrise 2 = c("#798E87", "#C27D38", "#CCC591", "#29211F")
