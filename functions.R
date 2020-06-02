@@ -531,18 +531,17 @@ bencodesoa <- c(sprintf("BENINC%02d_OA1", 1:40),
                 sprintf("BENINC%02d_OA2", 1:40), 
                 sprintf("BENINC%02d_OA3", 1:40))
     
-
 bennames <- c("Universal Credit",
               "Housing Benefit",
               "Council Tax Reduction",
               "Working Tax Credit",
               "Child Tax Credit",
               "Income Support",
-              "Jobseeker’s Allowance",
+              "Jobseekers Allowance",
               "Employment and Support Allowance",
-              "Carer’s Allowance",
+              "Carers Allowance",
               "Child Benefit",
-              "Guardian’s Allowance",
+              "Guardians Allowance",
               "Maternity Allowance",
               "Statutory Maternity/Paternity pay, Statutory Adoption Pay",
               "Statutory sick pay",
@@ -554,9 +553,9 @@ bennames <- c("Universal Credit",
               "Industrial Injuries Disablement Benefit",
               "Pension Credit",
               "State Retirement Pension",
-              "Widow’s Pension, Bereavement Allowance, or Widowed Parent’s Allowance",
+              "Widows Pension, Bereavement Allowance, or Widowed Parents Allowance",
               "Armed Forces Compensation Scheme",
-              "War Widow’s/Widower’s Pension",
+              "War Widows/Widowers Pension",
               "Funeral Expenses Payment",
               "Sure Start Maternity Grant",
               "Best Start Grant",
@@ -572,6 +571,59 @@ bennames <- c("Universal Credit",
               "Crisis Grant from the Scottish Welfare Fund",
               "Budgeting Loan from Social Fund/Budgeting Advances from Universal Credit",
               "Healthy Start Vouchers")
+
+## Benefit names FRS
+
+bencodesfrs <- sprintf("ben%02d", 1:40)
+
+bennamesfrs <- c("State Retirement Pension",
+                 "Housing Benefit",
+                 "Child Benefit",
+                 "Child Tax Credit",
+                 "Employment and Support Allo...",
+                 
+                 "Personal Independence Payments",
+                 "Disability Living Allowance",
+                 "Universal Credit",
+                 "Working Tax Credit",
+                 "Council Tax Reduction",
+                 
+                 "Carers Allowance",
+                 "Income Support",
+                 "Attendance allowance",
+                 "Pension Credit",
+                 "Jobseekers Allowance",
+                 
+                 "Winter Fuel Payments",
+                 "Statutory Maternity/Paterni...",
+                 "Widows Pension, Bereavem...",
+                 "Maternity Allowance",
+                 "Incapacity benefit",
+                 
+                 "Severe disablement allowance",
+                 "Industrial Injuries Disable...",
+                 "Cold Weather Payments",
+                 "Statutory sick pay",
+                 "Guardians Allowance",
+                 
+                 "Discretionary Housing Payment",
+                 "Loan or grant from DWP",
+                 "Bereavement Payment",
+                 "Budgeting Loan from Social ...",
+                 "Community Care Grant from t...",
+                 
+                 "Funeral Expenses Payment",
+                 "Armed Forces Compensation S...",
+                 "Crisis Grant from the Scott...",
+                 "Return to Work Payment",
+                 "War Widows/Widowers P...",
+                 
+                 "Healthy Start Vouchers",
+                 "Loan or grant from Local Au...",
+                 "Sure Start Maternity Grant",
+                 "Extended payment of Housing...",
+                 "Best Start Grant")
+
 
 ## Colours
 

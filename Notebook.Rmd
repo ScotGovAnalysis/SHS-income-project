@@ -32,6 +32,7 @@ source("functions.R")
 
 adult_1819 <- read_sas("../Full SAS Datasets/adult_1819.sas7bdat")
 househol_1819 <- read_sas("../Full SAS Datasets/househol_1819.sas7bdat")
+benefits_1819 <- read_sas("../Full SAS Datasets/benefits_1819.sas7bdat")
 hbai1819 <- read_sas("../Full SAS Datasets/hbai1819.sas7bdat")
 person18 <- read_sas("../Full SAS Datasets/person18.sas7bdat")
 hhold18 <- read_sas("../Full SAS Datasets/hhold18.sas7bdat")
@@ -60,7 +61,7 @@ We expect average total income to be matching the FRS well, even if the individu
 
 ```{r make_tidy_data}
 
-# Create tidy SHS dataset
+# Create tidy SHS dataset ----
 
 # Equivalise: 
 # get number of children under 14 from person dataset; 
@@ -164,7 +165,7 @@ tidyshsbens <- filter(tidyshs, type == "ben")
 
 tidyshs <- select(tidyshs, -(BENINC01:BENINC40), -(BENINC01_OA1:BENINC40_OA3))
 
-# Create tidy HBAI dataset
+# Create tidy HBAI dataset ----
 
 # Get Highest Income Householder (= Household Reference Person)
 # from person dataset
@@ -189,7 +190,52 @@ tidyhousehol$urbrur <- decode(tidyhousehol$urbrur,
                               search = c(1, 2, 3, 4, 5, 6, 7, 8),
                               replace = c(1, 2, 3, 4, 4, 5, 6, 6))
 
-# Get person, child, wa and pensioner weights
+# Get (most) benefits from benefits dataset
+# Get these from HBAI dataset: ben02 HBENBU, ben10 CTREBAM1, ben16 WINPAYBU
+# Get these from FRS adult dataset: ben17 SMPADJ + SPPADJ + SAPADJ, ben24 SSPADJ
+
+tidyfrsbens <- benefits_1819 %>%
+  select(SERNUM, BENEFIT, BENAMT, USUAL, NOTUSAMT, PRES, BENPD, VAR2) %>%
+  mutate(VAR2 = ifelse(is.na(VAR2), 0, VAR2),
+         USUAL = ifelse(is.na(USUAL), 0, USUAL),
+         PRES = ifelse(is.na(PRES), 0, PRES),
+         ben01 = ifelse(BENEFIT == 5, 
+                       ifelse(USUAL == 2 & !is.na(NOTUSAMT), NOTUSAMT, BENAMT), 0), 
+         ben03 = ifelse(BENEFIT == 3, BENAMT, 0), 
+         ben04 = ifelse(BENEFIT == 91 | BENEFIT == 93, BENAMT, 0), 
+         ben05 = ifelse(BENEFIT == 16, BENAMT, 0), 
+         ben05 = ifelse(BENEFIT == 66 & BENAMT > 0 & VAR2 != 1, BENAMT, ben05), 
+         ben06 = ifelse(BENEFIT == 96 | BENEFIT == 97, BENAMT, 0), 
+         ben07 = ifelse(BENEFIT == 1 | BENEFIT == 2, BENAMT, 0),
+         ben08 = ifelse(BENEFIT == 95, BENAMT, 0),
+         ben08 = ifelse(BENEFIT == 110 & BENAMT > 0 & VAR2 != 1, BENAMT, ben08), 
+         ben09 = ifelse(BENEFIT == 90 | BENEFIT == 92, BENAMT, 0), 
+         ben11 = ifelse(BENEFIT == 13, BENAMT, 0), 
+         ben12 = ifelse(BENEFIT == 19, BENAMT, 0), 
+         ben12 = ifelse(BENEFIT == 65 & BENAMT > 0 & VAR2 != 1, BENAMT, ben12), 
+         ben13 = ifelse(BENEFIT == 12, BENAMT, 0), 
+         ben14 = ifelse(BENEFIT == 4, BENAMT, 0), 
+         ben15 = ifelse(BENEFIT == 14, BENAMT, 0),  
+         ben18 = ifelse(BENEFIT == 6, 
+                       ifelse(USUAL == 2, 
+                              ifelse(is.na(NOTUSAMT), BENAMT, NOTUSAMT), BENAMT), 0), 
+         ben19 = ifelse(BENEFIT == 21, BENAMT, 0),
+         ben20 = ifelse(BENEFIT == 17, BENAMT, 0), 
+         ben21 = ifelse(BENEFIT == 10, BENAMT, 0), 
+         ben22 = ifelse(BENEFIT == 15, BENAMT, 0), 
+         ben23 = NA,
+         ben25 = ifelse(BENEFIT == 37, BENAMT, 0), 
+         ben26 = NA, 
+         ben27 = ifelse(BENEFIT == 98, BENAMT*7/365, 0), 
+         ben28 = NA, 
+         ben29 = ifelse(BENEFIT == 69 | BENEFIT == 70 | BENEFIT == 111, 
+                        ifelse(VAR2 == 2 & BENAMT > 0, BENAMT, 0), 0), 
+         ben30 = NA) %>% 
+group_by(SERNUM) %>%
+         summarise_at(vars(ben01:ben30), sum) 
+  
+
+# Get person, child, wa and pensioner weights from HBAI dataset
 
 HBAIweights <- hbai1819 %>%
   filter(GVTREGN == 12) %>%
@@ -199,6 +245,8 @@ HBAIweights <- hbai1819 %>%
             chwgt = sum(gs_newch),
             wawgt = sum(gs_newwa),
             pnwgt = sum(gs_newpn))
+
+# Combine all FRS and HBAI datasets
 
 tidyhbai <- hbai1819 %>%
   filter(GVTREGN == 12,
@@ -249,7 +297,8 @@ tidyhbai$HIHemp <- decode(tidyhbai$HIHemp,
                           replace = FRS_empstatrecode,
                           default = "unknown")
 
-# Combine datasets to a hhld level dataset with different income components (using hhld weight)
+# Combine tidy SHS and HBAI datasets ----
+# create hhld level dataset with different income components (using hhld weight)
 
 tidydata <- rbind(tidyhbai, tidyshs) %>%
   mutate(survey = factor(survey, ordered = TRUE),
@@ -1503,13 +1552,19 @@ ggplot(data = ben_CI) +
 
 ## Types of benefits
 
+### HBAI
+
+### SHS
+
 ```{r ben_types}
 
 bentypesSHS <- tidyshsbens %>%
   select(ID, bencodes, bencodesoa)
 
+
+
 for (i in seq(1, 40)){
-   bentypesSHS[, i+1] = bentypesSHS[, i+1] + bentypesSHS[, i+41] + bentypesSHS[, i+42] + bentypesSHS[, i+43] }
+   bentypesSHS[, i+1] = bentypesSHS[, i+1] + bentypesSHS[, i+41] + bentypesSHS[, i+81] + bentypesSHS[, i+121] }
 
 bentypesSHS <- bentypesSHS %>%
   select(ID, bencodes)
@@ -1530,7 +1585,7 @@ tidyshsbens2 <- tidyshsbens %>%
   mutate(type = fct_reorder(type, amount),
          share = amount/sum(amount),
          cumshare = cumsum(share),
-         total = sum(amount),
+         total = comma(sum(amount), scale = 1E-6, prefix = "£", suffix = " million", precision = 1),
          amount = comma(amount, 
                         scale = 1E-6, 
                         prefix = "£", 
@@ -1541,13 +1596,12 @@ tidyshsbens2 <- tidyshsbens %>%
 
 tidyshsbens2$type <- decode(tidyshsbens2$type,
                            search = bencodes,
-                           replace = bennames)
+                           replace = str_trunc(bennames, 30))
 
 tidyshsbens2
 
 
 ```
-
 
 
 ## Conclusions for benefit income
