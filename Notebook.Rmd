@@ -27,6 +27,16 @@ library(boot) # needed for groupwiseMedian function
 # Load functions
 
 source("functions.R")
+
+# Load strings and colour scheme
+
+source("strings.R")
+source("colours.R")
+
+# Load datasets
+
+source("prepSHSdata.R")
+source("prepHBAIdata.R")
 source("prepdata.R")
 
 ```
@@ -57,7 +67,7 @@ We expect average total income to be matching the FRS well, even if the individu
 
 tidydata %>%
   filter(type == "total") %>%
-  ggplot(aes(x = amount, weight = weight, colour = survey, fill = survey )) +
+  ggplot(aes(x = amount, weight = ppwgt, colour = survey, fill = survey )) +
   geom_density(size = 1, alpha = 0.5, bw = 0.02) +
   scale_x_log10(limits = c(20, 20000), labels = comma_format(prefix = "£")) +
   scale_y_continuous(labels = comma_format(scale = 1E-6, suffix = " million")) +
@@ -72,7 +82,7 @@ tidydata %>%
 
 tidydata %>%
   filter(type == "total") %>%
-  ggplot(aes(x = amount, weight = weight, colour = survey, fill = survey )) +
+  ggplot(aes(x = amount, weight = ppwgt, colour = survey, fill = survey )) +
   coord_cartesian(xlim = c(20, 20000)) +
   stat_ecdf(geom = "step", size = 1, alpha = 0.5) +
   scale_x_log10(labels = comma_format(prefix = "£")) +
@@ -88,7 +98,7 @@ tidydata %>%
 
 tidydata %>%
   filter(type == "total") %>%
-  ggplot(aes(x = amount, weight = weight, colour = survey, fill = survey )) +
+  ggplot(aes(x = amount, weight = ppwgt, colour = survey, fill = survey )) +
   coord_cartesian(xlim = c(100,1500)) +
   stat_ecdf(geom = "step", size = 1, alpha = 0.5) +
   scale_x_log10(labels = comma_format(prefix = "£")) +
@@ -113,7 +123,7 @@ tidydata %>%
 tidydata %>%
   filter(type == "total") %>%
   group_by(survey) %>% 
-  summarise(x=list(enframe(wtd.quantile(amount, probs=c(0.25, 0.5, 0.75), weights = weight)))) %>%
+  summarise(x=list(enframe(wtd.quantile(amount, probs=c(0.25, 0.5, 0.75), weights = ppwgt)))) %>%
   unnest(x) %>%
   mutate(value = comma(value, 1, prefix = "£"),
          Quantile = name) %>%
@@ -129,7 +139,7 @@ tidydata %>%
 tidydata %>%
   filter(type == "total") %>%
   group_by(survey) %>% 
-  summarise(x=list(enframe(wtd.quantile(amount, probs=c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), weights = weight)))) %>%
+  summarise(x=list(enframe(wtd.quantile(amount, probs=c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), weights = ppwgt)))) %>%
   unnest(x) %>%
   mutate(Quantile = name,
          value = comma(value, 1, prefix = "£")) %>%
@@ -155,7 +165,7 @@ samplesize <- tidydata %>%
 councilinc <- tidydata %>%
   filter(type == "total") %>%
   group_by(survey, council) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = weight)) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
   spread(survey, median) %>%
   rename(HBAI_median = HBAI,
          SHS_median = SHS) %>%
@@ -199,7 +209,8 @@ councilinc %>%
 
 HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "council",
-                data = filter(tidydata, type == "total", survey == "HBAI"),
+                data = filter(tidydata, type == "total", survey == "HBAI") %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -208,7 +219,8 @@ HBAI_CI <- groupwiseMedian2(var = "amount",
                 digits = 3)
 
 HBAI_CI_all <- groupwiseMedian2(var = "amount",
-                data = filter(tidydata, type == "total", survey == "HBAI"),
+                data = filter(tidydata, type == "total", survey == "HBAI") %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -222,7 +234,8 @@ HBAI_CI_all <- groupwiseMedian2(var = "amount",
 
 SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "council",
-                data = filter(tidydata, type == "total", survey == "SHS"),
+                data = filter(tidydata, type == "total", survey == "SHS") %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -231,7 +244,8 @@ SHS_CI <- groupwiseMedian3(var = "amount",
                 digits = 3)
 
 SHS_CI_all <- groupwiseMedian3(var = "amount",
-                data = filter(tidydata, type == "total", survey == "SHS"),
+                data = filter(tidydata, type == "total", survey == "SHS") %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -304,7 +318,7 @@ samplesize <- tidydata %>%
 urbrurinc <- tidydata %>%
   filter(type == "total") %>%
   group_by(survey, urbrur) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = weight)) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
   spread(survey, median) %>%
   rename(HBAI_median = HBAI,
          SHS_median = SHS) %>%
@@ -319,21 +333,6 @@ mutate(urbrurinc,
   arrange(urbrur) %>%
   select(urbrur, urbrurclass, everything())
 
-
-# Chart - Median income by urban/rural class
-
-urbrurinc %>%
-  filter(HBAI_sample >= 50) %>%
-  ggplot(aes(label = urbrurclasses, x = HBAI_median, y = SHS_median)) +
-  geom_point(aes(size = HBAI_sample, alpha = HBAI_sample)) +
-  geom_text_repel() +
-  geom_abline(slope = 1, intercept = 0) +
-   theme(legend.position = "top") +
-  guides(size = guide_legend("HBAI sample size"), 
-         alpha = guide_legend("HBAI sample size")) +
-  scale_x_continuous(limits = c(400, 600)) +
-  scale_y_continuous(limits = c(450, 600)) 
-
 ```
 
 ### Urban/rural medians with confidence intervals
@@ -344,7 +343,8 @@ urbrurinc %>%
 
 UR_HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "urbrur",
-                data = filter(tidydata, type == "total", survey == "HBAI"),
+                data = filter(tidydata, type == "total", survey == "HBAI") %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -356,7 +356,8 @@ UR_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 UR_SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "urbrur",
-                data = filter(tidydata, type == "total", survey == "SHS"),
+                data = filter(tidydata, type == "total", survey == "SHS") %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -407,7 +408,7 @@ ggplot(data = UR_CI) +
 
 filter(tidydata, type == "total") %>%
   group_by(survey) %>%
-  summarise(People = wtd.quantile(amount, probs = 0.5, weights = weight),
+  summarise(People = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             Children = wtd.quantile(amount, probs = 0.5, weights = chwgt),
             WorkingAgeAdults = wtd.quantile(amount, probs = 0.5, weights = wawgt),
             Pensioners = wtd.quantile(amount, probs = 0.5, weights = pnwgt)) %>%
@@ -424,8 +425,7 @@ filter(tidydata, type == "total") %>%
 
 ch_HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, type == "total", survey == "HBAI") %>% 
-                  select(-weight) %>% 
-                  rename(weight = chwgt),
+                mutate(weight = chwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -435,8 +435,7 @@ ch_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 wa_HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, type == "total", survey == "HBAI") %>% 
-                  select(-weight) %>% 
-                  rename(weight = wawgt),
+                mutate(weight = wawgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -446,8 +445,7 @@ wa_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 pn_HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, type == "total", survey == "HBAI") %>% 
-                  select(-weight) %>% 
-                  rename(weight = pnwgt),
+                mutate(weight = pnwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -459,8 +457,7 @@ pn_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 ch_SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, type == "total", survey == "SHS") %>% 
-                  select(-weight) %>% 
-                  rename(weight = chwgt),
+                mutate(weight = chwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -470,8 +467,7 @@ ch_SHS_CI <- groupwiseMedian3(var = "amount",
 
 wa_SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, type == "total", survey == "SHS") %>% 
-                  select(-weight) %>% 
-                  rename(weight = wawgt),
+                mutate(weight = wawgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -481,8 +477,7 @@ wa_SHS_CI <- groupwiseMedian3(var = "amount",
 
 pn_SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, type == "total", survey == "SHS") %>% 
-                  select(-weight) %>% 
-                  rename(weight = pnwgt),
+                mutate(weight = pnwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -545,7 +540,7 @@ samplesize <- tidydata %>%
 hhtypeinc <- tidydata %>%
   filter(type == "total") %>%
   group_by(survey, hhtype) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = weight)) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
   spread(survey, median) %>%
   rename(HBAI_median = HBAI,
          SHS_median = SHS) %>%
@@ -559,20 +554,6 @@ mutate(hhtypeinc,
        hhtype = factor(hhtype, levels = hhtypenames)) %>%
   arrange(hhtype)
 
-# Chart - Median income by hhtype
-
-hhtypeinc %>%
-  filter(HBAI_sample >= 50) %>%
-  ggplot(aes(label = hhtype, x = HBAI_median, y = SHS_median)) +
-  geom_point(aes(size = HBAI_sample, alpha = HBAI_sample)) +
-  geom_text_repel() +
-  geom_abline(slope = 1, intercept = 0) +
-   theme(legend.position = "top") +
-  guides(size = guide_legend("HBAI sample size"), 
-         alpha = guide_legend("HBAI sample size")) +
-  scale_x_continuous(limits = c(350, 700)) +
-  scale_y_continuous(limits = c(350, 700)) 
-
 ```
 
 ### Household type medians with confidence intervals
@@ -583,7 +564,8 @@ hhtypeinc %>%
 
 hhtype_HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "hhtype",
-                data = filter(tidydata, type == "total", survey == "HBAI"),
+                data = filter(tidydata, type == "total", survey == "HBAI") %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -595,7 +577,8 @@ hhtype_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 hhtype_SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "hhtype",
-                data = filter(tidydata, type == "total", survey == "SHS"),
+                data = filter(tidydata, type == "total", survey == "SHS") %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -651,7 +634,7 @@ samplesize <- tidydata %>%
 HIHempinc <- tidydata %>%
   filter(type == "total") %>%
   group_by(survey, HIHemp) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = weight)) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
   spread(survey, median) %>%
   rename(HBAI_median = HBAI,
          SHS_median = SHS) %>%
@@ -666,19 +649,6 @@ mutate(HIHempinc,
        HIHemp = factor(HIHemp, levels = empstatnames)) %>%
   arrange(HIHemp)
 
-# Chart - Median income by hhtype
-
-HIHempinc %>%
-  filter(HBAI_sample >= 50) %>%
-  ggplot(aes(label = HIHemp, x = HBAI_median, y = SHS_median)) +
-  geom_point(aes(size = HBAI_sample, alpha = HBAI_sample)) +
-  geom_text_repel() +
-  geom_abline(slope = 1, intercept = 0) +
-   theme(legend.position = "top") +
-  guides(size = guide_legend("HBAI sample size"), 
-         alpha = guide_legend("HBAI sample size")) +
-  scale_x_continuous(limits = c(300, 650)) +
-  scale_y_continuous(limits = c(250, 650)) 
 
 ```
 
@@ -690,7 +660,8 @@ HIHempinc %>%
 
 HIHemp_HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "HIHemp",
-                data = filter(tidydata, type == "total", survey == "HBAI"),
+                data = filter(tidydata, type == "total", survey == "HBAI") %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -702,7 +673,8 @@ HIHemp_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 HIHemp_SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "HIHemp",
-                data = filter(tidydata, type == "total", survey == "SHS"),
+                data = filter(tidydata, type == "total", survey == "SHS") %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -765,10 +737,11 @@ In SHS and FRS, which income sources contribute how much to total income?
 ```{r components}
 
 # Make chart showing total income amount and components
+# de-equivalise
 
 ggplot(tidydata,
        aes(x = type,
-           weight = weight*amount,
+           weight = hhwgt*amount*equ,
            fill = survey)) +
   geom_bar(position = 'dodge') +
   scale_fill_manual(values = cols_survey) +
@@ -787,7 +760,7 @@ Which income components contribute most to the differences?
 
 components <- tidydata %>%
   group_by(survey, type) %>%
-  summarise(amount = sum(amount*weight)) %>%
+  summarise(amount = sum(amount*hhwgt*equ)) %>%
   spread(survey, amount) %>%
   mutate(totdiff = HBAI[1] - SHS[1],
          diff = HBAI - SHS,
@@ -815,7 +788,7 @@ Do investment incomes matter for poverty (= low income) measurement though?
 
 ggplot(tidydata, 
        aes(x = type,
-           weight = weight*amount,
+           weight = hhwgt*amount*equ,
            fill = survey)) +
   geom_bar(position = 'dodge') +
   scale_fill_manual(values = cols_survey) +
@@ -832,11 +805,11 @@ ggplot(tidydata,
 
 ```{r aggr_comp_quintiles_table, include = FALSE}
 
-# Make table showing differences in income and income components
+# Make table showing differences in income and income compononents
 
 tidydata %>%
   group_by(survey, quintile, type) %>%
-  summarise(amount = sum(amount*weight)) %>%
+  summarise(amount = sum(amount*hhwgt*equ)) %>%
   unite(temp, survey, quintile) %>%
   spread(temp, amount) %>%
   ungroup() %>%
@@ -864,37 +837,15 @@ earnings <- tidydata %>%
   filter(type == "earn", 
          HIHemp %in% empstatnames[1:3]) %>%
   group_by(survey, HIHemp) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = weight),
-            mean = wtd.mean(amount, weights = weight),
-            sum = sum(amount*weight),
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = ppwgt),
+            sum = sum(amount*hhwgt*equ),
             sample = sum(n)) 
 
 earnings %>%
   mutate(sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " mn"),
          sample = comma(sample)) %>%
   mutate_at(c("median", "mean"), comma_format(prefix = "£"))
-
-earnings %>% select(survey, HIHemp, median) %>%
-  spread(survey, median) %>%
-  ggplot(aes(label = HIHemp, x = HBAI, y = SHS)) +
-  geom_point() +
-  geom_abline(slope = 1, intercept = 0) +
-  geom_text_repel() +
-   theme(legend.position = "top") +
-  scale_x_continuous(limits = c(200, 700)) +
-  scale_y_continuous(limits = c(300, 650)) +
-  labs(title = "Median hhld earnings by HIH economic status - HBAI vs. SHS")
-
-earnings %>% select(survey, HIHemp, mean) %>%
-  spread(survey, mean) %>%
-  ggplot(aes(label = HIHemp, x = HBAI, y = SHS)) +
-  geom_point() +
-  geom_abline(slope = 1, intercept = 0) +
-  geom_text_repel() +
-   theme(legend.position = "top") +
-  scale_x_continuous(limits = c(200, 700)) +
-  scale_y_continuous(limits = c(350, 700)) +
-  labs(title = "Mean hhld earnings by HIH economic status - HBAI vs. SHS")
 
 ```
 
@@ -907,7 +858,8 @@ earn_HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, 
                               type == "earn", 
                               survey == "HBAI", 
-                              HIHemp %in% empstatnames[1:3]) ,
+                              HIHemp %in% empstatnames[1:3]) %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -922,7 +874,8 @@ earn_SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, 
                               type == "earn", 
                               survey == "SHS", 
-                              HIHemp %in% empstatnames[1:3]),
+                              HIHemp %in% empstatnames[1:3]) %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -973,7 +926,8 @@ earn_HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, 
                               type == "earn", 
                               survey == "HBAI", 
-                              HIHemp %in% empstatnames[1:3]),
+                              HIHemp %in% empstatnames[1:3]) %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -987,7 +941,8 @@ earn_SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, 
                               type == "earn", 
                               survey == "SHS", 
-                              HIHemp %in% empstatnames[1:3]),
+                              HIHemp %in% empstatnames[1:3]) %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -1050,46 +1005,15 @@ Which benefits are the biggest (amountt and/or caseload) and differ the most bet
 
 ## Total benefit income by household type
 
-```{r benefits}
-
-tidydata %>%
-  filter(type == "ben",
-         amount > 0) %>%
-  group_by(survey, HIHemp) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = weight),
-            mean = wtd.mean(amount, weights = weight),
-            sum = sum(amount*weight),
-            sample = sum(n)) %>%
-  mutate(HIHemp = factor(HIHemp, levels = empstatnames),
-         sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " mn")) %>%
-  mutate_at(c("median", "mean"), comma_format(prefix = "£")) %>%
-  arrange(HIHemp, survey)
-
-tidydata %>%
-  filter(type == "ben",
-         amount > 0) %>%
-  group_by(survey, HIHemp) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = weight)) %>%
-  mutate(HIHemp = factor(HIHemp, levels = empstatnames)) %>%
-  select(survey, HIHemp, median) %>%
-  spread(survey, median) %>%
-  ggplot(aes(label = HIHemp, x = HBAI, y = SHS)) +
-  geom_point() +
-  geom_abline(slope = 1, intercept = 0) +
-  geom_text_repel() +
-   theme(legend.position = "top") +
-  scale_x_continuous(limits = c(0, 400)) +
-  scale_y_continuous(limits = c(0, 300)) +
-  labs(title = "Median hhld benefit income by HIH economic status - HBAI vs. SHS",
-       subtitle = "Excludes hhlds with no benefit income")
+```{r benefits_hhtype}
 
 tidydata %>%
   filter(type == "ben", 
          amount > 0) %>%
   group_by(survey, hhtype) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = weight),
-            mean = wtd.mean(amount, weights = weight),
-            sum = sum(amount*weight),
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = ppwgt),
+            sum = sum(amount*hhwgt*equ),
             sample = sum(n)) %>%
   mutate(hhtype = factor(hhtype, levels = hhtypenames),
          sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " mn")) %>%
@@ -1097,92 +1021,9 @@ tidydata %>%
   arrange(hhtype, survey)
 
 
-tidydata %>%
-  filter(type == "ben",
-         amount > 0) %>%
-  group_by(survey, hhtype) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = weight)) %>%
-  mutate(hhtype = factor(hhtype, levels = hhtypenames)) %>%
-  select(survey, hhtype, median) %>%
-  spread(survey, median) %>%
-  ggplot(aes(label = hhtype, x = HBAI, y = SHS)) +
-  geom_point() +
-  geom_abline(slope = 1, intercept = 0) +
-  geom_text_repel() +
-   theme(legend.position = "top") +
-  scale_x_continuous(limits = c(0, 350)) +
-  scale_y_continuous(limits = c(0, 300)) +
-  labs(title = "Median hhld benefit income by hhld type - HBAI vs. SHS",
-       subtitle = "Excludes hhlds with no benefit income")
-
-
 ```
 
-```{r bens_ci1}
-
-# Note that HBAI bootstrap mechanism is SRS!
-
-ben_HBAI_CI <- groupwiseMedian2(var = "amount",
-                group = "HIHemp",
-                data = filter(tidydata, 
-                              type == "ben", 
-                              survey == "HBAI", 
-                              amount > 0) ,
-                conf = 0.95,
-                R = 100,
-                normal = TRUE,
-                basic = FALSE,
-                percentile = FALSE,
-                digits = 3)
-
-# SHS bootstrap mechanism includes council strata
-
-ben_SHS_CI <- groupwiseMedian3(var = "amount",
-                group = "HIHemp",
-                data = filter(tidydata, 
-                              type == "ben", 
-                              survey == "SHS", 
-                              amount > 0),
-                conf = 0.95,
-                R = 100,
-                normal = TRUE,
-                basic = FALSE,
-                percentile = FALSE,
-                digits = 3)
-
-ben_SHS_CI$survey <- "SHS"
-ben_HBAI_CI$survey <- "HBAI"
-
-ben_CI <- rbind(ben_HBAI_CI, ben_SHS_CI) %>%
-  mutate(Median = ifelse(n < 50, NA, Median),
-         Normal.lower = ifelse(n < 50, NA, Normal.lower),
-         Normal.upper = ifelse(n < 50, NA, Normal.upper)) %>%
-  filter(!is.na(Median))
-
-ben_CI$HIHemp = factor(ben_CI$HIHemp, levels = empstatnames)
-
-ggplot(data = ben_CI) +
-  geom_point(aes(x = fct_rev(HIHemp), y = Median, colour = survey), size = 2) +
-  geom_segment(aes(x = HIHemp,
-                   xend = HIHemp,
-                 y = Normal.lower, 
-                 yend = Normal.upper,
-                 colour = survey),
-               size = 3,
-               alpha = 0.5) +
-    scale_colour_manual(values = cols_survey) +
-    labs(x = NULL,
-         y = "Median and 95% C.I",
-         title = 'Median household benefit income, SHS 2018 and HBAI 1819',
-         subtitle = "Households with zero benefit income excluded") +
-  scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(0, 500)) 
-
-```
-
-```{r bens_ci2}
+```{r bens_hhtype_ci}
 
 # Note that HBAI bootstrap mechanism is SRS!
 
@@ -1191,7 +1032,8 @@ ben_HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, 
                               type == "ben", 
                               survey == "HBAI", 
-                              amount > 0) ,
+                              amount > 0) %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -1206,7 +1048,8 @@ ben_SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, 
                               type == "ben", 
                               survey == "SHS", 
-                              amount > 0),
+                              amount > 0) %>%
+                  mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -1246,36 +1089,101 @@ ggplot(data = ben_CI) +
 
 ```
 
+## Total benefit income by HIH economic status
+
+```{r benefits_eco}
+
+tidydata %>%
+  filter(type == "ben",
+         amount > 0) %>%
+  group_by(survey, HIHemp) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = ppwgt),
+            sum = sum(amount*hhwgt*equ),
+            sample = sum(n)) %>%
+  mutate(HIHemp = factor(HIHemp, levels = empstatnames),
+         sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " mn")) %>%
+  mutate_at(c("median", "mean"), comma_format(prefix = "£")) %>%
+  arrange(HIHemp, survey)
+
+```
+
+```{r bens_eco_ci}
+
+# Note that HBAI bootstrap mechanism is SRS!
+
+ben_HBAI_CI <- groupwiseMedian2(var = "amount",
+                group = "HIHemp",
+                data = filter(tidydata, 
+                              type == "ben", 
+                              survey == "HBAI", 
+                              amount > 0) %>%
+                  mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+# SHS bootstrap mechanism includes council strata
+
+ben_SHS_CI <- groupwiseMedian3(var = "amount",
+                group = "HIHemp",
+                data = filter(tidydata, 
+                              type == "ben", 
+                              survey == "SHS", 
+                              amount > 0) %>%
+                  mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+ben_SHS_CI$survey <- "SHS"
+ben_HBAI_CI$survey <- "HBAI"
+
+ben_CI <- rbind(ben_HBAI_CI, ben_SHS_CI) %>%
+  mutate(Median = ifelse(n < 50, NA, Median),
+         Normal.lower = ifelse(n < 50, NA, Normal.lower),
+         Normal.upper = ifelse(n < 50, NA, Normal.upper)) %>%
+  filter(!is.na(Median))
+
+ben_CI$HIHemp = factor(ben_CI$HIHemp, levels = empstatnames)
+
+ggplot(data = ben_CI) +
+  geom_point(aes(x = fct_rev(HIHemp), y = Median, colour = survey), size = 2) +
+  geom_segment(aes(x = HIHemp,
+                   xend = HIHemp,
+                 y = Normal.lower, 
+                 yend = Normal.upper,
+                 colour = survey),
+               size = 3,
+               alpha = 0.5) +
+    scale_colour_manual(values = cols_survey) +
+    labs(x = NULL,
+         y = "Median and 95% C.I",
+         title = 'Median household benefit income, SHS 2018 and HBAI 1819',
+         subtitle = "Households with zero benefit income excluded") +
+  scale_y_continuous(labels = comma_format(prefix = "£")) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+    coord_flip(ylim = c(0, 500)) 
+
+```
+
 
 ## Types of benefits
 
 ### HBAI
 
-### SHS
+```{r ben_types_frs}
 
-```{r ben_types}
-
-bentypesSHS <- tidyshsbens %>%
-  select(ID, bencodes, bencodesoa)
-
-
-
-for (i in seq(1, 40)){
-   bentypesSHS[, i+1] = bentypesSHS[, i+1] + bentypesSHS[, i+41] + bentypesSHS[, i+81] + bentypesSHS[, i+121] }
-
-bentypesSHS <- bentypesSHS %>%
-  select(ID, bencodes)
-
-tidyshsbens2 <- tidyshsbens %>%
-  select(-bencodesoa, -bencodes) %>%
-  left_join(bentypesSHS, by = "ID") %>%
-  
-  select(-type, -amount, -pp, -ch, -wa, -pn) %>%
-  gather(type, amount, -ID, -weight, -chwgt, -wawgt, -pnwgt, -council, -urbrur,
-         -hhtype, -HIHemp, -survey, -equ) %>%
-  mutate(amount = amount*7/(365*equ)) %>%
+tidyhbaibens %>%
   group_by(type) %>%
-  summarise(amount = sum(amount*weight)) %>%
+  summarise(amount = sum(amount*hhwgt*equ)) %>%
   ungroup() %>%
   mutate(type = factor(type)) %>%
   arrange(desc(amount)) %>%
@@ -1291,12 +1199,31 @@ tidyshsbens2 <- tidyshsbens %>%
          share = percent(share, 0.01),
          cumshare = percent(cumshare, 0.1))
 
-tidyshsbens2$type <- decode(tidyshsbens2$type,
-                           search = bencodes,
-                           replace = str_trunc(bennames, 30))
+```
 
-tidyshsbens2
+### SHS
 
+```{r ben_types_shs}
+
+# De-equivalise this!!
+
+tidyshsbens %>%
+  group_by(type) %>%
+  summarise(amount = sum(amount*hhwgt*equ)) %>%
+  ungroup() %>%
+  mutate(type = factor(type)) %>%
+  arrange(desc(amount)) %>%
+  mutate(type = fct_reorder(type, amount),
+         share = amount/sum(amount),
+         cumshare = cumsum(share),
+         total = comma(sum(amount), scale = 1E-6, prefix = "£", suffix = " million", precision = 1),
+         amount = comma(amount, 
+                        scale = 1E-6, 
+                        prefix = "£", 
+                        suffix  = " million", 
+                        accuracy = 0.1),
+         share = percent(share, 0.01),
+         cumshare = percent(cumshare, 0.1))
 
 ```
 
