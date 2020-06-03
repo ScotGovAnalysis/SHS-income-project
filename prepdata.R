@@ -54,3 +54,8 @@ tidydata$quintile <- decode(tidydata$decile,
 # View(miss_var_summary(tidyhbai))
 # View(miss_var_summary(tidyshs))
 # View(miss_var_summary(tidydata))
+
+# Create benefits dataset ----
+
+tidybens <- rbind(tidyhbaibens, tidyshsbens) %>%
+  mutate(survey = factor(survey, ordered = TRUE))

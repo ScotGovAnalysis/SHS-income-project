@@ -1181,7 +1181,8 @@ ggplot(data = ben_CI) +
 
 ```{r ben_types_frs}
 
-tidyhbaibens %>%
+tidybens %>%
+  filter(survey == "HBAI") %>%
   group_by(type) %>%
   summarise(amount = sum(amount*hhwgt*equ)) %>%
   ungroup() %>%
@@ -1207,7 +1208,8 @@ tidyhbaibens %>%
 
 # De-equivalise this!!
 
-tidyshsbens %>%
+tidybens %>%
+  filter(survey == "SHS") %>%
   group_by(type) %>%
   summarise(amount = sum(amount*hhwgt*equ)) %>%
   ungroup() %>%
@@ -1227,6 +1229,27 @@ tidyshsbens %>%
 
 ```
 
+
+### Comparison
+
+```{r ben_types_comparison}
+
+tidybens %>%
+  group_by(survey, type) %>%
+  summarise(amount = sum(amount*hhwgt*equ)) %>%
+  ungroup() %>%
+  mutate(type = factor(type, ordered = TRUE)) %>%
+  arrange(desc(amount)) %>%
+  mutate(type = fct_reorder(type, amount)) %>%
+  spread(survey, amount) %>%
+  mutate(diff = HBAI-SHS,
+         totdiff = sum(diff, na.rm = TRUE),
+         contr = percent(diff/totdiff)) %>%
+  arrange(desc(abs(diff/totdiff))) %>%
+  mutate_at(vars(HBAI, SHS, diff), comma_format(scale = 1E-6, accuracy = 0.1)) %>%
+  select(-totdiff)
+
+```
 
 ## Conclusions for benefit income
 

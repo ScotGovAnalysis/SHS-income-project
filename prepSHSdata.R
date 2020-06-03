@@ -126,7 +126,8 @@ tidyshsbens <- tidyshsbens %>%
   select(-type, -amount, -pp, -ch, -wa, -pn) %>%
   gather(type, amount, -ID, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -council, -urbrur,
          -hhtype, -HIHemp, -survey, -equ) %>%
-  mutate(amount = amount*7/(365*equ)) 
+  mutate(amount = amount*7/(365*equ),
+         survey = "SHS") 
 
 ## Recode benefit names ----
 

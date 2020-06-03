@@ -184,7 +184,8 @@ tidyhbaibens <- tidyhbaibens %>%
   select(-type, -pp, -ch, -wa, -pn, -amount) %>%
   gather(type, amount, -ID, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -council, -urbrur,
          -hhtype, -HIHemp, -survey, -equ) %>%
-  mutate(amount = ifelse(is.na(amount), 0, amount/equ)) 
+  mutate(amount = ifelse(is.na(amount), 0, amount/equ),
+         survey = "HBAI") 
 
 ## Recode benefit names ----
 
