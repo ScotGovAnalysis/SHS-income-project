@@ -5,12 +5,13 @@ output:
     code_folding: hide
     number_sections: yes
     toc: yes
+    
 editor_options: 
   chunk_output_type: inline
 ---
 
 
-```{r setup}
+```{r setup, fig.width = 10, fig.asp = 2}
 
 # Load packages
 
@@ -23,6 +24,7 @@ library(scales) # for comma and percent formats
 library(ggrepel) # for non-overlapping chart annotation
 library(Hmisc) # for weighted quartiles
 library(boot) # needed for groupwiseMedian function
+library(readxl)
 
 # Load functions
 
@@ -41,6 +43,43 @@ source("prepdata.R")
 
 ```
 
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 18px;
+  }
+td {  /* Table  */
+  font-size: 16px;
+}
+h1.title {
+  font-size: 38px;
+  color: black;
+}
+h1 { /* Header 1 */
+  font-size: 32px;
+  font-weight: bold;
+  color: #C27D38;
+}
+h2 { /* Header 2 */
+    font-size: 26px;
+    font-weight: bold;
+}
+h3 { /* Header 3 */
+    font-size: 22px;
+    font-weight: bold;
+    color: #798E87;
+}
+code.r{ /* Code block */
+    font-size: 14px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+figure {
+  width: 100%;
+}
+</style>
 
 # Introduction
 
@@ -1230,14 +1269,14 @@ tidybens %>%
 ```
 
 
-### Comparison
+### Comparison SHS vs. HBAI
+
+Total amount of benefit income in £million.
 
 ```{r ben_types_comparison}
 
-tidybens %>%
-  group_by(survey, type) %>%
-  summarise(amount = sum(amount*hhwgt*equ)) %>%
-  ungroup() %>%
+tidybens_agg %>%
+  filter(survey != "Admin") %>%
   mutate(type = factor(type, ordered = TRUE)) %>%
   arrange(desc(amount)) %>%
   mutate(type = fct_reorder(type, amount)) %>%
@@ -1251,11 +1290,58 @@ tidybens %>%
 
 ```
 
+### Comparison with administrative data
+
+Weekly benefit amounts in million £.
+
+```{r ben_types_comparison_admin}
+
+# Chart
+
+tidybens_agg %>%
+  filter(type %in% tail(levels(type), 14L)) %>%
+  ggplot(aes(x = type, y = amount, fill = survey)) +
+  geom_col(position = 'dodge') +
+  scale_fill_manual(values = cols_survey) +
+  scale_y_continuous(labels = comma_format(scale = 1E-6, prefix = "£", suffix = " million")) +
+  labs(x = NULL, y = NULL, title = "Weekly total amount of largest benefits, Scotland") +
+  theme(legend.position = "top", 
+        legend.title = element_blank()) +
+  coord_flip()
+
+# Chart without State Pension
+
+tidybens_agg %>%
+  filter(type != "State Pension",
+         type %in% tail(levels(type), 14L)) %>%
+  ggplot(aes(x = type, y = amount, fill = survey)) +
+  geom_col(position = 'dodge') +
+  scale_fill_manual(values = cols_survey) +
+  scale_y_continuous(labels = comma_format(scale = 1E-6, prefix = "£", suffix = " million")) +
+  labs(x = NULL, y = NULL, title = "Weekly total amount of largest benefits, Scotland") +
+  theme(legend.position = "top", 
+        legend.title = element_blank()) +
+  coord_flip()
+
+# Table
+
+tidybens_agg %>%
+  spread(survey, amount) %>%
+  arrange(desc(Admin)) %>%
+  mutate(HBAI_capt = ifelse(is.na(HBAI*Admin), NA, percent(HBAI/Admin)),
+         SHS_capt = ifelse(is.na(SHS*Admin), NA, percent(SHS/Admin))) %>%
+  mutate_at(vars(Admin, HBAI, SHS), comma_format(scale = 1E-6, accuracy = 0.1)) %>%
+  select(type, Admin, HBAI, HBAI_capt, SHS, SHS_capt)
+
+```
+
 ## Conclusions for benefit income
 
 - benefit income of most household types matches ok
 - benefit income of single adults and pensioner couples don't match
 - benefit income of retired and permanently sick/disabled don't match
+- pensioner benefits: state pension biggest benefit - more underreported in SHS compared to HBAI, also Pension Credit and Winter Fuel Payment - might explain poor match for pensioners
+- disability benefits: same issue, might explain poor match for disabled hhtype
 
 ## State pension
 

@@ -1,4 +1,6 @@
 
+
+
 # Combine tidy SHS and HBAI datasets
 
 # Create hhld level dataset with different income components (using hhld weight) ----
@@ -59,3 +61,22 @@ tidydata$quintile <- decode(tidydata$decile,
 
 tidybens <- rbind(tidyhbaibens, tidyshsbens) %>%
   mutate(survey = factor(survey, ordered = TRUE))
+
+# Import administrative data
+
+admin <- read_excel("docs/StatXplore benefit receipt.xlsx", sheet = "Weekly 201819") %>%
+  mutate(amount = 1000000*amount,
+         survey = "Admin",
+         type = str_trunc(type, 30))
+
+# Create aggregated benefits dataset
+
+tidybens_agg <- tidybens %>%
+  group_by(survey, type) %>%
+  summarise(amount = sum(amount*hhwgt*equ)) %>%
+  ungroup() %>%
+  rbind(admin) %>%
+  mutate(survey = factor(survey, levels = surveys, ordered = TRUE),
+         type = factor(type),
+         type = fct_reorder2(type, survey, desc(amount))) %>%
+  arrange(desc(type), survey)
