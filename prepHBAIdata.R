@@ -1,10 +1,10 @@
 
 # Load datasets
 
-adult_1819 <- read_sas("../Full SAS Datasets/adult_1819.sas7bdat")
-househol_1819 <- read_sas("../Full SAS Datasets/househol_1819.sas7bdat")
-benefits_1819 <- read_sas("../Full SAS Datasets/benefits_1819.sas7bdat")
-hbai1819 <- read_sas("../Full SAS Datasets/hbai1819.sas7bdat")
+adult_1819 <- readRDS("adult_1819.rds")
+househol_1819 <- readRDS("househol_1819.rds")
+benefits_1819 <- readRDS("benefits_1819.rds")
+hbai1819 <- readRDS("hbai1819.rds")
 
 # Create tidy HBAI dataset
 
@@ -112,7 +112,7 @@ frsbens1 <- benefits_1819 %>%
          ben01 = ifelse(BENEFIT == 5, 
                         ifelse(USUAL == 2 & !is.na(NOTUSAMT), NOTUSAMT, BENAMT), 0), 
          ben03 = ifelse(BENEFIT == 3, BENAMT, 0), 
-         ben04 = ifelse(BENEFIT == 91 | BENEFIT == 93, BENAMT, 0), 
+         ben04 = ifelse(BENEFIT %in% c(90, 91, 92, 93), BENAMT, 0), 
          ben05 = ifelse(BENEFIT == 16, BENAMT, 0), 
          ben05 = ifelse(BENEFIT == 66 & BENAMT > 0 & VAR2 != 1, BENAMT, ben05), 
          ben06 = ifelse(BENEFIT == 96 | BENEFIT == 97, BENAMT, 0), 

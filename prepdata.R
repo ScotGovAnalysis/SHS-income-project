@@ -51,6 +51,16 @@ tidydata$quintile <- decode(tidydata$decile,
                             replace = c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5),
                             default = NA)
 
+# get medians
+
+SHSmedian <- filter(tidydata, type == "total", survey == "SHS") %>% 
+  mutate(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
+  select(median) %>% tail(1L) %>% pull()
+
+HBAImedian <- filter(tidydata, type == "total", survey == "HBAI") %>% 
+  mutate(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
+  select(median) %>% tail(1L) %>% pull()
+
 # Check for missing data ----
 
 # View(miss_var_summary(tidyhbai))
