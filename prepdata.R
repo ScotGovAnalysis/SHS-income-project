@@ -72,6 +72,11 @@ HBAImedian <- filter(tidydata, type == "total", survey == "HBAI") %>%
 tidybens <- rbind(tidyhbaibens, tidyshsbens) %>%
   mutate(survey = factor(survey, ordered = TRUE))
 
+tidybens$HIHemp <- decode(tidybens$HIHemp,
+                             search = empstatcodes, 
+                             replace = empstatnames,
+                             default = "unknown")
+
 # Import administrative data
 
 admin <- read_excel("docs/StatXplore benefit receipt.xlsx", sheet = "Weekly 201819") %>%
