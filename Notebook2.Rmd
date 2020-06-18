@@ -1,0 +1,209 @@
+---
+title: "SHS income project - poverty"
+output: 
+  html_notebook:
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r setup, include = FALSE}
+
+# Set global chunk options
+
+knitr::opts_chunk$set(fig.width = 10, fig.asp = 0.5)
+
+# Load packages
+
+library(plyr) # needed for groupwiseMedian function
+library(tidyverse)
+library(naniar) # for dealing with missing values
+library(labelled) # to remove labels from imported data
+library(scales) # for comma and percent formats
+library(ggrepel) # for non-overlapping chart annotation
+library(Hmisc) # for weighted quartiles
+library(boot) # needed for groupwiseMedian function
+library(readxl)
+
+# Load functions
+
+source("functions.R")
+
+# Load strings and colour scheme
+
+source("strings.R")
+source("colours.R")
+
+# Load datasets
+
+source("prepSHSdata.R")
+source("prepHBAIdata.R")
+source("prepdata.R")
+
+```
+
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 18px;
+  }
+td {  /* Table  */
+  font-size: 16px;
+}
+h1.title {
+  font-size: 38px;
+  color: black;
+}
+h1 { /* Header 1 */
+  font-size: 32px;
+  font-weight: bold;
+  color: #C27D38;
+}
+h2 { /* Header 2 */
+    font-size: 26px;
+    font-weight: bold;
+}
+h3 { /* Header 3 */
+    font-size: 22px;
+    font-weight: bold;
+    color: #798E87;
+}
+code.r{ /* Code block */
+    font-size: 14px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+figure {
+  width: 100%;
+}
+</style>
+
+<style>
+div.box { background-color:#C27D38; color: white; border-radius: 10px; padding: 15px;}
+</style>
+
+
+# Characteristics of low income households
+
+We may understand now the differences in income measured in SHS and FRS. So what does that mean for poverty? Do SHS and FRS identify the same kind of households as being in poverty?
+
+## Household characteristics
+
+Hhld type (working-age/pensioners, children, number of adults), economic status, tenure, ethnicity(?)
+
+Responses to financial questions & matdep questions?
+
+```{r poverty_numbers}
+
+tidydata %>%
+  filter(type == "total") %>%
+  group_by(survey, low60bhc) %>%
+  summarise(people = sum(ppwgt),
+            children = sum(chwgt),
+            waadults = sum(wawgt),
+            pensioners = sum(pnwgt)) %>%
+  mutate(pprate = people/sum(people),
+         chrate = children/sum(children),
+         warate = waadults/sum(waadults),
+         pnrate = pensioners/sum(pensioners)) %>%
+  gather(key, value, -survey, -low60bhc) %>%
+  filter(key %in% c("people", "children", "waadults", "pensioners"),
+         low60bhc == 1) %>%
+  mutate(key = factor(key, levels = c("people", "children", "waadults", "pensioners"))) %>%
+  ggplot(aes(x = key, y = value, fill = survey)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(y = value + 40000,
+                label = comma(value, accuracy = 10000),
+                colour = survey),
+            position = position_dodge(width = 1)) +
+  scale_fill_manual(values = cols_survey) +
+  scale_colour_manual(values = cols_survey) +
+  theme(legend.title = element_blank(),
+        legend.position = "top") +
+  labs(x = NULL, y = NULL,
+       title = "Numbers in relative poverty BHC assuming Scottish, survey-specific poverty thresholds")
+
+```
+
+```{r poverty_rates}
+
+tidydata %>%
+  filter(type == "total") %>%
+  group_by(survey, low60bhc) %>%
+  summarise(people = sum(ppwgt),
+            children = sum(chwgt),
+            waadults = sum(wawgt),
+            pensioners = sum(pnwgt)) %>%
+  mutate(pprate = people/sum(people),
+         chrate = children/sum(children),
+         warate = waadults/sum(waadults),
+         pnrate = pensioners/sum(pensioners)) %>%
+  gather(key, value, -survey, -low60bhc) %>%
+  filter(key %in% c("pprate", "chrate", "warate", "pnrate"),
+         low60bhc == 1) %>%
+  mutate(key = factor(key, levels = c("pprate", "chrate", "warate", "pnrate"))) %>%
+  ggplot(aes(x = key, y = value, fill = survey)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(y = value + 0.01,
+                label = percent(value),
+                colour = survey),
+            position = position_dodge(width = 1)) +
+  scale_fill_manual(values = cols_survey) +
+  scale_colour_manual(values = cols_survey) +
+  theme(legend.title = element_blank(),
+        legend.position = "top") +
+  labs(x = NULL, y = NULL,
+       title = "Proportions in relative poverty BHC assuming Scottish, survey-specific poverty thresholds")
+
+```
+
+Note, the chart below doesn't work due to different totals - look at compositions and rates instead!
+
+```{r poverty_hhtype}
+
+# Note, the chart below doesn't work due to different totals - look at compositions and rates instead!
+
+tidydata %>%
+  filter(type == "total") %>%
+  group_by(survey, low60bhc, hhtype) %>%
+  summarise(people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey, hhtype) %>%
+  mutate(pprate = people/sum(people)) %>%
+  ungroup() %>%
+  mutate(hhtype = factor(hhtype, levels = hhtypenames),
+         hhtype = fct_rev(hhtype)) %>%
+  filter(low60bhc == 1) %>%
+  ggplot(aes(x = hhtype, y = people, fill = survey)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(y = people + 10000,
+                label = comma(people, accuracy = 10000),
+                colour = survey),
+            position = position_dodge(width = 1)) +
+  scale_fill_manual(values = cols_survey) +
+  scale_colour_manual(values = cols_survey) +
+  theme(legend.title = element_blank(),
+        legend.position = "top",
+        axis.text.x = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Numbers in relative poverty BHC assuming Scottish, survey-specific poverty thresholds") +
+  coord_flip()
+
+```
+
+<div class = "box">
+
+- HBAI poverty numbers slightly below official poverty numbers. This is largely due to using Scottish median for poverty threshold
+- SHS poverty is higher, in particular for pensioners, with poverty rates in clear contrast to the generally accepted picture of lower pensioner poverty
+
+</div>
+
+## Area characteristics
+
+LA, urban/rural, SIMD deciles (??)

@@ -61,6 +61,23 @@ HBAImedian <- filter(tidydata, type == "total", survey == "HBAI") %>%
   mutate(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
   select(median) %>% tail(1L) %>% pull()
 
+# get poverty / low income flags
+
+lowinc <- tidydata %>%
+  filter(type == "total") %>%
+  select(survey, ID, amount) %>%
+  mutate(low60bhc = ifelse(survey == "SHS", ifelse(amount < 0.6*SHSmedian, 1, 0), 
+                           ifelse(amount < 0.6*HBAImedian, 1, 0)),
+         low70bhc = ifelse(survey == "SHS", ifelse(amount < 0.7*SHSmedian, 1, 0), 
+                           ifelse(amount < 0.7*HBAImedian, 1, 0)),
+         low50bhc = ifelse(survey == "SHS", ifelse(amount < 0.5*SHSmedian, 1, 0), 
+                           ifelse(amount < 0.5*HBAImedian, 1, 0))) %>%
+  select(-amount)
+
+tidydata <- tidydata %>%
+  left_join(lowinc, by = c("survey", "ID"))
+
+
 # Check for missing data ----
 
 # View(miss_var_summary(tidyhbai))
@@ -95,3 +112,105 @@ tidybens_agg <- tidybens %>%
          type = factor(type),
          type = fct_reorder2(type, survey, desc(amount))) %>%
   arrange(desc(type), survey)
+
+
+# <!-- # Annex - Survey variables -->
+#   
+#   <!-- Relevant variable names in SHS and FRS datasets.  -->
+#   
+#   <!-- * SHS variable list (see SHS income project - SHS Household Variables.xlsx) -->
+#   <!-- * [SHS questionnaires](https://www2.gov.scot/Topics/Statistics/16002/PublicationQuestionnaire) -->
+#   
+#   <!-- SHS variables: -->
+#   
+#   <!-- * ANNETINC_BROAD -->
+#   <!-- * EARNINC -->
+#   <!-- * BENINC -->
+#   <!-- * MSCINC -->
+#   <!-- * LA_GRWT -->
+#   
+#   <!-- BENINC = sum(BENINC_HIHSP, BENINC_OA1, BENINC_OA2, BENINC_OA3) -->
+#   
+#   <!-- BENINC_HIHSP = sum(BENINC01, ..., BENINC40) -->
+#   
+#   <!-- BENINC = sum(BENINC01, BENINC01_OA1, BENINC01_OA2, BENINC01_OA3, ..., BENINC40_OA3)  -->
+#   
+#   <!--       (1) Universal Credit -->
+#   <!--       (2) Housing Benefit -->
+#   <!--       (3) Council Tax Reduction -->
+#   <!--       (4) Working Tax Credit -->
+#   <!--       (5) Child Tax Credit -->
+#   <!--       (6) Income Support -->
+#   <!--       (7) Jobseeker’s Allowance -->
+#   <!--       (8) Employment and Support Allowance -->
+#   <!--       (9) Carer’s Allowance -->
+#   <!--       (10) Child Benefit -->
+#   <!--       (11) Guardian’s Allowance -->
+#   <!--       (12) Maternity Allowance -->
+#   <!--       (13) Statutory Maternity/Paternity pay, Statutory Adoption Pay -->
+#   <!--       (14) Statutory sick pay -->
+#   <!--       (15) Personal Independence Payments -->
+#   <!--       (16) Disability Living Allowance -->
+#   <!--       (17) Attendance allowance -->
+#   <!--       (18) Severe disablement allowance -->
+#   <!--       (19) Incapacity benefit -->
+#   <!--       (20) Industrial Injuries Disablement Benefit -->
+#   <!--       (21) Pension Credit -->
+#   <!--       (22) State Retirement Pension -->
+#   <!--       (23) Widow’s Pension, Bereavement Allowance, or Widowed Parent’s Allowance -->
+#   <!--       (24) Armed Forces Compensation Scheme -->
+#   <!--       (25) War Widow’s/Widower’s Pension -->
+#   <!--       (26) Funeral Expenses Payment -->
+#   <!--       (27) Sure Start Maternity Grant -->
+#   <!--       (28) Best Start Grant -->
+#   <!--       (29) Discretionary Housing Payment -->
+#   <!--       (30) Loan or grant from DWP -->
+#   <!--       (31) Loan or grant from Local Authority -->
+#   <!--       (32) Winter Fuel Payments -->
+#   <!--       (33) Cold Weather Payments -->
+#   <!--       (34) Extended payment of Housing Benefit -->
+#   <!--       (35) Bereavement Payment -->
+#   <!--       (36) Return to Work Payment -->
+#   <!--       (37) Community Care Grant from the Scottish Welfare Fund -->
+#   <!--       (38) Crisis Grant from the Scottish Welfare Fund -->
+#   <!--       (39) Budgeting Loan from Social Fund/Budgeting Advances from Universal Credit -->
+#   <!--       (40) Healthy Start Vouchers -->
+#   
+#   <!-- MSCINC = sum(MSCINC_HIHSP, MSCINC_OA1, MSCINC_OA2, MSCINC_OA3) for MSCINC01-MSCINC10) -->
+#   
+#   <!--       (1) Income from Occupational/employer (non-State) pension(s) -->
+#   <!--       (2) Income from Benefit from annuity, trust or covenant -->
+#   <!--       (3) Income from Maintenance payments -->
+#   <!--       (4) Income from Rent from property or subletting, including boarders -->
+#   <!--       (5) Income from Dig money from other household members -->
+#   <!--       (6) Income from Benefit from accident/sickness scheme etc -->
+#   <!--       (7) Income from Investment income (eg Dividends from shares/interest from savings) -->
+#   <!--       (8) Income from Student loan -->
+#   <!--       (9) Income from Grant -->
+#   <!--       (10) Income from Regular non-work income, from any other source (please specify) -->
+#   
+#   <!-- HBAI variables: -->
+#   
+#   <!-- * GVTREGN -->
+#   <!-- * gs_newhh -->
+#   <!-- * ehcost -->
+#   <!-- * entinchh -->
+#   <!-- * ebeninhh -->
+#   <!-- * enternhh -->
+#   <!-- * hntinvhh -->
+#   <!-- * hntocchh -->
+#   <!-- * epribnhh -->
+#   <!-- * emiscih -->
+#   
+#   <!-- * HOUSEHOL	URINDS	HOL_327X	Urban and Rural Indicators for Scotland	 -->
+#   
+#   <!--       1	Large Urban Area -->
+#   <!--     	2	Other Urban Area -->
+#   <!--     	3	Accessible Small Town -->
+#   <!--     	4	Remote Small Town -->
+#   <!--     	5	Very Remote Small Town -->
+#   <!--     	6	Accessible Rural -->
+#   <!--     	7	Remote Rural -->
+#   <!--     	8	Very Remote Rural -->
+#   
+#   

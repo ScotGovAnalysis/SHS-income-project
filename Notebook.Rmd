@@ -1,5 +1,5 @@
 ---
-title: "SHS income project"
+title: "SHS income project - income"
 output: 
   html_notebook:
     code_folding: hide
@@ -1035,7 +1035,7 @@ tidydata %>%
          HIHemp %in% empstatnames[1:3]) %>%
   group_by(survey, HIHemp) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            mean = wtd.mean(amount, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
             sum = sum(amount*hhwgt*equ),
             sample = sum(n))  %>%
    mutate(sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " mn"),
@@ -1118,7 +1118,6 @@ ggplot(data = earn_CI) +
 
 </div>
 
-
 ```{r earnings_ci_2}
 
 # Earnings by hhld income quintile
@@ -1184,6 +1183,7 @@ ggplot(data = earn_CI) +
 
 ```
 
+
 <div class = "box">
 
 - Median earnings match fairly well for all incoem quintiles.
@@ -1225,14 +1225,15 @@ tidydata %>%
          amount > 0) %>%
   group_by(survey, hhtype) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            mean = wtd.mean(amount, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
             sum = sum(amount*hhwgt*equ),
-            sample = sum(n)) %>%
+            people = sum(ppwgt),
+            sample = n()) %>%
   mutate(hhtype = factor(hhtype, levels = hhtypenames),
          sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " mn")) %>%
   mutate_at(c("median", "mean"), comma_format(prefix = "£")) %>%
   arrange(hhtype, survey) %>%
-  knitr::kable(align = "llrrrr")
+  knitr::kable(align = "llrrrrr")
 
 
 ```
@@ -1319,7 +1320,7 @@ tidydata %>%
          amount > 0) %>%
   group_by(survey, HIHemp) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            mean = wtd.mean(amount, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
             sum = sum(amount*hhwgt*equ),
             sample = sum(n)) %>%
   mutate(HIHemp = factor(HIHemp, levels = empstatnames),
@@ -1550,7 +1551,7 @@ tidydata %>%
   group_by(survey, type, hhtype) %>%
   summarise(tot = sum(amount*hhwgt*equ),
             mean = wtd.mean(ifelse(amount != 0, amount, NA), weights = hhwgt, na.rm = TRUE),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             n = sum(ifelse(amount != 0, ppwgt, 0)),
             sample = n()) %>% 
   filter(sample >= 50) %>%
@@ -1569,7 +1570,7 @@ tidydata %>%
   group_by(survey, type, hhtype) %>%
   summarise(tot = sum(amount*hhwgt*equ),
             mean = wtd.mean(ifelse(amount != 0, amount, NA), weights = hhwgt, na.rm = TRUE),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             n = sum(ifelse(amount != 0, ppwgt, 0)),
             sample = n()) %>% 
   filter(sample >=50) %>%
@@ -1588,7 +1589,7 @@ tidydata %>%
   group_by(survey, type, hhtype) %>%
   summarise(tot = sum(amount*hhwgt*equ),
             mean = wtd.mean(ifelse(amount != 0, amount, NA), weights = hhwgt, na.rm = TRUE),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             n = sum(ifelse(amount != 0, ppwgt, 0)),
             sample = n()) %>% 
   filter(sample >= 100) %>%
@@ -1621,8 +1622,8 @@ tidybens %>%
          amount > 0,
          hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
   group_by(survey, hhtype) %>%
-  summarise(tot = sum(amount*hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             n = sum(ifelse(amount != 0, ppwgt, 0))) %>%
   ggplot(aes(x = hhtype, y = mean, fill = survey)) +
@@ -1638,8 +1639,8 @@ tidybens %>%
   filter(type == "State Pension",
         hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
   group_by(survey, hhtype) %>%
-  summarise(tot = sum(amount*hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             n = sum(ifelse(amount != 0, ppwgt, 0))) %>%
   ggplot(aes(x = hhtype, y = n, fill = survey)) +
@@ -1657,6 +1658,58 @@ tidybens %>%
 
 - The average amount of state pension received matches well between HBAI and SHS
 - However, the SHS reports fewer recipients of state pension
+
+</div>
+
+Occupational pensions
+
+```{r occ_pension}
+
+tidydata %>%
+  filter(type == "occ",
+         amount > 0) %>%
+  group_by(survey) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(amount, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            sample = n(),
+            people = sum(ppwgt)) %>%
+  mutate(tot = comma(tot, scale = 1E-6, prefix  ="£", suffix = " million"),
+         mean = comma(mean, prefix = "£"),
+         median = comma(median, prefix = "£"),
+         sample = comma(sample),
+         people = comma(people)) %>%
+  knitr::kable(align = "lrrrrr")
+
+tidydata %>%
+  filter(type == "occ",
+         amount > 0) %>%
+  group_by(survey, HIHemp) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(amount, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            sample = n(),
+            people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(share = tot/sum(tot),
+         HIHemp = fct_reorder(HIHemp, share)) %>%
+  ggplot(aes(x = HIHemp, y = share, fill = survey)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = cols_survey) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Share of aggregated occupational pensions income across household types") +
+  coord_flip()
+
+```
+
+<div class = "box">
+
+- the SHS only slightly underreports income from occupational pensions compared to the HBAI.
+- the underreporting is due to non-reporting
+- most of occ pension income goes to retired people
 
 </div>
 
@@ -1679,8 +1732,8 @@ tidybens %>%
                      "Attendance Allowance"), 30),
          amount > 0) %>%
   group_by(survey, type) %>%
-  summarise(tot = sum(amount*hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             n = sum(ppwgt),
             sample = n()) %>%
@@ -1704,8 +1757,8 @@ tidybens %>%
                      "Attendance Allowance"), 30),
          amount > 0) %>%
   group_by(survey, type) %>%
-  summarise(tot = sum(amount*hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             n = sum(ppwgt),
             sample = n()) %>%
@@ -1748,8 +1801,8 @@ tidybens %>%
   filter(type == "Tax Credits",
          amount >= 0) %>%
   group_by(survey, HIHemp) %>%
-  summarise(tot = sum(amount*hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             n = sum(ppwgt),
             sample = n()) %>%
@@ -1770,8 +1823,8 @@ tidybens %>%
   filter(type == "Tax Credits",
          amount >= 0) %>%
   group_by(survey, HIHemp) %>%
-  summarise(tot = sum(amount*hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             n = sum(ppwgt),
             sample = n()) %>%
@@ -1792,8 +1845,8 @@ tidybens %>%
   filter(type == "Tax Credits",
          amount >= 0) %>%
   group_by(survey, HIHemp) %>%
-  summarise(tot = sum(amount*hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             n = sum(ppwgt),
             sample = n()) %>%
@@ -1825,9 +1878,29 @@ Tax credits are also underreported in the SHS compared to the HBAI. This affects
 tidybens %>%
   filter(hhtype == "Single adult",
          amount > 0) %>%
+  group_by(survey) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            n = sum(ppwgt),
+            sample = n()) %>%
+  ungroup() %>%
+  arrange(survey) %>%
+  ggplot(aes(x = survey, y = tot, fill = survey)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = cols_survey) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Aggregated amount of benefits for single adult households") +
+  coord_flip()
+
+tidybens %>%
+  filter(hhtype == "Single adult",
+         amount > 0) %>%
   group_by(survey, type) %>%
-  summarise(tot = sum(amount*hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             n = sum(ppwgt),
             sample = n()) %>%
@@ -1851,8 +1924,8 @@ tidybens %>%
   filter(hhtype == "Single adult",
          amount > 0) %>%
   group_by(survey, type) %>%
-  summarise(tot = sum(amount*hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             n = sum(ppwgt),
             sample = n()) %>%
@@ -1876,8 +1949,8 @@ tidybens %>%
   filter(hhtype == "Single adult",
          amount > 0) %>%
   group_by(survey, type) %>%
-  summarise(tot = sum(amount*hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = hhwgt),
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             n = sum(ppwgt),
             sample = n()) %>%
@@ -1899,11 +1972,16 @@ tidybens %>%
 
 ```
 
+<div class = "box">
 
-- strange: single adult benefit income should be lower in SHS compared to HBAI (see above) but doesn't look like it here
+- Many more single adult households in the SHS than the HBAI report (any) benefit income, and therefore aggregated benefit income for single adult households is higher in the SHS compared to the HBAI. But the average amount (all benefits added up) is smaller in the SHS. This might be because people underestimate their benefit amounts, or they miss out some benefits.
+
+</div>
 
 
 ## Conclusions for benefit income
+
+**needs work**
 
 - (total) benefit income of most household types matches ok between SHS and HBAI
 - but benefit income of single adults and pensioner couples don't match
@@ -1920,122 +1998,97 @@ tidybens %>%
 
 # Investment income
 
-# Occupational pensions income
 
-# Employed earnings income
+```{r investment}
 
-# Self-employed earnings income
+tidydata %>%
+  filter(type == "inv",
+         amount > 0) %>%
+  group_by(survey) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(amount, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            sample = n(),
+            people = sum(ppwgt)) %>%
+  mutate(tot = comma(tot, scale = 1E-6, prefix  ="£", suffix = " million"),
+         mean = comma(mean, prefix = "£"),
+         median = comma(median, prefix = "£"),
+         sample = comma(sample),
+         people = comma(people)) %>%
+  knitr::kable(align = "lrrrrr")
 
-# Characteristics of low income households
+tidydata %>%
+  filter(type == "inv",
+         amount > 0) %>%
+  group_by(survey, HIHemp) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(amount, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            sample = n(),
+            people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(share = tot/sum(tot),
+         HIHemp = fct_reorder(HIHemp, share)) %>%
+  ggplot(aes(x = HIHemp, y = share, fill = survey)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = cols_survey) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Share of aggregated investment income across household types") +
+  coord_flip()
 
-We may understand now the differences in income measured in SHS and FRS. So what does that mean for poverty? Do SHS and FRS identify the same kind of households as being in poverty?
+tidydata %>%
+  filter(type == "inv",
+         amount > 0) %>%
+  group_by(survey, hhtype) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(amount, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            sample = n(),
+            people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(share = tot/sum(tot),
+         hhtype = fct_reorder(hhtype, share)) %>%
+  ggplot(aes(x = hhtype, y = share, fill = survey)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = cols_survey) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Share of aggregated investment income across household types") +
+  coord_flip()
 
-## Household characteristics
+tidydata %>%
+  filter(type == "inv",
+         amount > 0) %>%
+  group_by(survey, decile) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(amount, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            sample = n(),
+            people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(share = tot/sum(tot),
+         decile = factor(decile)) %>%
+  ggplot(aes(x = decile, y = share, fill = survey)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = cols_survey) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Share of aggregated investment income across income deciles") +
+  coord_flip()
 
-Hhld type (working-age/pensioners, children, number of adults), economic status, tenure, ethnicity(?)
+```
 
-Responses to financial questions & matdep questions?
+<div class = "box">
 
-## Area characteristics
+- Investment income is hugely underreported in the SHS compared to the HBAI, even though we are using the HBAI data before top-income adjustments (which would correct top incomes upwards). 
+- most of investment income is held by retired households, and by Two adult households, therefore the underreporting in the SHS might affect the incomes of these groups more.
+- similarly, most of investment income is held by the richest households
 
-LA, urban/rural, SIMD deciles (??)
-
-# Annex - Survey variables
-
-Relevant variable names in SHS and FRS datasets. 
-
-* SHS variable list (see SHS income project - SHS Household Variables.xlsx)
-* [SHS questionnaires](https://www2.gov.scot/Topics/Statistics/16002/PublicationQuestionnaire)
-
-SHS variables:
-
-* ANNETINC_BROAD
-* EARNINC
-* BENINC
-* MSCINC
-* LA_GRWT
-
-BENINC = sum(BENINC_HIHSP, BENINC_OA1, BENINC_OA2, BENINC_OA3)
-
-BENINC_HIHSP = sum(BENINC01, ..., BENINC40)
-
-BENINC = sum(BENINC01, BENINC01_OA1, BENINC01_OA2, BENINC01_OA3, ..., BENINC40_OA3) 
-
-      (1) Universal Credit
-      (2) Housing Benefit
-      (3) Council Tax Reduction
-      (4) Working Tax Credit
-      (5) Child Tax Credit
-      (6) Income Support
-      (7) Jobseeker’s Allowance
-      (8) Employment and Support Allowance
-      (9) Carer’s Allowance
-      (10) Child Benefit
-      (11) Guardian’s Allowance
-      (12) Maternity Allowance
-      (13) Statutory Maternity/Paternity pay, Statutory Adoption Pay
-      (14) Statutory sick pay
-      (15) Personal Independence Payments
-      (16) Disability Living Allowance
-      (17) Attendance allowance
-      (18) Severe disablement allowance
-      (19) Incapacity benefit
-      (20) Industrial Injuries Disablement Benefit
-      (21) Pension Credit
-      (22) State Retirement Pension
-      (23) Widow’s Pension, Bereavement Allowance, or Widowed Parent’s Allowance
-      (24) Armed Forces Compensation Scheme
-      (25) War Widow’s/Widower’s Pension
-      (26) Funeral Expenses Payment
-      (27) Sure Start Maternity Grant
-      (28) Best Start Grant
-      (29) Discretionary Housing Payment
-      (30) Loan or grant from DWP
-      (31) Loan or grant from Local Authority
-      (32) Winter Fuel Payments
-      (33) Cold Weather Payments
-      (34) Extended payment of Housing Benefit
-      (35) Bereavement Payment
-      (36) Return to Work Payment
-      (37) Community Care Grant from the Scottish Welfare Fund
-      (38) Crisis Grant from the Scottish Welfare Fund
-      (39) Budgeting Loan from Social Fund/Budgeting Advances from Universal Credit
-      (40) Healthy Start Vouchers
-
-MSCINC = sum(MSCINC_HIHSP, MSCINC_OA1, MSCINC_OA2, MSCINC_OA3) for MSCINC01-MSCINC10)
-
-      (1) Income from Occupational/employer (non-State) pension(s)
-      (2) Income from Benefit from annuity, trust or covenant
-      (3) Income from Maintenance payments
-      (4) Income from Rent from property or subletting, including boarders
-      (5) Income from Dig money from other household members
-      (6) Income from Benefit from accident/sickness scheme etc
-      (7) Income from Investment income (eg Dividends from shares/interest from savings)
-      (8) Income from Student loan
-      (9) Income from Grant
-      (10) Income from Regular non-work income, from any other source (please specify)
-
-HBAI variables:
-
-* GVTREGN
-* gs_newhh
-* ehcost
-* entinchh
-* ebeninhh
-* enternhh
-* hntinvhh
-* hntocchh
-* epribnhh
-* emiscih
-
-* HOUSEHOL	URINDS	HOL_327X	Urban and Rural Indicators for Scotland	
-
-      1	Large Urban Area
-    	2	Other Urban Area
-    	3	Accessible Small Town
-    	4	Remote Small Town
-    	5	Very Remote Small Town
-    	6	Accessible Rural
-    	7	Remote Rural
-    	8	Very Remote Rural
-
+</div>
