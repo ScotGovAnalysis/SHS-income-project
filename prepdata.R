@@ -1,7 +1,9 @@
 
 
-
 # Combine tidy SHS and HBAI datasets
+
+source("prepSHSdata.R")
+source("prepHBAIdata.R")
 
 # Create hhld level dataset with different income components (using hhld weight) ----
 

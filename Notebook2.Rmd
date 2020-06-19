@@ -111,59 +111,45 @@ tidydata %>%
   mutate(pprate = people/sum(people),
          chrate = children/sum(children),
          warate = waadults/sum(waadults),
-         pnrate = pensioners/sum(pensioners)) %>%
-  gather(key, value, -survey, -low60bhc) %>%
-  filter(key %in% c("people", "children", "waadults", "pensioners"),
-         low60bhc == 1) %>%
-  mutate(key = factor(key, levels = c("people", "children", "waadults", "pensioners"))) %>%
+         pnrate = pensioners/sum(pensioners),
+         chcomp = children/people,
+         wacomp = waadults/people,
+         pncomp = pensioners/people) %>%
+  filter(low60bhc == 1) %>%
+  select(-low60bhc, -children, -waadults, -pensioners) %>%
+  gather(key, value, -survey) %>%
+  mutate(measure = ifelse(key %in% c("people", "children", "waadults", "pensioners"), "Number",
+                          ifelse(key %in% c("pprate", "chrate", "warate", "pnrate"), "Rate",
+                                 "Composition")),
+         key = ifelse(str_starts(key, "pp"), "people", 
+                      ifelse(str_starts(key, "ch"), "children", 
+                             ifelse(str_starts(key, "wa"), "waadults", 
+                                    ifelse(str_starts(key, "pn"), "pensioners", key))))) %>%
+  mutate(key = factor(key, levels = c("people", "children", "waadults", "pensioners")),
+         key = fct_rev(key),
+         measure = factor(measure, levels = c("Number", "Composition", "Rate"))) %>%
   ggplot(aes(x = key, y = value, fill = survey)) +
   geom_col(position = "dodge") +
-  geom_text(aes(y = value + 40000,
-                label = comma(value, accuracy = 10000),
-                colour = survey),
-            position = position_dodge(width = 1)) +
+  geom_text(aes(label = ifelse(measure == "Number", comma(value, 10000), percent(value, 1)),
+                y = ifelse(measure == "Number", 20000, 0.01)),
+            position = position_dodge(width = 1),
+            hjust = 0,
+            colour = "white") +
   scale_fill_manual(values = cols_survey) +
   scale_colour_manual(values = cols_survey) +
   theme(legend.title = element_blank(),
-        legend.position = "top") +
+        legend.position = "top",
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank()) +
   labs(x = NULL, y = NULL,
-       title = "Numbers in relative poverty BHC assuming Scottish, survey-specific poverty thresholds")
+       title = "Numbers, composition, and rates of individuals in relative poverty BHC",
+       subtitle = "Assuming Scottish, survey-specific poverty thresholds") +
+    coord_flip() +
+  facet_wrap(~measure, scales = "free")
+
 
 ```
 
-```{r poverty_rates}
-
-tidydata %>%
-  filter(type == "total") %>%
-  group_by(survey, low60bhc) %>%
-  summarise(people = sum(ppwgt),
-            children = sum(chwgt),
-            waadults = sum(wawgt),
-            pensioners = sum(pnwgt)) %>%
-  mutate(pprate = people/sum(people),
-         chrate = children/sum(children),
-         warate = waadults/sum(waadults),
-         pnrate = pensioners/sum(pensioners)) %>%
-  gather(key, value, -survey, -low60bhc) %>%
-  filter(key %in% c("pprate", "chrate", "warate", "pnrate"),
-         low60bhc == 1) %>%
-  mutate(key = factor(key, levels = c("pprate", "chrate", "warate", "pnrate"))) %>%
-  ggplot(aes(x = key, y = value, fill = survey)) +
-  geom_col(position = "dodge") +
-  geom_text(aes(y = value + 0.01,
-                label = percent(value),
-                colour = survey),
-            position = position_dodge(width = 1)) +
-  scale_fill_manual(values = cols_survey) +
-  scale_colour_manual(values = cols_survey) +
-  theme(legend.title = element_blank(),
-        legend.position = "top") +
-  labs(x = NULL, y = NULL,
-       title = "Proportions in relative poverty BHC assuming Scottish, survey-specific poverty thresholds")
-
-```
-
-Note, the chart below doesn't work due to different totals - look at compositions and rates instead!
 
 ```{r poverty_hhtype}
 
@@ -175,15 +161,17 @@ tidydata %>%
   summarise(people = sum(ppwgt)) %>%
   ungroup() %>%
   group_by(survey, hhtype) %>%
-  mutate(pprate = people/sum(people)) %>%
+  mutate(rate = people/sum(people)) %>%
+  filter(low60bhc == 1) %>%
   ungroup() %>%
+  group_by(survey) %>%
+  mutate(comp = people/sum(people)) %>%
   mutate(hhtype = factor(hhtype, levels = hhtypenames),
          hhtype = fct_rev(hhtype)) %>%
-  filter(low60bhc == 1) %>%
-  ggplot(aes(x = hhtype, y = people, fill = survey)) +
+  ggplot(aes(x = hhtype, y = comp, fill = survey)) +
   geom_col(position = "dodge") +
-  geom_text(aes(y = people + 10000,
-                label = comma(people, accuracy = 10000),
+  geom_text(aes(y = comp + 0.02,
+                label = percent(comp, 1),
                 colour = survey),
             position = position_dodge(width = 1)) +
   scale_fill_manual(values = cols_survey) +
@@ -192,7 +180,37 @@ tidydata %>%
         legend.position = "top",
         axis.text.x = element_blank()) +
   labs(x = NULL, y = NULL,
-       title = "Numbers in relative poverty BHC assuming Scottish, survey-specific poverty thresholds") +
+       title = "Composition of people in relative poverty BHC by household type",
+       subtitle = "Assuming Scottish, survey-specific poverty thresholds") +
+  coord_flip()
+
+tidydata %>%
+  filter(type == "total") %>%
+  group_by(survey, low60bhc, hhtype) %>%
+  summarise(people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey, hhtype) %>%
+  mutate(rate = people/sum(people)) %>%
+  filter(low60bhc == 1) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(comp = people/sum(people)) %>%
+  mutate(hhtype = factor(hhtype, levels = hhtypenames),
+         hhtype = fct_rev(hhtype)) %>%
+  ggplot(aes(x = hhtype, y = rate, fill = survey)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(y = rate + 0.02,
+                label = percent(rate, 1),
+                colour = survey),
+            position = position_dodge(width = 1)) +
+  scale_fill_manual(values = cols_survey) +
+  scale_colour_manual(values = cols_survey) +
+  theme(legend.title = element_blank(),
+        legend.position = "top",
+        axis.text.x = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Relative poverty rates BHC",
+       subtitle = "Assuming Scottish, survey-specific poverty thresholds") +
   coord_flip()
 
 ```

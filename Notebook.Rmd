@@ -5,11 +5,11 @@ output:
     code_folding: hide
     number_sections: yes
     toc: yes
+    css: "styles.css"
     
 editor_options: 
   chunk_output_type: inline
 ---
-
 
 ```{r setup, include = FALSE}
 
@@ -40,59 +40,22 @@ source("colours.R")
 
 # Load datasets
 
-source("prepSHSdata.R")
-source("prepHBAIdata.R")
+
 source("prepdata.R")
 
 ```
 
 
-<style type="text/css">
-
-body{ /* Normal  */
-      font-size: 18px;
-  }
-td {  /* Table  */
-  font-size: 16px;
-}
-h1.title {
-  font-size: 38px;
-  color: black;
-}
-h1 { /* Header 1 */
-  font-size: 32px;
-  font-weight: bold;
-  color: #C27D38;
-}
-h2 { /* Header 2 */
-    font-size: 26px;
-    font-weight: bold;
-}
-h3 { /* Header 3 */
-    font-size: 22px;
-    font-weight: bold;
-    color: #798E87;
-}
-code.r{ /* Code block */
-    font-size: 14px;
-}
-pre { /* Code block - determines code spacing between lines */
-    font-size: 14px;
-}
-figure {
-  width: 100%;
-}
-</style>
-
 # Introduction
 
-The general idea is to look at income first. Identify the areas of income measurement with the biggest discrepancies, dig deep, until the differences can be explained. Once the differences are understood, identify households in poverty and see if they show the same characteristics as those identified in the HBAI.
+Exploratory analysis of SHS income variable, comparing it against HBAI income. The general idea is to identify the income components and household types with the biggest discrepancies and identify the survey questions where these differences are created. 
+
+Once the differences are understood, identify households in poverty and see if they show the same characteristics as those identified in the HBAI (part 2).
 
 Documents:
 
 * [PID (on eRDM)](https://erdm.scotland.gov.uk:8443/documents/A27886326/details)
 * [Project plan (on eRDM)](https://erdm.scotland.gov.uk:8443/documents/A28035002/details)
-
 
 # Total income - FRS and SHS
 
@@ -173,11 +136,6 @@ tidydata %>%
 
 ```
 
-
-
-<style>
-div.box { background-color:#C27D38; color: white; border-radius: 10px; padding: 15px;}
-</style>
 
 <div class = "box">
 
@@ -869,24 +827,6 @@ ggplot(data = HIHemp_CI) +
 
 </div>
 
-
-## Any further breakdowns??
-
-- i.e. age group and income decile??
-
-## Conclusions for total income
-
-- The income distributions look largely similar, with the SHS income distribution being slightly wider.
-- Near the (HBAI based) relative poverty threshold, the SHS cumulative income curve is higher, meaning more households sit below that threshold in the SHS compared to the HBAI.
-- The income decile points are at similar levels for high incomes and diverge towards lower incomes, with SHS incomes being lower. This suggests that it would be advisable to calculate poverty thresholds for each survey separately, based on each survey’s data.
-- Using the 95% confidence intervals, median incomes overlap to some degree for all council areas where the HBAI sample size is large enough to estimate the median (>50). For some council areas, the overlaps are only marginal, such as Glasgow, Renfrewshire, Aberdeenshire, East Dunbartonshire, and Stirling. It would be good to check what the overlaps look like for different data years, i.e. SHS 2019 (pre-release access only) or HBAI 2017/18.
-- Note however that for the HBAI, the C.I. are calculated assuming a simple random sample which is a strong assumption. The HBAI C.I. are therefore only illustrative and may be wider.
-- Incomes overlap fairly well for urban and accessible rural areas. Incomes in remote rural areas overlap slightly less, but also have the smalles HBAI sample. Income in small towns overlaps the least.
-- Working-age adults’ and children’s incomes overlap well. Pensioners’ incomes don’t overlap, with SHS pensioners' incomes being considerably lower.
-- Incomes for most household types overlap well, except pensioners. Single pensioner and pensioner couples’ income don’t overlap, with SHS pensioners’ incomes lower than in the HBAI. Incomes of households with 3 or more adults and no children overlap little, but have very wide C.I., indicating large variation of incomes in this group.
-- Incomes of full- and part-time employees match well, suggesting that income from employed earnings may also match well. Self-employed income varies widely and overlaps only little between the two surveys. The HBAI unemployed sample is too small to produce estimates. Incomes of the retired don’t match well, similarly to pensioners’ incomes in the household type breakdown. Incomes of the disabled also doesn’t match too well.
-- **Areas to further investigate: pensioners' incomes, self-employed income (?), income of disabled**
-
 # Income components
 
 In SHS and FRS, which income sources contribute how much to total income? 
@@ -957,9 +897,8 @@ incdiff <- tidydata %>%
 
 <div class = "box">
 
-Total income aggregated to the  whole of Scotland is largely made up of earnings, followed by benefits (which include the state pension) and occupational pensions. Overall, SHS total income is `r incdiff` lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions. Income from earnings are higher in the SHS. Other income components are relatively small and therefore contribute little to the overall differences in income.
-
-Do investment incomes matter for poverty (= low income) measurement though?
+- Total income aggregated to the  whole of Scotland is largely made up of earnings, followed by benefits (which include the state pension) and occupational pensions. Overall, SHS total income is `r incdiff` lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions. Income from earnings are higher in the SHS. Other income components are relatively small and therefore contribute little to the overall differences in income.
+- Do investment incomes matter for poverty (= low income) measurement though?
 
 </div>
 
@@ -967,30 +906,34 @@ Do investment incomes matter for poverty (= low income) measurement though?
 
 # Make chart showing total income amount and components
 
-ggplot(tidydata, 
-       aes(x = type,
-           weight = hhwgt*amount*equ,
-           fill = survey)) +
-  geom_bar(position = 'dodge') +
-  scale_fill_manual(values = cols_survey) +
+tidydata %>%
+  group_by(survey, type, quintile) %>%
+  summarise(aggr = sum(hhwgt*amount*equ)) %>%
+  ungroup() %>%
+  arrange(quintile, type) %>%
+  mutate(diff = ifelse(survey == "SHS", lag(aggr)-aggr, 0)) %>%
+  filter(survey == "SHS") %>%
+  select(type, diff, quintile) %>%
+  ggplot(aes(x = type,
+           y = diff)) +
+  geom_col(position = 'dodge') +
   scale_y_continuous(label = comma_format(scale = 1E-6, prefix = "£", suffix = " mn", accuracy = 1)) +
   theme(legend.position = "top",
         legend.title = element_blank()) +
-  labs(title = "Aggregated weekly income by income type and income quintile",
-       subtitle = "Note different y axes",
+  labs(title = "Difference in aggregated weekly income by income type and income quintile",
        x = NULL, y = NULL) +
-  facet_wrap(vars(quintile), scales = "free_y")
+  facet_wrap(vars(quintile))
 
 ```
 
 
 <div class = "box">
 
-- For all quintiles, the aggregated total income is higher in the HBAI compared to SHS. Note that we showed earlier that this was similar for _median_ incomes, but that the differences decreased with higher incomes.
+- For all quintiles, the aggregated total income is higher in the HBAI compared to SHS, with the absolute difference increasing with higher incomes. Note that we showed earlier that this was similar for _median_ incomes, but that the differences *decreased* with higher incomes.
 - For the lowest income quintile, aggregated earnings incomes reported in the SHS are higher than in the HBAI. Benefits are considerably lower though and largely explain why total SHS income is lower than HBAI income in this quintile.
 - In the second income quintile (this is where the poverty threshold sits), the higher HBAI earnings income largely explains the differences in total aggregated incomes in this quintile.
 - In the third and fourth income quintiles, SHS earnings are again higher than HBAI earnings. However, differences in benefit, occupational pension, and inverstment incomes lead to a lower total income in the SHS in these quintiles.
-- In the top quintile, total income differences are due to differences in incomes from all sources, which are all lower in the SHS than the HBAI in this quintile.
+- In the top quintile, total income differences are due to differences in incomes from all major sources, but in particular occupational pensions and income from investments.
 
 </div>
 
@@ -1014,13 +957,6 @@ tidydata %>%
   select(type, HBAI_1, SHS_1, diff_1, dec1)
 
 ```
-
-## Conclusions for income components
-
-- Total income aggregated to the whole of Scotland is largely made up of earnings, followed by benefits (which include the state pension) and occupational pensions. Overall, SHS total income is 6.7% lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions. Income from earnings are higher in the SHS. Other income components are relatively small and therefore contribute little to the overall differences in income.
-- For all quintiles, the aggregated total income is higher in the HBAI compared to SHS. Note that we showed earlier that this was similar for median incomes, but that the gap decreased with higher incomes.
-- For the lowest income quintile, aggregated earnings incomes reported in the SHS are higher than in the HBAI. Benefits are considerably lower though and largely explain why total SHS income is lower than HBAI income in this quintile. In the second income quintile (this is where the poverty threshold sits), the higher HBAI earnings income largely explains the differences in total aggregated incomes in this quintile. In the third and fourth income quintiles, SHS earnings are again higher than HBAI earnings. However, differences in benefit, occupational pension, and investment incomes lead to a lower total income in the SHS in these quintiles. In the top quintile, total income differences are due to differences in incomes from all sources, which are all lower in the SHS than the HBAI in this quintile.
-- **Areas to further investigate: ??**
 
 
 # Earnings 
@@ -1192,29 +1128,10 @@ ggplot(data = earn_CI) +
 
 </div>
 
-## Conclusions for earnings income
-
-- Median earnings are higher in the SHS compared to the HBAI (as are aggregated total earnings as seen earlier), although mean earnings are not.
-- Employed earnings match well, but self-employed earnings do not.
-- Median earnings match fairly well for all income quintiles. There is more earnings variation in the top quintile. In the bottom two income quintiles, median SHS earnings are slightly lower than HBAI earnings, whereas in the top quintile, SHS earnings are higher than HBAI earnings. Note that this looks different in the aggregate, where SHS earnings are higher in the first, third, and fourth quintile.
-- **Areas to further investigate: self-employed earnings?**
 
 # Benefit income
 
-- median benefit income
-- main benefits
-- number of benefit (any) recipients (in subsections)
-
-Which benefits are the biggest (amountt and/or caseload) and differ the most between SHS and HBAI? 
-
-- Look at child / working-age / pensioner benefits separately (IS and PC were identified as problematic previously)
-
 - Look at this by geographic area - this hadn't been done previously
-
-- List benefit amounts for SHS and FRS. 
-- Check differences and identify which benefits contribute most to overall beenfit income discrepancy
-- Check caseload and amounts
-- Also against admin data
 
 ## Benefit income by household type
 
@@ -1541,7 +1458,6 @@ tidybens_agg %>%
 ```
 
 
-
 ## Pensioners' incomes
 
 ```{r pensioners_sources}
@@ -1717,7 +1633,7 @@ tidydata %>%
 
 <div class = "box">
 
-Sample sizes are too small for further breakdowns, but pension credit is subject to both, underreporting of the amount, and non-reporting of receipt for SHS, compared to HBAI.
+- Sample sizes are too small for further breakdowns, but pension credit is subject to both, underreporting of the amount, and non-reporting of receipt for SHS, compared to HBAI.
 
 </div>
 
@@ -1789,7 +1705,7 @@ tidybens %>%
 
 <div class = "box">
 
-Sample sizes are too small for breakdowns, but data (see above) shows that the aggregated amount is vastly underreported in the SHS, compared to HBAI, and even more compared to admin data.
+- Sample sizes are too small for breakdowns, but data (see above) shows that the aggregated Universal Credit amount is vastly underreported in the SHS, compared to HBAI, and even more compared to admin data.
 
 </div>
 
@@ -1867,7 +1783,7 @@ tidybens %>%
 
 <div class = "box">
 
-Tax credits are also underreported in the SHS compared to the HBAI. This affects mainly part-time employees, although it is, on average, only a small payment.
+- Tax credits are also underreported in the SHS compared to the HBAI. This affects mainly part-time employees, although it is, on average, only a small payment.
 
 </div>
 
@@ -1979,25 +1895,7 @@ tidybens %>%
 </div>
 
 
-## Conclusions for benefit income
-
-**needs work**
-
-- (total) benefit income of most household types matches ok between SHS and HBAI
-- but benefit income of single adults and pensioner couples don't match
-- benefit income of retired and permanently sick/disabled don't match
-- pensioner benefits: state pension biggest benefit - more underreported in SHS compared to HBAI, also Pension Credit and Winter Fuel Payment - might explain poor match for pensioners
-- disability benefits: same issue, might explain poor match for disabled hhtype
-- aggregated income for One pensioner, one adult matches better between SHS and HBAI than aggregated income for Single pensioners and Pensioner Couples. This is because this group's income comes largely from earnings and much less from benefits. Earnings are higher in the SHS, whereas the other main income types (mainly benefits) are much lower.
-- the differences in income come mainly from benefit income (state pension?), occupational pensions and investment income. 
-- the difference in investment income is caused by much fewer people reporting any investment income in the SHS compared to the HBAI.
-- The average amount of state pension received matches well between HBAI and SHS
-- However, the SHS reports fewer recipients of state pension
-- **Areas to further investigate: why do many pensioners not report state pension receipt in the SHS? Look at question wording? **
-- **Areas to further investigate: is it specific benefits that cause the discrepancy of benefit income by hhld type, i.e. Child-related benefits are reported well, but maybe UC, JSA, or state pensions are not reported well?** 
-
 # Investment income
-
 
 ```{r investment}
 
@@ -2092,3 +1990,165 @@ tidydata %>%
 - similarly, most of investment income is held by the richest households
 
 </div>
+
+# Summary
+
+We compared SHS 2018 income data (the new, broader definition) with HBAI income data. For the HBAI data, we used income before top-income adjustment, and ignored child income (except for benefits) {>> check this is correct >>} and any income deductions {>> give examples of deductions >>}.
+
+{>> Deductions: do they have a bearing on self-employed earnings?? <<}
+
+We also looked at administrative data on benefits to quantify the amount of benefit underreporting in the SHS (and the HBAI).
+
+Note that all income discussed here is net income after benefits and tax, and not taking housing costs into account (BHC income).
+
+## Total income overall
+
+The income **distributions** in the SHS and the HBAI look largely similar, with the SHS income distribution being slightly wider, and the SHS **median** slightly lower. Near the (official) relative poverty threshold, the SHS cumulative income curve is higher, meaning more households sit below that threshold in the SHS compared to the HBAI. We will later see that this means that more people are considered to be in relative poverty when using the SHS dataset compared to the HBAI dataset.
+
+The nine income decile points (the thresholds in each dataset that split the populations in ten equal-sized groups) are at similar levels for high incomes and diverge towards lower incomes, with SHS incomes being lower. This shows that more households in the SHS have lower incomes compared to the HBAI, whereas the high income end of the distribution matches better. 
+
+The diverging distributions near the poverty line suggests that it would be advisable to calculate poverty thresholds for each survey separately, based on each survey's data.
+
+For the analysis which followed, 95% confidence intervals (C.I.) of the median were calculated using a bootstrapping method. For the HBAI, the boostrapped C.I.s do not account for the complex survey design. They are therefore only illustrative and may be wider. 
+
+Median income C.I.s overlap to some degree for all 22 **council areas** where the HBAI sample size is large enough. ( >=50). For some council areas, the overlaps are only marginal, such as Glasgow, Renfrewshire, Aberdeenshire, East Dunbartonshire, and Stirling, even though some of these have relatively large HBAI sample sizes (Aberdeenshire, Glasgow, Renfrewshire). {>> It would be good to check what the overlaps look like for different data years, i.e. SHS 2019 (pre-release access only) or HBAI 2017/18 <<}
+
+Median incomes match fairly well for **urban** and accessible rural areas. Median incomes in remote rural areas match slightly less well, but also have the smalles HBAI sample. Median incomes in small towns match the worst.
+
+Median income of **working-age adults** and **children** match well, but **pensioners**' incomes are much lower in the SHS and C.I.s do not overlap.
+
+Incomes for most **household types** match well, except for pensioners, whose income is much lower in the SHS. Single pensioner and pensioner couples' income C.I.s don't overlap. Incomes of households with 3 or more adults and no children have very wide C.I.s, indicating large variation of incomes in this group.
+
+Incomes of households where the household head (the highest income householder) is a full- or part-time employee match well, suggesting that income from employed earnings may also match well. Income of self-employed households varies widely and C.I.s overlap only little between the two survey. Incomes of the retired don't match well, similarly to pensioners' incomes in the age group and household type breakdowns. Incomes of the disabled also don't match too well.
+
+**Areas for further investigation: **
+
+- pensioners' incomes
+- self-employed income (?)
+- income of disabled households
+- council areas that don't match well - is this because they depend more on benefit income??
+
+## Income components conclusions
+
+Total income aggregated to the  whole of Scotland is largely made up of earnings, followed by benefits (which include the state pension) and occupational pensions. Overall, SHS total income is `r incdiff` lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions. Income from earnings are slightly higher in the SHS. Other income components are relatively small and therefore contribute little to the overall differences in income. {>> Do investment incomes matter for poverty (= low income) measurement though? <<}
+
+For all quintiles, the aggregated total income is higher in the HBAI compared to SHS, with the difference increasing with higher incomes. Note that we showed earlier that this was similar for the income decile points, but that the differences *decreased* with higher incomes. 
+
+For the lowest income quintile, aggregated earnings income reported in the SHS is higher than in the HBAI. Benefits are considerably lower though and largely explain why total SHS income is lower than HBAI income in this quintile. In the second income quintile (this is where the poverty threshold sits), the higher HBAI earnings income largely explains the differences in total aggregated incomes in this quintile. In the third and fourth income quintiles, SHS earnings are again higher than HBAI earnings. However, differences in benefit, occupational pension, and investment incomes lead to a lower total income in the SHS in these quintiles. In the top quintile, total income differences are due to differences in incomes from all major sources, but in particular occupational pensions and income from investments.
+
+**Areas for further investigation: **
+
+- ??
+
+## Earnings conclusions
+
+- Median earnings are higher in the SHS compared to the HBAI (as are aggregated total earnings as seen earlier), although _mean_ earnings are not.
+- Employed earnings match well, but self-employed earnings do not.
+
+***
+
+- Median earnings match fairly well for all incoem quintiles.
+- There is more earnings variation in the top quintile.
+- In the bottom two income quintiles, median SHS earnings are slightly lower than HBAI earnings, whereas in the top quintile, SHS earnings are higher than HBAI earnings.
+
+***
+
+- Median earnings are higher in the SHS compared to the HBAI (as are aggregated total earnings as seen earlier), although mean earnings are not.
+- Employed earnings match well, but self-employed earnings do not.
+- Median earnings match fairly well for all income quintiles. There is more earnings variation in the top quintile. In the bottom two income quintiles, median SHS earnings are slightly lower than HBAI earnings, whereas in the top quintile, SHS earnings are higher than HBAI earnings. Note that this looks different in the aggregate, where SHS earnings are higher in the first, third, and fourth quintile.
+- **Areas to further investigate: self-employed earnings?**
+
+## Benefits conclusions
+
+- Median benefit income doesn't match well between SHS and HBAI, with some exceptions: Two adults with children, households with aone adults and one pensioner match ok. Generally, SHS benefit income is lower than HBAI benefit income.
+- The household type with the largest difference in benefit income is single adults, followed by single adults with children and pensioner couples. Pensioner couples are the only group where C.I. don't overlap.
+
+***
+
+- Median benefit incomes for households where the highest income householder is a full-time employee match well and show a small benefit amount and little variation.
+- There is more variation and discrepancy in median benefit incomes for part-time employee and seld-employed households.
+- Median benefit incomes from SHS and HBAI do not overlap for retired and disabled households, with the SHS benefit incomes consistently below HBAI benefit incomes.
+
+***
+
+Benefits types...
+
+***
+
+- aggregated income for One pensioner, one adult matches better between SHS and HBAI than aggregated income for Single pensioners and Pensioner Couples. This is because this group's income comes largely from earnings and much less from benefits. Earnings are higher in the SHS, whereas the other main income types (mainly benefits) are much lower.
+- the differences in income come mainly from benefit income (state pension?), occupational pensions and investment income. 
+- the difference in investment income is caused by much fewer people reporting any investment income in the SHS compared to the HBAI.
+
+***
+
+- The average amount of state pension received matches well between HBAI and SHS
+- However, the SHS reports fewer recipients of state pension
+
+***
+
+- the SHS only slightly underreports income from occupational pensions compared to the HBAI.
+- the underreporting is due to non-reporting
+- most of occ pension income goes to retired people
+
+***
+
+- Sample sizes are too small for further breakdowns, but pension credit is subject to both, underreporting of the amount, and non-reporting of receipt for SHS, compared to HBAI.
+
+***
+
+- Disability benefit is subject to both, underreporting of the amount, and non-reporting of receipt for SHS, compared to HBAI
+
+***
+
+- Sample sizes are too small for breakdowns, but data (see above) shows that the aggregated Universal Credit amount is vastly underreported in the SHS, compared to HBAI, and even more compared to admin data.
+
+
+***
+
+- Tax credits are also underreported in the SHS compared to the HBAI. This affects mainly part-time employees, although it is, on average, only a small payment.
+
+***
+
+- Many more single adult households in the SHS than the HBAI report (any) benefit income, and therefore aggregated benefit income for single adult households is higher in the SHS compared to the HBAI. But the average amount (all benefits added up) is smaller in the SHS. This might be because people underestimate their benefit amounts, or they miss out some benefits.
+
+***
+
+**needs work**
+
+- (total) benefit income of most household types matches ok between SHS and HBAI
+- but benefit income of single adults and pensioner couples don't match
+- benefit income of retired and permanently sick/disabled don't match
+- pensioner benefits: state pension biggest benefit - more underreported in SHS compared to HBAI, also Pension Credit and Winter Fuel Payment - might explain poor match for pensioners
+- disability benefits: same issue, might explain poor match for disabled hhtype
+- aggregated income for One pensioner, one adult matches better between SHS and HBAI than aggregated income for Single pensioners and Pensioner Couples. This is because this group's income comes largely from earnings and much less from benefits. Earnings are higher in the SHS, whereas the other main income types (mainly benefits) are much lower.
+- the differences in income come mainly from benefit income (state pension?), occupational pensions and investment income. 
+- the difference in investment income is caused by much fewer people reporting any investment income in the SHS compared to the HBAI.
+- The average amount of state pension received matches well between HBAI and SHS
+- However, the SHS reports fewer recipients of state pension
+- **Areas to further investigate: why do many pensioners not report state pension receipt in the SHS? Look at question wording? **
+- **Areas to further investigate: is it specific benefits that cause the discrepancy of benefit income by hhld type, i.e. Child-related benefits are reported well, but maybe UC, JSA, or state pensions are not reported well?** 
+
+## Investment income conclusions
+
+- Investment income is hugely underreported in the SHS compared to the HBAI, even though we are using the HBAI data before top-income adjustments (which would correct top incomes upwards). 
+- most of investment income is held by retired households, and by Two adult households, therefore the underreporting in the SHS might affect the incomes of these groups more.
+- similarly, most of investment income is held by the richest households
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

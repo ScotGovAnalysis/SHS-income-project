@@ -1,0 +1,41 @@
+
+body{ /* Normal  */
+      font-size: 18px;
+  }
+td {  /* Table  */
+  font-size: 16px;
+}
+h1.title {
+  font-size: 38px;
+  color: black;
+}
+h1 { /* Header 1 */
+  font-size: 32px;
+  font-weight: bold;
+  color: #C27D38;
+}
+h2 { /* Header 2 */
+    font-size: 26px;
+    font-weight: bold;
+}
+h3 { /* Header 3 */
+    font-size: 22px;
+    font-weight: bold;
+    color: #798E87;
+}
+r { /* Code block */
+    font-size: 14px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+figure {
+  width: 100%;
+}
+
+div.box { /* Conclusion box */
+  background-color:#C27D38; 
+  color: white; 
+  border-radius: 10px;
+  padding: 15px;
+}
