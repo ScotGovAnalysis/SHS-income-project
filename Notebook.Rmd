@@ -76,23 +76,19 @@ Documents:
 
 # Summary
 
-We compared SHS 2018 income data (the new, broader definition) with HBAI income data. For the HBAI data, we used income before top-income adjustment, and ignored child income (except for benefits) {>> check this is correct >>} and any income deductions {>> give examples of deductions >>}.
-
-{>> Deductions: do they have a bearing on self-employed earnings?? <<}
+We compared SHS 2018 income data (the new, broader definition) with HBAI 2018/19 income data. For the HBAI data, we didn't use the standard income variable,  but instead used income before top-income adjustment, and ignored child income (except for benefits) and any income deductions, such as all maintenance and child support payments, parental contributions to students living away from home, or student loan repayments. We also set negative earnings and investment income to 0. This way, we can compare the data from the surveys more directly and don't (initially at least) focus on any discrepancies that originate not from the collected data itself but the data processing at a later stage.
 
 We also looked at administrative data on benefits to quantify the amount of benefit underreporting in the SHS (and the HBAI).
 
-Note that all income discussed here is net income after benefits and tax, and not taking housing costs into account (BHC income).
+Note that all income discussed here is net income after benefits and tax, and not taking housing costs into account (similar to BHC income).
 
-_In the below: Add more possible explanations, or what's an area we don't yet understand_
+## Total income overall {-}
 
-### Total income overall {-}
+The income **distributions** in the SHS and the HBAI look largely similar, with the SHS income distribution being slightly wider, and the SHS **median** slightly lower. Near the relative poverty threshold, the SHS cumulative income curve is higher, meaning more households sit below that threshold in the SHS compared to the HBAI. This means that more people are considered to be in relative poverty when using the SHS dataset compared to the HBAI dataset.
 
-The income **distributions** in the SHS and the HBAI look largely similar, with the SHS income distribution being slightly wider, and the SHS **median** slightly lower. Near the (official) relative poverty threshold, the SHS cumulative income curve is higher, meaning more households sit below that threshold in the SHS compared to the HBAI. We will later see that this means that more people are considered to be in relative poverty when using the SHS dataset compared to the HBAI dataset.
+The nine income decile points (the thresholds in each dataset that split the populations in ten equal-sized groups) are at similar levels in the two surveys for high incomes, and diverge towards lower incomes, with SHS incomes being lower. This shows that more households in the SHS have lower incomes compared to the HBAI, whereas the high income end of the distribution matches better between surveys. We will later see that this might be caused by benefit underreporting in the SHS (relative to the HBAI). The lower the income, the more important benefit income becomes, and the more affected total income is by benefit underreporting.
 
-The nine income decile points (the thresholds in each dataset that split the populations in ten equal-sized groups) are at similar levels for high incomes and diverge towards lower incomes, with SHS incomes being lower. This shows that more households in the SHS have lower incomes compared to the HBAI, whereas the high income end of the distribution matches better. 
-
-The diverging distributions near the poverty line suggests that it would be advisable to calculate poverty thresholds for each survey separately, based on each survey's data.
+{>> chart: aggregated income components by total income decile <<}
 
 For the analysis which followed, 95% confidence intervals (C.I.) of the median were calculated using a bootstrapping method. For the HBAI, the boostrapped C.I.s do not account for the complex survey design. They are therefore only illustrative and may be wider. 
 
@@ -111,7 +107,7 @@ Incomes of households where the household head (the highest income householder) 
 - self-employed income (?) - this might just be variation, check this with SHS 19 dataset
 - council areas that don't match well - is this because they depend more on benefit income??
 
-### Income components {-}
+## Income components {-}
 
 Total income aggregated to the  whole of Scotland is largely made up of earnings, followed by benefits (which include the state pension) and occupational pensions. Overall, SHS total income is `r incdiff` lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions. Income from earnings are slightly higher in the SHS. Other income components are relatively small and therefore contribute little to the overall differences in income. {>> Do investment incomes matter much for poverty (= low income) measurement though? <<}
 
@@ -119,13 +115,13 @@ For all quintiles, the aggregated total income is higher in the HBAI compared to
 
 For the lowest income quintile, aggregated earnings income reported in the SHS is higher than in the HBAI. Benefits are considerably lower though and largely explain why total SHS income is lower than HBAI income in this quintile. In the second income quintile (this is where the poverty threshold sits), the higher HBAI earnings income largely explains the differences in total aggregated incomes in this quintile. In the third and fourth income quintiles, SHS earnings are again higher than HBAI earnings. However, differences in benefit, occupational pension, and investment incomes lead to a lower total income in the SHS in these quintiles. In the top quintile, total income differences are due to differences in incomes from all major sources, but in particular occupational pensions and income from investments.
 
-### Earnings {-}
+## Earnings {-}
 
 Median and aggregated total earnings are higher in the SHS compared to the HBAI. Median earnings of households where the head is employed match fairly well between surveys, but those where the head is self-employed less so. Note however, that the latter group is quite small. The overall earnings income discrepancy between surveys is a product of both, large differences for (the few) self-employed households, and smaller differences for (the many) employed households.
 
 Across income quintiles, median earnings match fairly well, with slightly more variation in the top quintile. In the bottom two income quintiles, median SHS earnings are slightly lower than HBAI earnings, whereas in the top quintile, SHS earnings are higher than HBAI earnings. (Note that this looks different in the aggregate, where SHS earnings are higher in the first, third, and fourth quintile.) This divergence in median earnings contributes to the increasing differences in median total income between surveys by increasing income decile, as shown earlier.
 
-### Benefits {-}
+## Benefits {-}
 
 ```{r bendiff, echo=FALSE}
 
@@ -160,11 +156,6 @@ All of these big benefits except for Housing Benefit are underreported in the SH
 
 This means that any household type that gets a large share of their income through benefits will show a lower income in the SHS compared to the HBAI. This affects households with low or no earnings: pensioners, who receive a large part of their income through the state pension (and other, smaller benefits such as Pension Credit and Winter Fuel Payment), and households with disabled household members who receive ESA, PIP and DLA. I expect it also affects other low earning households through Tax Credits and Universal Credit. These households will show too low an income in the SHS.
 
-**Pensioners' incomes**
-
-The aggregated (total) income for One Pensioner, One Adult matches (slightly) better between SHS and HBAI than the aggregated income for Single Pensioners and Pensioner Couples. This is because this group's income comes largely from earnings, which are higher in the SHS and offset the lower benefit income. For Single Pensioners and Pensioner Couples, the differences in total income come mainly from benefit income (which is mainly the state pension), but also from differences in occupational pensions and investment income. The difference in investment income is due to non-reporting of investment income in the SHS compared to the HBAI: fewer people in the SHS report having any income from investments. Similarly, fewer people in the SHS report any occupational pension income, although in the aggregate, the SHS occupational penions income is only slightly below that in the HBAI.
-
-Looking at Pension Credit, an income-related benefits for pensioners, sample sizes are too small for further breakdowns, but this benefit is subject to both, underreporting of the amount, and non-reporting of receipt for SHS, compared to HBAI.
 
 **Single adults' benefit incomes**
 
@@ -176,11 +167,15 @@ Many more single adult households in the SHS than the HBAI report (any) benefit 
 - single adults benefit income
 - benefit income by geographic area
 
-
-### Investment income {-}
+## Investment income {-}
 
 Investment income is hugely underreported in the SHS compared to the HBAI, even though we are using the HBAI data before top-income adjustments (which would correct top incomes upwards). Most of investment income is held by retired households, and by Two Adult households; therefore, the underreporting in the SHS affects the incomes of these groups more. Similarly, most of investment income is held by the richest households.
 
+## Pensioners' incomes {-}
+
+The aggregated (total) income for One Pensioner, One Adult matches (slightly) better between SHS and HBAI than the aggregated income for Single Pensioners and Pensioner Couples. This is because this group's income comes largely from earnings, which are higher in the SHS and offset the lower benefit income. For Single Pensioners and Pensioner Couples, the differences in total income come mainly from benefit income (which is mainly the state pension), but also from differences in occupational pensions and investment income. The difference in investment income is due to non-reporting of investment income in the SHS compared to the HBAI: fewer people in the SHS report having any income from investments. Similarly, fewer people in the SHS report any occupational pension income, although in the aggregate, the SHS occupational penions income is only slightly below that in the HBAI.
+
+Looking at Pension Credit, an income-related benefits for pensioners, sample sizes are too small for further breakdowns, but this benefit is subject to both, underreporting of the amount, and non-reporting of receipt for SHS, compared to HBAI.
 
 # Total income - FRS and SHS
 
@@ -200,13 +195,15 @@ tidydata %>%
   ggplot(aes(x = amount, weight = ppwgt, colour = survey, fill = survey )) +
   geom_vline(xintercept = HBAImedian, colour = cols_survey[1]) +
   geom_vline(xintercept = SHSmedian, colour = cols_survey[2]) +
+  geom_vline(xintercept = 0.6*HBAImedian, colour = cols_survey[1]) +
+  geom_vline(xintercept = 0.6*SHSmedian, colour = cols_survey[2]) +
   geom_density(size = 1, alpha = 0.5, bw = 0.02) +
   scale_x_log10(limits = c(20, 20000), labels = comma_format(prefix = "£")) +
   scale_y_continuous(labels = comma_format(scale = 1E-6, suffix = " million")) +
   scale_color_manual(values = cols_survey) +
   scale_fill_manual(values = cols_survey) +
   labs(title = "SHS and FRS household income distribution",
-       subtitle = "HBAI income excludes children's income and deductions, and is not SPI'd or deflated",
+       subtitle = "Vertical lines show poverty thresholds and medians",
        x = "Weekly income",
        y = "Number of people") +
   theme(legend.position = "top",
@@ -217,6 +214,8 @@ tidydata %>%
   ggplot(aes(x = amount, weight = ppwgt, colour = survey, fill = survey )) +
   geom_vline(xintercept = HBAImedian, colour = cols_survey[1]) +
   geom_vline(xintercept = SHSmedian, colour = cols_survey[2]) +
+  geom_vline(xintercept = 0.6*HBAImedian, colour = cols_survey[1]) +
+  geom_vline(xintercept = 0.6*SHSmedian, colour = cols_survey[2]) +
   coord_cartesian(xlim = c(20, 20000)) +
   stat_ecdf(geom = "step", size = 1, alpha = 0.5) +
   scale_x_log10(labels = comma_format(prefix = "£")) +
@@ -224,7 +223,7 @@ tidydata %>%
   scale_color_manual(values = cols_survey) +
   scale_fill_manual(values = cols_survey) +
   labs(title = "SHS and FRS cumulative household income distribution",
-       subtitle = "HBAI income excludes children's income and deductions, and is not SPI'd or deflated",
+       subtitle = "Vertical lines show poverty thresholds and medians",
        x = "Weekly income",
        y = "Proportion of households") +
   theme(legend.position = "top",
@@ -235,14 +234,10 @@ tidydata %>%
   ggplot(aes(x = amount, weight = ppwgt, colour = survey, fill = survey )) +
   geom_vline(xintercept = HBAImedian, colour = cols_survey[1]) +
   geom_vline(xintercept = SHSmedian, colour = cols_survey[2]) +
+  geom_vline(xintercept = 0.6*HBAImedian, colour = cols_survey[1]) +
+  geom_vline(xintercept = 0.6*SHSmedian, colour = cols_survey[2]) +
   coord_cartesian(xlim = c(100,1500)) +
   stat_ecdf(geom = "step", size = 1, alpha = 0.5) +
-  geom_vline(xintercept = 310) +
-  geom_text(data = tail(tidydata, 1L), 
-            aes(x = 320, y = 1, label = "Rel. poverty threshold"), 
-            colour = "grey20",
-            hjust = 0, 
-            show.legend = FALSE) +
   geom_text(data = tail(tidydata, 1L), 
             aes(x = HBAImedian + 20, y = 1, label = "Medians"), 
             colour = "grey20",
@@ -253,7 +248,7 @@ tidydata %>%
   scale_color_manual(values = cols_survey) +
   scale_fill_manual(values = cols_survey) +
   labs(title = "SHS and FRS cumulative household income distribution",
-       subtitle = "HBAI income excludes children's income and deductions, and is not SPI'd or deflated",
+       subtitle = "Vertical lines show poverty thresholds and medians",
        x = "Weekly income",
        y = "Proportion of households") +
   theme(legend.position = "top",
@@ -1062,26 +1057,36 @@ tidydata %>%
 
 </div>
 
-```{r aggr_comp_quintiles_table, include = FALSE}
+```{r component_shares_decile}
 
 # Make table showing differences in income and income compononents
 
 tidydata %>%
-  group_by(survey, quintile, type) %>%
+  filter(type != "total") %>%
+  group_by(survey, decile, type) %>%
   summarise(amount = sum(amount*hhwgt*equ)) %>%
-  unite(temp, survey, quintile) %>%
-  spread(temp, amount) %>%
   ungroup() %>%
-  mutate(totdiff_1 = HBAI_1[1] - SHS_1[1],
-         diff_1 = HBAI_1 - SHS_1,
-         diffcontr_1 = diff_1/totdiff_1) %>%
-  mutate_at(c("HBAI_1", "HBAI_2", "HBAI_3", "HBAI_4","HBAI_5", 
-              "SHS_1","SHS_2","SHS_3","SHS_4","SHS_5","diff_1"),  
-            comma_format(scale = 1E-6, prefix = "£", suffix = " million", accuracy = 1)) %>%
-  mutate(dec1 = percent(diffcontr_1)) %>%
-  select(type, HBAI_1, SHS_1, diff_1, dec1)
+  mutate(decile = factor(decile)) %>%
+  group_by(survey, decile) %>%
+  ggplot(aes(x = decile, y = amount, fill = type)) +
+  geom_col(position = "fill") +
+  scale_fill_manual(values = cols_types) +
+  labs(x  = "Total income decile", y = NULL,
+       title = "Share of aggregated total income by type of income and decile") +
+  facet_wrap(~survey, nrow = 2) +
+  theme(legend.title = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank())
 
 ```
+
+
+
+<div class = "box">
+
+- The lower the total income is, the less important earnings and the more important benefits become.
+
+</div>
 
 
 # Earnings 
@@ -1602,176 +1607,6 @@ tidybens_agg %>%
 ```
 
 
-## Pensioners' incomes
-
-```{r pensioners_sources}
-
-tidydata %>%
-  filter(hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
-  group_by(survey, type, hhtype) %>%
-  summarise(tot = sum(amount*hhwgt*equ),
-            mean = wtd.mean(ifelse(amount != 0, amount, NA), weights = hhwgt, na.rm = TRUE),
-            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            n = sum(ifelse(amount != 0, ppwgt, 0)),
-            sample = n()) %>% 
-  filter(sample >= 50) %>%
-  ggplot(aes(x = type, y = tot, fill = survey)) +
-  geom_col(position = 'dodge') +
-  scale_fill_manual(values = cols_survey) +
-  facet_wrap(vars(hhtype), scales = "free") +
-  labs(x = NULL, y = NULL, 
-       title = "Aggregated income and income sources for pensioner households",
-       subtitle = "Note different y-scales") +
-  theme(legend.title = element_blank(),
-        legend.position = "top")
-
-tidydata %>%
-  filter(hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
-  group_by(survey, type, hhtype) %>%
-  summarise(tot = sum(amount*hhwgt*equ),
-            mean = wtd.mean(ifelse(amount != 0, amount, NA), weights = hhwgt, na.rm = TRUE),
-            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            n = sum(ifelse(amount != 0, ppwgt, 0)),
-            sample = n()) %>% 
-  filter(sample >=50) %>%
-  ggplot(aes(x = type, y = mean, fill = survey)) +
-  geom_col(position = 'dodge') +
-  scale_fill_manual(values = cols_survey) +
-  facet_wrap(vars(hhtype)) +
-  labs(x = NULL, y = NULL, 
-       title = "Mean income and income sources for pensioner households",
-       subtitle = "Each bar only includes hhlds who have that type of income; sample >= 50") +
-  theme(legend.title = element_blank(),
-        legend.position = "top")
-
-tidydata %>%
-  filter(hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
-  group_by(survey, type, hhtype) %>%
-  summarise(tot = sum(amount*hhwgt*equ),
-            mean = wtd.mean(ifelse(amount != 0, amount, NA), weights = hhwgt, na.rm = TRUE),
-            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            n = sum(ifelse(amount != 0, ppwgt, 0)),
-            sample = n()) %>% 
-  filter(sample >= 100) %>%
-  ggplot(aes(x = type, y = n, fill = survey)) +
-  geom_col(position = 'dodge') +
-  scale_fill_manual(values = cols_survey) +
-  facet_wrap(vars(hhtype)) +
-  labs(x = NULL, y = NULL, 
-       title = "Numbers of people receiving income and income sources for pensioner households",
-       subtitle = "Sample >= 100") +
-  theme(legend.title = element_blank(),
-        legend.position = "top")
-```
-
-
-<div class="box">
-
-- aggregated income for One pensioner, one adult matches better between SHS and HBAI than aggregated income for Single pensioners and Pensioner Couples. This is because this group's income comes largely from earnings and much less from benefits. Earnings are higher in the SHS, whereas the other main income types (mainly benefits) are much lower.
-- the differences in income come mainly from benefit income (state pension?), occupational pensions and investment income. 
-- the difference in investment income is caused by much fewer people reporting any investment income in the SHS compared to the HBAI.
-
-</div>
-
-```{r state_pension}
-
-# State pension caseload and amount by hhtype
-
-tidybens %>%
-  filter(type == "State Pension",
-         amount > 0,
-         hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
-  group_by(survey, hhtype) %>%
-  summarise(tot = sum(amount*hhwgt*equ),
-            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            mean = wtd.mean(amount, weights = hhwgt),
-            n = sum(ifelse(amount != 0, ppwgt, 0))) %>%
-  ggplot(aes(x = hhtype, y = mean, fill = survey)) +
-  geom_col(position = 'dodge') +
-  scale_fill_manual(values = cols_survey) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-  labs(x = NULL, y = NULL, 
-       title = "Mean state pension (of those who receive any) by hhtype",
-       subtitle = "Includes pensioner hhlds only")
-
-tidybens %>%
-  filter(type == "State Pension",
-        hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
-  group_by(survey, hhtype) %>%
-  summarise(tot = sum(amount*hhwgt*equ),
-            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            mean = wtd.mean(amount, weights = hhwgt),
-            n = sum(ifelse(amount != 0, ppwgt, 0))) %>%
-  ggplot(aes(x = hhtype, y = n, fill = survey)) +
-  geom_col(position = 'dodge') +
-  scale_fill_manual(values = cols_survey) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-  labs(x = NULL, y = NULL, 
-       title = "Number of people in hhlds receiving state pension by hhtype",
-       subtitle = "Includes pensioner hhlds only")
-
-```
-
-<div class = "box">
-
-- The average amount of state pension received matches well between HBAI and SHS
-- However, the SHS reports fewer recipients of state pension
-
-</div>
-
-Occupational pensions
-
-```{r occ_pension}
-
-tidydata %>%
-  filter(type == "occ",
-         amount > 0) %>%
-  group_by(survey) %>%
-  summarise(tot = sum(amount*hhwgt*equ),
-            mean = wtd.mean(amount, weights = hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            sample = n(),
-            people = sum(ppwgt)) %>%
-  mutate(tot = comma(tot, scale = 1E-6, prefix  ="£", suffix = " million"),
-         mean = comma(mean, prefix = "£"),
-         median = comma(median, prefix = "£"),
-         sample = comma(sample),
-         people = comma(people)) %>%
-  knitr::kable(align = "lrrrrr")
-
-tidydata %>%
-  filter(type == "occ",
-         amount > 0) %>%
-  group_by(survey, HIHemp) %>%
-  summarise(tot = sum(amount*hhwgt*equ),
-            mean = wtd.mean(amount, weights = hhwgt),
-            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            sample = n(),
-            people = sum(ppwgt)) %>%
-  ungroup() %>%
-  group_by(survey) %>%
-  mutate(share = tot/sum(tot),
-         HIHemp = fct_reorder(HIHemp, share)) %>%
-  ggplot(aes(x = HIHemp, y = share, fill = survey)) +
-  geom_col(position = "dodge") +
-  scale_fill_manual(values = cols_survey) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-  labs(x = NULL, y = NULL,
-       title = "Share of aggregated occupational pensions income across household types") +
-  coord_flip()
-
-```
-
-<div class = "box">
-
-- the SHS only slightly underreports income from occupational pensions compared to the HBAI.
-- the underreporting is due to non-reporting
-- most of occ pension income goes to retired people
-
-</div>
 
 ## Pension credit
 
@@ -2225,3 +2060,181 @@ tidydata %>%
 
 </div>
 
+
+# Pensioners' incomes
+
+```{r pensioners_sources}
+
+tidydata %>%
+  filter(hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
+  group_by(survey, type, hhtype) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(ifelse(amount != 0, amount, NA), weights = hhwgt, na.rm = TRUE),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            n = sum(ifelse(amount != 0, ppwgt, 0)),
+            sample = n()) %>% 
+  filter(sample >= 50) %>%
+  ggplot(aes(x = type, y = tot, fill = survey)) +
+  geom_col(position = 'dodge') +
+  scale_fill_manual(values = cols_survey) +
+  facet_wrap(vars(hhtype), scales = "free") +
+  labs(x = NULL, y = NULL, 
+       title = "Aggregated income and income sources for pensioner households",
+       subtitle = "Note different y-scales") +
+  theme(legend.title = element_blank(),
+        legend.position = "top")
+
+tidydata %>%
+  filter(hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
+  group_by(survey, type, hhtype) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(ifelse(amount != 0, amount, NA), weights = hhwgt, na.rm = TRUE),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            n = sum(ifelse(amount != 0, ppwgt, 0)),
+            sample = n()) %>% 
+  filter(sample >=50) %>%
+  ggplot(aes(x = type, y = mean, fill = survey)) +
+  geom_col(position = 'dodge') +
+  scale_fill_manual(values = cols_survey) +
+  facet_wrap(vars(hhtype)) +
+  labs(x = NULL, y = NULL, 
+       title = "Mean income and income sources for pensioner households",
+       subtitle = "Each bar only includes hhlds who have that type of income; sample >= 50") +
+  theme(legend.title = element_blank(),
+        legend.position = "top")
+
+tidydata %>%
+  filter(hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
+  group_by(survey, type, hhtype) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(ifelse(amount != 0, amount, NA), weights = hhwgt, na.rm = TRUE),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            n = sum(ifelse(amount != 0, ppwgt, 0)),
+            sample = n()) %>% 
+  filter(sample >= 100) %>%
+  ggplot(aes(x = type, y = n, fill = survey)) +
+  geom_col(position = 'dodge') +
+  scale_fill_manual(values = cols_survey) +
+  facet_wrap(vars(hhtype)) +
+  labs(x = NULL, y = NULL, 
+       title = "Numbers of people receiving income and income sources for pensioner households",
+       subtitle = "Sample >= 100") +
+  theme(legend.title = element_blank(),
+        legend.position = "top")
+```
+
+
+<div class="box">
+
+- aggregated income for One pensioner, one adult matches better between SHS and HBAI than aggregated income for Single pensioners and Pensioner Couples. This is because this group's income comes largely from earnings and much less from benefits. Earnings are higher in the SHS, whereas the other main income types (mainly benefits) are much lower.
+- the differences in income come mainly from benefit income (state pension?), occupational pensions and investment income. 
+- the difference in investment income is caused by much fewer people reporting any investment income in the SHS compared to the HBAI.
+
+</div>
+
+```{r state_pension}
+
+# State pension caseload and amount by hhtype
+
+tidybens %>%
+  filter(type == "State Pension",
+         amount > 0,
+         hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
+  group_by(survey, hhtype) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            n = sum(ifelse(amount != 0, ppwgt, 0))) %>%
+  ggplot(aes(x = hhtype, y = mean, fill = survey)) +
+  geom_col(position = 'dodge') +
+  scale_fill_manual(values = cols_survey) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(x = NULL, y = NULL, 
+       title = "Mean state pension (of those who receive any) by hhtype",
+       subtitle = "Includes pensioner hhlds only")
+
+tidybens %>%
+  filter(type == "State Pension",
+        hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
+  group_by(survey, hhtype) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            n = sum(ifelse(amount != 0, ppwgt, 0))) %>%
+  ggplot(aes(x = hhtype, y = n, fill = survey)) +
+  geom_col(position = 'dodge') +
+  scale_fill_manual(values = cols_survey) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(x = NULL, y = NULL, 
+       title = "Number of people in hhlds receiving state pension by hhtype",
+       subtitle = "Includes pensioner hhlds only")
+
+```
+
+<div class = "box">
+
+- The average amount of state pension received matches well between HBAI and SHS
+- However, the SHS reports fewer recipients of state pension
+
+</div>
+
+Occupational pensions
+
+```{r occ_pension}
+
+tidydata %>%
+  filter(type == "occ",
+         amount > 0) %>%
+  group_by(survey) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(amount, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            sample = n(),
+            people = sum(ppwgt)) %>%
+  mutate(tot = comma(tot, scale = 1E-6, prefix  ="£", suffix = " million"),
+         mean = comma(mean, prefix = "£"),
+         median = comma(median, prefix = "£"),
+         sample = comma(sample),
+         people = comma(people)) %>%
+  knitr::kable(align = "lrrrrr")
+
+tidydata %>%
+  filter(type == "occ",
+         amount > 0) %>%
+  group_by(survey, HIHemp) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(amount, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            sample = n(),
+            people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(share = tot/sum(tot),
+         HIHemp = fct_reorder(HIHemp, share)) %>%
+  ggplot(aes(x = HIHemp, y = share, fill = survey)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = cols_survey) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Share of aggregated occupational pensions income across household types") +
+  coord_flip()
+
+```
+
+<div class = "box">
+
+- the SHS only slightly underreports income from occupational pensions compared to the HBAI.
+- the underreporting is due to non-reporting
+- most of occ pension income goes to retired people
+
+</div>
+
+# Self-employed's incomes
+
+- higher earnings in SHS -> due to variation? Check SHS19
+- leads to higher incomes
+- benefits??
+- other income sources? what about deductions?
