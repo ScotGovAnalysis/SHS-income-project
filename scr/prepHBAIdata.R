@@ -45,11 +45,11 @@ tidyhbai <- hbai1819 %>%
   left_join(HBAIweights, by = "SERNUM") %>%
   left_join(tidyadult, by = "SERNUM") %>%
   mutate(equ = eqobhchh,
-         earn = enternhh/equ,
+         earn = ifelse(enternhh >= 0, enternhh/equ, 0),
          ben = ebeninhh/equ,
          privben = epribnhh/equ,
          occ = hntocchh/equ,
-         inv = hntinvhh/equ,
+         inv = ifelse(hntinvhh >= 0, hntinvhh/equ, 0),
          oth =  emiscihh/equ,
          total = (earn + ben + privben + occ + inv + oth),
          pp = ADULTH + DEPCHLDH,
@@ -72,6 +72,8 @@ tidyhbai <- hbai1819 %>%
          -council, -urbrur, -hhtype, - HIHemp, -equ) %>%
   mutate(survey = "HBAI") %>%
   remove_labels() 
+
+
 
 # Recode council area, household type and economic status vars ----
 
