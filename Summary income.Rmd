@@ -18,9 +18,15 @@ Note that all income discussed here is net income after benefits and tax, and no
 
 # SHS earnings higher 
 
-Median and aggregated total earnings are higher in the SHS compared to the HBAI. Median earnings of households where the head is employed match fairly well between surveys, but those where the head is self-employed less so. Note however, that the latter group is quite small. The overall earnings income discrepancy between surveys is a product of both, large differences for (the few) self-employed households, and smaller differences for (the many) employed households.
+Median and mean earnings are higher in the SHS compared to the HBAI, but aggregated total earnings are lower. 
 
-Across income quintiles, median earnings match fairly well, with slightly more variation in the top quintile. In the bottom two income quintiles, median SHS earnings are slightly lower than HBAI earnings, whereas in the top quintile, SHS earnings are higher than HBAI earnings. (Note that this looks different in the aggregate, where SHS earnings are higher in the first, third, and fourth quintile.) This divergence in median earnings contributes to the increasing differences in median total income between surveys by increasing income decile, as shown earlier.
+Across income deciles, median earnings match fairly well. There is more earnings variation in the top decile and the lowest two deciles, and less in the 3rd to 9th decile. However, the 3rd income decile is the only one where median earnings in the SHS are markedly lower than in the HBAI. Note that this is the income decile where the poverty threshold is typically located, and small differences in the income distribution here can have a big effect on poverty numbers.
+
+Median earnings of households where the head is employed (both, full- or part-time) match fairly well between surveys, but those where the head is self-employed have much higher earnings in the SHS.  Checking with the (yet unpublished SHS 2019) dataset shows that this high level of self-employed earnings is consistent across years. This level may be much higher than in the HBAI because the SHS doesn't deduct losses. {>> check with SHS team <<} Note however, that the self-employed group is quite small. 
+
+The discrepancy in aggregated total earnings between surveys is the result of both, large differences for (the few) self-employed households, and smaller differences for (the many) employed households. And as well as differences in the _average earnings_ (which are higher in the SHS), there are also differences in the _number of households_ who have any earnings (lower in the SHS).
+
+Looking at council areas, note that HBAI data cannot be meaningfully analysed at a sub-Scotland level, as the weighting regime for the survey doesn’t account for geography within Scotland. There are therefore large discrepancies for council areas across surveys. Having said that, if we do compare those (ten) council areas where household numbers are similar between SHS and HBAI (difference < 50%), median earnings match fairly well.
 
 # SHS benefits lower 
 

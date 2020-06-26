@@ -29,6 +29,7 @@ library(ggrepel) # for non-overlapping chart annotation
 library(Hmisc) # for weighted quartiles
 library(boot) # needed for groupwiseMedian function
 library(readxl)
+library(kableExtra) # for making nice-looking tables
 
 # Load functions
 
@@ -71,7 +72,7 @@ Documents:
 
 ## Summary stats
 
-Median, mean and aggregated earnings (including all households, whether or not they have any earnings).
+Median, mean and aggregated weekly earnings (including households with no earnings).
 
 ```{r median_earnings}
 
@@ -86,11 +87,12 @@ tidydata %>%
          mean = comma(mean, prefix = "£", accuracy = 1),
          total = comma(total, scale = 1E-6, prefix = "£", suffix = " million"),
          households = comma(households, accuracy = 10000)) %>%
-  knitr::kable(align = "lrrrr")
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
 
 ```
 
-Median, mean and aggregated earnings (excluding households with no earnings).
+Median, mean and aggregated weekly earnings (excluding households with no earnings).
 
 ```{r median_earnings2}
 
@@ -106,7 +108,8 @@ tidydata %>%
          mean = comma(mean, prefix = "£", accuracy = 1),
          total = comma(total, scale = 1E-6, prefix = "£", suffix = " million"),
          households = comma(households, accuracy = 10000)) %>%
-  knitr::kable(align = "lrrrr")
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
 
 ```
 
@@ -191,7 +194,7 @@ ggplot(data = earn_CI) +
 ## by economic status
 
 
-Median, mean and aggregated earnings by economic status of household head (excludes those with zero earnings).
+Median, mean and aggregated weekly earnings by economic status of household head (excludes those with zero earnings).
 
 ```{r earnings_exc}
 
@@ -210,11 +213,12 @@ tidydata %>%
          mean = comma(mean, prefix = "£", accuracy = 1),
          sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " million"),
          households = comma(households, accuracy = 10000)) %>%
-  knitr::kable(align = "lrrrrrr")
+  knitr::kable(align = "lrrrrrr") %>%
+  kable_styling("striped")
 
 ```
 
-Median, mean and aggregated earnings by economic status of household head (includes those with zero earnings).
+Median, mean and aggregated weekly earnings by economic status of household head (includes those with zero earnings).
 
 ```{r earnings_inc}
 
@@ -232,7 +236,8 @@ tidydata %>%
          mean = comma(mean, prefix = "£", accuracy = 1),
          sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " million"),
          households = comma(households, accuracy = 10000)) %>%
-  knitr::kable(align = "lrrrrrr")
+  knitr::kable(align = "lrrrrrr") %>%
+  kable_styling("striped")
 
 ```
 
@@ -306,36 +311,420 @@ ggplot(data = earn_CI) +
 
 <div class = "box">
 
-- Median and mean earnings in the SHS are higher than in the HBAI; however, aggregated earnings are lower, indicating fewer households with earnings in the SHS compared to the HBAI.
 - Employed earnings match fairly well, but self-employed earnings do not. (Note that I redid this analysis using the yet unpublished SHS 2019 dataset - this showed this same trend)
 - Self-employed earnings are a source of the earnings differences, but not the only source (as only few people have self-employed earnings)
 
 </div>
 
+## by council area
+
+Note that the FRS is not designed to provide sub-Scotland disaggregation. The Scottish sample is stratified into 6 regions, but FRS grossing regime doesn't look below Scotland-level.
+
+```{r hhlds_council}
+
+tidydata %>%
+  filter(type == "total") %>%
+  group_by(survey, council) %>%
+  summarise(households = sum(hhwgt),
+            sample = n()) %>%
+  ungroup() %>%
+  filter(sample >= 50) %>%
+  select(-sample) %>%
+  spread(survey, households) %>%
+  filter(!is.na(HBAI)) %>%
+  mutate(diff = (HBAI - SHS)/SHS,
+         diffsize = ifelse(abs(diff) < 0.5, "HBAI", "SHS"),
+         council = fct_reorder(council, diff)) %>%
+  ggplot(aes(x = council, y = diff, fill = diffsize)) +
+  geom_col(position = "dodge") +
+  annotate("text", x = 18, y = 0.6, 
+           label = "Difference > 50%",
+           hjust = 0, colour = cols_survey[2],
+           fontface = "bold") +
+  scale_y_continuous(labels = percent_format(1)) +
+  scale_fill_manual(values = cols_survey, guide = FALSE) +
+  coord_flip() +
+  labs(x = NULL, y = NULL,
+       title = "Difference in household populations (SHS vs HBAI) by council area",
+       subtitle = "Positive values = HBAI population too high; excludes councils with < 50 cases") +
+  theme(legend.title = element_blank(),
+        legend.position = "top")
+
+# Get council areas where hhld pop difference isn't too large
+
+popokcouncils <- tidydata %>%
+  filter(type == "total") %>%
+  group_by(survey, council) %>%
+  summarise(households = sum(hhwgt),
+            sample = n()) %>%
+  ungroup() %>%
+  filter(sample >= 50) %>%
+  select(-sample) %>%
+  spread(survey, households) %>%
+  mutate(diff = (HBAI - SHS)/SHS) %>%
+  filter(abs(diff) < 0.5) %>%
+  select(council) %>%
+  pull()
+
+```
+
+Weekly earnings by council area (excludes households with zero earnings, council areas with < 50 cases, and council areas where pop differences are > 50%) - this leaves only 10 councils where earnings can be compared between surveys:
+
+```{r earnings_council}
+
+# Get councils with a large enough sample size (households with earnings > 0)
+
+councilsn50 <- filter(tidydata, 
+       type == "earn",
+       amount > 0,
+       survey == "HBAI") %>%
+  group_by(council) %>%
+  count() %>%
+  filter(n >= 50) %>%
+  select(council) %>% pull()
+
+tidydata %>%
+  filter(type == "earn",
+         amount > 0,
+         council %in% councilsn50,
+         council %in% popokcouncils) %>%
+  group_by(survey, council) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            sum = sum(amount*hhwgt*equ),
+            households = sum(hhwgt),
+            sample = n()) %>%
+
+  arrange(council, survey) %>%
+  mutate(median = comma(median, 1, prefix = "£"),
+         mean = comma(mean, 1 , prefix = "£"),
+         sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " million"),
+         households = comma(households, 10000)) %>%
+  knitr::kable(align = "llrrrrr") %>%
+  kable_styling("striped")
+
+
+```
+```{r earnings_council_ci}
+
+earn_HBAI_CI <- groupwiseMedian2(var = "amount",
+                group = "council",
+                data = filter(tidydata, 
+                              type == "earn", 
+                              amount > 0,
+                              council %in% councilsn50,
+                              council %in% popokcouncils,
+                              survey == "HBAI") %>%
+                mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+earn_SHS_CI <- groupwiseMedian3(var = "amount",
+                group = "council",
+                data = filter(tidydata, 
+                              type == "earn", 
+                              amount > 0,
+                              council %in% councilsn50,
+                              council %in% popokcouncils,
+                              survey == "SHS") %>%
+                mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+earn_SHS_CI$survey <- "SHS"
+earn_HBAI_CI$survey <- "HBAI"
+
+earn_CI <- rbind(earn_HBAI_CI, earn_SHS_CI) %>%
+  mutate(Median = ifelse(n < 50, NA, Median),
+         Normal.lower = ifelse(n < 50, NA, Normal.lower),
+         Normal.upper = ifelse(n < 50, NA, Normal.upper),
+         council = factor(council),
+         council = fct_reorder2(council, survey, Median)) %>%
+  filter(!is.na(Median))
+
+ggplot(data = earn_CI) +
+  geom_point(aes(x = council, y = Median, colour = survey), size = 2) +
+  geom_segment(aes(x = council,
+                   xend = council,
+                 y = Normal.lower, 
+                 yend = Normal.upper,
+                 colour = survey),
+               size = 3,
+               alpha = 0.5) +
+    scale_colour_manual(values = cols_survey) +
+    labs(x = NULL,
+         y = "Median and 95% C.I",
+         title = 'Weekly median net household earnings by council area',
+         subtitle = 'Excludes hhlds with no earnings, councils with < 50 cases, councils where hhld pop off by > 50%') +
+  scale_y_continuous(labels = comma_format(prefix = "£")) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+    coord_flip(ylim = c(100, 1000))
+
+```
+
+<div class = "box">
+
+- HBAI data cannot meaningfully be analysed at a sub-Scotland level, as the weighting regime for the FRS doesn't account for geography within Scotland. Therefore, when looking at household population by council area, there are large discrepancies between SHS and HBAI.
+- When only comparing the ten council areas where household numbers were similar between SHS and HBAI, median earnings matched fairly well
+
+</div>
+
+
 
 # Benefit income
 
-- Look at this by geographic area - this hadn't been done previously
+## Summary stats
 
-## Benefit income by household type
+Weekly benefit income (excluding households with no benefit income).
 
-```{r benefits_hhtype, include = FALSE}
+```{r median_benefits}
 
 tidydata %>%
-  filter(type == "ben", 
+  filter(type == "ben",
+         amount > 0) %>%
+  group_by(survey) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            total = sum(amount*equ*hhwgt),
+            households = sum(hhwgt)) %>%
+  mutate(median =  comma(median, prefix = "£", accuracy = 1),
+         mean = comma(mean, prefix = "£", accuracy = 1),
+         total = comma(total, scale = 1E-6, prefix = "£", suffix = " million"),
+         households = comma(households, accuracy = 10000)) %>%
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
+
+```
+
+Weekly benefit income for households with no pensioners (excluding households with no benefit income):
+
+```{r median_benefits_wa}
+
+tidydata %>%
+  filter(type == "ben",
+         amount > 0,
+         pnwgt == 0) %>%
+  group_by(survey) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            total = sum(amount*equ*hhwgt),
+            households = sum(hhwgt)) %>%
+  mutate(median =  comma(median, prefix = "£", accuracy = 1),
+         mean = comma(mean, prefix = "£", accuracy = 1),
+         total = comma(total, scale = 1E-6, prefix = "£", suffix = " million"),
+         households = comma(households, accuracy = 10000)) %>%
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
+
+```
+
+Weekly benefit income for households with pensioners only (excluding households with no benefit income):
+
+```{r median_benefits_pn}
+
+tidydata %>%
+  filter(type == "ben",
+         amount > 0,
+         pnwgt > 0) %>%
+  group_by(survey) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            total = sum(amount*equ*hhwgt),
+            households = sum(hhwgt)) %>%
+  mutate(median =  comma(median, prefix = "£", accuracy = 1),
+         mean = comma(mean, prefix = "£", accuracy = 1),
+         total = comma(total, scale = 1E-6, prefix = "£", suffix = " million"),
+         households = comma(households, accuracy = 10000)) %>%
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
+
+```
+
+## by income deciles
+
+Households with no pensioners:
+```{r benefits_deciles_waa}
+
+# Benefits by hhld income decile
+
+# Note that HBAI bootstrap mechanism is SRS!
+
+HBAI_CI <- groupwiseMedian2(var = "amount",
+                group = "decile",
+                data = filter(tidydata, 
+                              type == "ben", 
+                              survey == "HBAI",
+                              amount > 0,
+                              pnwgt == 0) %>%
+                  mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+# SHS bootstrap mechanism includes council strata
+
+SHS_CI <- groupwiseMedian3(var = "amount",
+                group = "decile",
+                data = filter(tidydata, 
+                              type == "ben", 
+                              survey == "SHS",
+                              amount > 0,
+                              pnwgt == 0) %>%
+                  mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+SHS_CI$survey <- "SHS"
+HBAI_CI$survey <- "HBAI"
+
+CI <- rbind(HBAI_CI, SHS_CI) %>%
+  mutate(Median = ifelse(n < 50, NA, Median),
+         Normal.lower = ifelse(n < 50, NA, Normal.lower),
+         Normal.upper = ifelse(n < 50, NA, Normal.upper),
+         decile = factor(decile)) %>%
+  filter(!is.na(Median))
+
+ggplot(data = CI) +
+  geom_point(aes(x = decile, y = Median, colour = survey), size = 2) +
+  geom_segment(aes(x = decile,
+                   xend = decile,
+                 y = Normal.lower, 
+                 yend = Normal.upper,
+                 colour = survey),
+               size = 3,
+               alpha = 0.5) +
+    scale_colour_manual(values = cols_survey) +
+    labs(x = NULL,
+         y = "Median and 95% C.I",
+         title = 'Working-age adults - weekly median benefit income by household income decile',
+         subtitle = 'Excludes hhlds with no benefit income and households with pensioners') +
+  scale_y_continuous(labels = comma_format(prefix = "£")) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+    coord_flip(ylim = c(-100, 400))
+
+```
+
+Households with pensioners only:
+```{r benefits_deciles_pn}
+
+# Benefits by hhld income decile
+
+# Note that HBAI bootstrap mechanism is SRS!
+
+HBAI_CI <- groupwiseMedian2(var = "amount",
+                group = "decile",
+                data = filter(tidydata, 
+                              type == "ben", 
+                              survey == "HBAI",
+                              amount > 0,
+                              pnwgt > 0) %>%
+                  mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+# SHS bootstrap mechanism includes council strata
+
+SHS_CI <- groupwiseMedian3(var = "amount",
+                group = "decile",
+                data = filter(tidydata, 
+                              type == "ben", 
+                              survey == "SHS",
+                              amount > 0,
+                              pnwgt > 0) %>%
+                  mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+SHS_CI$survey <- "SHS"
+HBAI_CI$survey <- "HBAI"
+
+CI <- rbind(HBAI_CI, SHS_CI) %>%
+  mutate(Median = ifelse(n < 50, NA, Median),
+         Normal.lower = ifelse(n < 50, NA, Normal.lower),
+         Normal.upper = ifelse(n < 50, NA, Normal.upper),
+         decile = factor(decile)) %>%
+  filter(!is.na(Median))
+
+ggplot(data = CI) +
+  geom_point(aes(x = decile, y = Median, colour = survey), size = 2) +
+  geom_segment(aes(x = decile,
+                   xend = decile,
+                 y = Normal.lower, 
+                 yend = Normal.upper,
+                 colour = survey),
+               size = 3,
+               alpha = 0.5) +
+    scale_colour_manual(values = cols_survey) +
+    labs(x = NULL,
+         y = "Median and 95% C.I",
+         title = 'Pensioner hhlds - weekly median benefit income by household income decile',
+         subtitle = 'Includes hhlds with pensioners only; excludes hhlds with no benefit income') +
+  scale_y_continuous(labels = comma_format(prefix = "£")) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+    coord_flip(ylim = c(-100, 400))
+
+```
+
+<div class = "box">
+
+- The following analysis excludes households with no benefit income.
+- Average benefit incomes and benefit income distribution are very different for households with pensioners compared to those without. Benefit incomes for working-age households are much lower than for pensioners, due to the universally provided state pension, the largest benefit.
+- Mean, median and total benefit income for pensioner households is lower in the SHS than the HBAI. There are also fewer pensioner households receiving any benefits in the SHS compared to HBAI.
+- Across income deciles, median benefit incomes for pensioner households are generally below, or at a similar level to the HBAI.
+- Median benefit incomes for _low-income_ pensioner households differ markedly between surveys. For income deciles 3 to 10, median benefit incomes match reasonably well, although vary widely in both surveys.
+- For households with no pensioners, mean, median and total benefit income is also lower in the SHS, and more markedly so, but there are more households in receipt of any benefit income in the SHS compared to the HBAI.
+- Median benefit income of non-pensioner households is relatively small and driven by child benefit, housing benefit and disability benefits. Towards the lower income deciles, median benefit income increases and has a larger uncertainty.
+
+</div>
+
+## by household type
+
+```{r benefits_hhtype}
+
+tidydata %>%
+  filter(type == "ben",
          amount > 0) %>%
   group_by(survey, hhtype) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             sum = sum(amount*hhwgt*equ),
-            people = sum(ppwgt),
-            sample = n()) %>%
-  mutate(hhtype = factor(hhtype, levels = hhtypenames),
-         sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " mn")) %>%
+            households = sum(hhwgt),
+            sample = sum(n)) %>%
+  filter(sample >= 50 ) %>%
+  mutate(sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " mn"),
+         households = comma(households, 10000),
+         hhtype = factor(hhtype, levels = hhtypenames)) %>%
   mutate_at(c("median", "mean"), comma_format(prefix = "£")) %>%
   arrange(hhtype, survey) %>%
-  knitr::kable(align = "llrrrrr")
-
+  knitr::kable(align = "llrrrrr") %>%
+  kable_styling("striped") %>%
+  row_spec(1:2, background = cols_types[5])
 
 ```
 
@@ -343,7 +732,7 @@ tidydata %>%
 
 # Note that HBAI bootstrap mechanism is SRS!
 
-ben_HBAI_CI <- groupwiseMedian2(var = "amount",
+HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "hhtype",
                 data = filter(tidydata, 
                               type == "ben", 
@@ -359,7 +748,7 @@ ben_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 # SHS bootstrap mechanism includes council strata
 
-ben_SHS_CI <- groupwiseMedian3(var = "amount",
+SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "hhtype",
                 data = filter(tidydata, 
                               type == "ben", 
@@ -373,18 +762,18 @@ ben_SHS_CI <- groupwiseMedian3(var = "amount",
                 percentile = FALSE,
                 digits = 3)
 
-ben_SHS_CI$survey <- "SHS"
-ben_HBAI_CI$survey <- "HBAI"
+SHS_CI$survey <- "SHS"
+HBAI_CI$survey <- "HBAI"
 
-ben_CI <- rbind(ben_HBAI_CI, ben_SHS_CI) %>%
+CI <- rbind(HBAI_CI, SHS_CI) %>%
   mutate(Median = ifelse(n < 50, NA, Median),
          Normal.lower = ifelse(n < 50, NA, Normal.lower),
-         Normal.upper = ifelse(n < 50, NA, Normal.upper)) %>%
+         Normal.upper = ifelse(n < 50, NA, Normal.upper),
+         hhtype = factor(hhtype),
+         hhtype = fct_reorder2(hhtype, survey, Median)) %>%
   filter(!is.na(Median))
 
-ben_CI$hhtype = factor(ben_CI$hhtype, levels = hhtypenames)
-
-ggplot(data = ben_CI) +
+ggplot(data = CI) +
   geom_point(aes(x = fct_rev(hhtype), y = Median, colour = survey), size = 2) +
   geom_segment(aes(x = hhtype,
                    xend = hhtype,
@@ -397,7 +786,7 @@ ggplot(data = ben_CI) +
     labs(x = NULL,
          y = "Median and 95% C.I",
          title = 'Median household benefit income, SHS 2018 and HBAI 1819',
-         subtitle = "Households with zero benefit income excluded") +
+         subtitle = "Excludes households with no benefit income") +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
   theme(legend.position = "top",
         legend.title = element_blank()) +
@@ -405,16 +794,9 @@ ggplot(data = ben_CI) +
 
 ```
 
-<div class = "box">
+## by economic status
 
-- Median benefit income doesn't match well between SHS and HBAI, with some exceptions: Two adults with children, households with aone adults and one pensioner match ok. Generally, SHS benefit income is lower than HBAI benefit income.
-- The household type with the largest difference in benefit income is single adults, followed by single adults with children and pensioner couples. Pensioner couples are the only group where C.I. don't overlap.
-
-</div>
-
-## Benefit income by economic status
-
-```{r benefits_eco, include = FALSE}
+```{r benefits_eco}
 
 tidydata %>%
   filter(type == "ben",
@@ -423,12 +805,17 @@ tidydata %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
             sum = sum(amount*hhwgt*equ),
+            households = sum(hhwgt),
             sample = sum(n)) %>%
+  filter(sample >= 50 ) %>%
   mutate(HIHemp = factor(HIHemp, levels = empstatnames),
-         sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " mn")) %>%
+         sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " mn"),
+         households = comma(households, 10000)) %>%
   mutate_at(c("median", "mean"), comma_format(prefix = "£")) %>%
   arrange(HIHemp, survey) %>%
-  knitr::kable(align = "llrrrr")
+  knitr::kable(align = "llrrrrr") %>%
+  kable_styling("striped") %>%
+  row_spec(8:11, background = cols_types[5])
 
 ```
 
@@ -436,7 +823,7 @@ tidydata %>%
 
 # Note that HBAI bootstrap mechanism is SRS!
 
-ben_HBAI_CI <- groupwiseMedian2(var = "amount",
+HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "HIHemp",
                 data = filter(tidydata, 
                               type == "ben", 
@@ -452,7 +839,7 @@ ben_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 # SHS bootstrap mechanism includes council strata
 
-ben_SHS_CI <- groupwiseMedian3(var = "amount",
+SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "HIHemp",
                 data = filter(tidydata, 
                               type == "ben", 
@@ -466,18 +853,18 @@ ben_SHS_CI <- groupwiseMedian3(var = "amount",
                 percentile = FALSE,
                 digits = 3)
 
-ben_SHS_CI$survey <- "SHS"
-ben_HBAI_CI$survey <- "HBAI"
+SHS_CI$survey <- "SHS"
+HBAI_CI$survey <- "HBAI"
 
-ben_CI <- rbind(ben_HBAI_CI, ben_SHS_CI) %>%
+CI <- rbind(HBAI_CI, SHS_CI) %>%
   mutate(Median = ifelse(n < 50, NA, Median),
          Normal.lower = ifelse(n < 50, NA, Normal.lower),
-         Normal.upper = ifelse(n < 50, NA, Normal.upper)) %>%
+         Normal.upper = ifelse(n < 50, NA, Normal.upper),
+         HIHemp = factor(HIHemp),
+         HIHemp = fct_reorder2(HIHemp, survey, Median)) %>%
   filter(!is.na(Median))
 
-ben_CI$HIHemp = factor(ben_CI$HIHemp, levels = empstatnames)
-
-ggplot(data = ben_CI) +
+ggplot(data = CI) +
   geom_point(aes(x = fct_rev(HIHemp), y = Median, colour = survey), size = 2) +
   geom_segment(aes(x = HIHemp,
                    xend = HIHemp,
@@ -490,7 +877,7 @@ ggplot(data = ben_CI) +
     labs(x = NULL,
          y = "Median and 95% C.I",
          title = 'Median household benefit income, SHS 2018 and HBAI 1819',
-         subtitle = "Households with zero benefit income excluded") +
+         subtitle = "Excludes households with no benefit income") +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
   theme(legend.position = "top",
         legend.title = element_blank()) +
@@ -498,17 +885,113 @@ ggplot(data = ben_CI) +
 
 ```
 
-<div class = "box">
+## by council area
 
-- Median benefit incomes for households where the highest income householder is a full-time employee match well and show a small benefit amount and little variation.
-- There is more variation and discrepancy in median benefit incomes for part-time employee and seld-employed households.
-- Median benefit incomes from SHS and HBAI do not overlap for retired and disabled households, with the SHS benefit incomes consistently below HBAI benefit incomes.
+Weekly benefit income by council area (excludes households with no benefit income, council areas with < 50 cases, and council areas where pop differences are > 50%) - this leaves only 13 councils where benefit income can be compared between surveys:
 
-</div>
+```{r benefits_council}
 
-## Types of benefits
+# Get councils with a large enough sample size (households with earnings > 0)
 
-### HBAI
+councilsn50 <- filter(tidydata, 
+       type == "ben",
+       amount > 0,
+       survey == "HBAI") %>%
+  group_by(council) %>%
+  count() %>%
+  filter(n >= 50) %>%
+  select(council) %>% pull()
+
+tidydata %>%
+  filter(type == "ben",
+         amount > 0,
+         council %in% councilsn50,
+         council %in% popokcouncils) %>%
+  group_by(survey, council) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            sum = sum(amount*hhwgt*equ),
+            households = sum(hhwgt),
+            sample = n()) %>%
+  arrange(council, survey) %>%
+  mutate(median = comma(median, 1, prefix = "£"),
+         mean = comma(mean, 1 , prefix = "£"),
+         sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " million"),
+         households = comma(households, 10000)) %>%
+  knitr::kable(align = "llrrrrr") %>%
+  kable_styling("striped") 
+
+
+```
+```{r benefits_council_ci}
+
+HBAI_CI <- groupwiseMedian2(var = "amount",
+                group = "council",
+                data = filter(tidydata, 
+                              type == "ben", 
+                              amount > 0,
+                              council %in% councilsn50,
+                              council %in% popokcouncils,
+                              survey == "HBAI") %>%
+                mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+SHS_CI <- groupwiseMedian3(var = "amount",
+                group = "council",
+                data = filter(tidydata, 
+                              type == "ben", 
+                              amount > 0,
+                              council %in% councilsn50,
+                              council %in% popokcouncils,
+                              survey == "SHS") %>%
+                mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+SHS_CI$survey <- "SHS"
+HBAI_CI$survey <- "HBAI"
+
+CI <- rbind(HBAI_CI, SHS_CI) %>%
+  mutate(Median = ifelse(n < 50, NA, Median),
+         Normal.lower = ifelse(n < 50, NA, Normal.lower),
+         Normal.upper = ifelse(n < 50, NA, Normal.upper),
+         council = factor(council),
+         council = fct_reorder2(council, survey, Median)) %>%
+  filter(!is.na(Median))
+
+ggplot(data = CI) +
+  geom_point(aes(x = council, y = Median, colour = survey), size = 2) +
+  geom_segment(aes(x = council,
+                   xend = council,
+                 y = Normal.lower, 
+                 yend = Normal.upper,
+                 colour = survey),
+               size = 3,
+               alpha = 0.5) +
+    scale_colour_manual(values = cols_survey) +
+    labs(x = NULL,
+         y = "Median and 95% C.I",
+         title = 'Weekly median benefit income by council area',
+         subtitle = 'Excludes hhlds with no benefit income, councils with < 50 cases, councils where hhld pop off by > 50%') +
+  scale_y_continuous(labels = comma_format(prefix = "£")) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+    coord_flip(ylim = c(-100, 400))
+
+```
+
+# Types of benefits
+
+## HBAI
 
 ```{r ben_types_frs}
 
@@ -530,11 +1013,12 @@ tidybens %>%
                         accuracy = 0.1),
          share = percent(share, 0.01),
          cumshare = percent(cumshare, 0.1)) %>%
-  knitr::kable(align = "lrrrr")
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
 
 ```
 
-### SHS
+## SHS
 
 ```{r ben_types_shs}
 
@@ -558,12 +1042,13 @@ tidybens %>%
                         accuracy = 0.1),
          share = percent(share, 0.01),
          cumshare = percent(cumshare, 0.1)) %>%
-  knitr::kable(align = "lrrrr")
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
 
 ```
 
 
-### Comparison SHS vs. HBAI
+## Comparison SHS vs. HBAI
 
 Total amount of benefit income in £million.
 
@@ -581,11 +1066,12 @@ tidybens_agg %>%
   arrange(desc(abs(diff/totdiff))) %>%
   mutate_at(vars(HBAI, SHS, diff), comma_format(scale = 1E-6, accuracy = 0.1)) %>%
   select(-totdiff) %>%
-  knitr::kable(align = "lrrrr")
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
 
 ```
 
-### Comparison with administrative data
+## Comparison with administrative data
 
 Weekly benefit amounts in million £.
 
@@ -637,7 +1123,8 @@ tidybens_agg %>%
          SHS_capt = ifelse(is.na(SHS*Admin), NA, percent(SHS/Admin))) %>%
   mutate_at(vars(Admin, HBAI, SHS), comma_format(scale = 1E-6, accuracy = 0.1)) %>%
   select(type, Admin, HBAI, HBAI_capt, SHS, SHS_capt) %>%
-  knitr::kable(align = "lrrrrr")
+  knitr::kable(align = "lrrrrr") %>%
+  kable_styling("striped")
 
 ```
 
@@ -871,7 +1358,9 @@ tidybens %>%
 
 ```
 
-## Single adult benefit income
+# Single adult benefit income
+
+- look at single adult benefit income by economic status
 
 ```{r single_adult_bens}
 
@@ -1017,7 +1506,8 @@ tidydata %>%
          median = comma(median, prefix = "£"),
          sample = comma(sample),
          people = comma(people)) %>%
-  knitr::kable(align = "lrrrrr")
+  knitr::kable(align = "lrrrrr") %>%
+  kable_styling("striped")
 
 tidydata %>%
   filter(type == "inv",
@@ -1209,19 +1699,6 @@ tidydata %>%
        title = "Income decile points",
        subtitle = "These are the nine income thresholds that split the population into 10 equal-sized groups")
 
-
-# tidydata %>%
-#   filter(type == "total") %>%
-#   group_by(survey) %>% 
-#   summarise(x=list(enframe(wtd.quantile(amount, 
-#                                         probs=c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), 
-#                                         weights = ppwgt)))) %>%
-#   unnest(x) %>%
-#   mutate(Percentile = name,
-#          value = comma(value, 1, prefix = "£")) %>%
-#   select(-name) %>%
-#   spread(survey, value) %>%
-#   knitr::kable()
 
 ```
 
@@ -1437,7 +1914,8 @@ mutate(urbrurinc,
        urbrurclass = urbrurclasses) %>%
   arrange(urbrur) %>%
   select(urbrurclass, HBAI_median, SHS_median, HBAI_sample, SHS_sample) %>%
-  knitr::kable(align = "lrrrr")
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
 
 ```
 
@@ -1536,7 +2014,8 @@ filter(tidydata, type == "total") %>%
          Children = comma(Children, accuracy = 1, prefix  ="£"),
          WorkingAgeAdults = comma(WorkingAgeAdults, accuracy = 1, prefix  ="£"),
          Pensioners = comma(Pensioners, accuracy = 1, prefix  ="£")) %>%
-  knitr::kable(align = "lrrrr")
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
 
 ```
 
@@ -1921,7 +2400,8 @@ tidydata %>%
          diffcontr = percent(diffcontr),
          reldiff = percent(reldiff)) %>%
   select(type, HBAI, SHS, absdiff, diffcontr) %>%
-  knitr::kable(align = "lrrrr")
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
 
 incdiff <- tidydata %>%
   group_by(survey, type) %>%
@@ -2145,7 +2625,8 @@ tidydata %>%
          median = comma(median, prefix = "£"),
          sample = comma(sample),
          people = comma(people)) %>%
-  knitr::kable(align = "lrrrrr")
+  knitr::kable(align = "lrrrrr") %>%
+  kable_styling("striped")
 
 tidydata %>%
   filter(type == "occ",
