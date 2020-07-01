@@ -56,6 +56,7 @@ SHSmedian <- filter(tidydata, type == "total", survey == "SHS") %>%
   mutate(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
   select(median) %>% tail(1L) %>% pull()
 
+
 HBAImedian <- filter(tidydata, type == "total", survey == "HBAI") %>% 
   mutate(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
   select(median) %>% tail(1L) %>% pull()
@@ -92,6 +93,15 @@ tidybens$HIHemp <- decode(tidybens$HIHemp,
                              search = empstatcodes, 
                              replace = empstatnames,
                              default = "unknown")
+
+# Add deciles
+
+tidydeciles <- tidydata %>%
+  filter(type == "total") %>%
+  select(survey, ID, decile)
+
+tidybens <- tidybens %>%
+  left_join(tidydeciles, by = c("survey", "ID"))
 
 # Import administrative data
 

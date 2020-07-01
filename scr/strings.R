@@ -221,3 +221,39 @@ bennamesfrs <- c("State Pension",
                  "Sure Start Maternity Grant",
                  "Extended payment of Housing Benefit",
                  "Best Start Grant")
+
+disbens <- c("Employment and Support Allowance",
+             "Personal Independence Payment",
+             "Disability Living Allowance",
+             "Attendance Allowance",
+             "Incapacity benefit",
+             "Severe Disablement Allowance",
+             "Industrial Injuries Disablement Benefit",
+             "Carers Allowance")
+             
+# Tenure ----
+
+# PTENTYP2
+# 1 = Rented from Council	
+# 2 = Rented from Housing Association	
+# 3 = Rented privately unfurnished	
+# 4 = Rented privately furnished	
+# 5 = Owned outright	
+# 6 = Owned with mortgage
+
+# TENURE	
+# 1	Owned outright
+# 2	Owned with a mortgage
+# 3	Rented from council
+# 4	Rented from housing association
+# 5	Private rented
+# 6	Other
+
+
+tenurecodes <- c(1, 2, 3, 4, 5)
+
+tenurenames <- c("Rented from Council",
+                 "Rented from Housing Association",
+                 "Rented privately",
+                 "Owned outright",
+                 "Owned with mortgage")

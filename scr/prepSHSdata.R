@@ -44,7 +44,8 @@ personshs <- person18 %>%
 # Get age group weights, income vars, equivalise ----
 
 tidyshs <- hhold18 %>%
-  select(UNIQID, MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, LA_GRWT, COUNCIL, SHS_6CLA, HIHECON) %>%
+  select(UNIQID, MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, 
+         LA_GRWT, COUNCIL, SHS_6CLA, HIHECON, TENURE) %>%
   left_join(personshs, by = "UNIQID") %>%
   mutate_at(vars(MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3), ~replace_na(., 0)) %>%
   mutate(equ = 0.67 + (pp-u14-1)*0.33 + u14*0.2,
@@ -63,6 +64,10 @@ tidyshs <- hhold18 %>%
          council = COUNCIL,
          urbrur = SHS_6CLA,
          HIHemp = HIHECON,
+         tenure = ifelse(TENURE == 1, 4,
+                         ifelse(TENURE == 2, 5,
+                                ifelse(TENURE == 3, 1,
+                                       ifelse(TENURE == 4, 2, 3)))),
          hhtype = ifelse(pp == 1 & wa == 1, 1, 
                          ifelse(pp == 2 & wa == 2, 2, 
                                 ifelse(pp >= 3 & wa == pp & pn == 0, 3, 
@@ -74,11 +79,12 @@ tidyshs <- hhold18 %>%
          ID = row_number()) %>%
   select(ID, hhwgt, ppwgt, chwgt, wawgt, pnwgt, 
          total, earn, ben, privben, occ, inv, oth, equ,
-         council, urbrur, hhtype, HIHemp, pp, ch, wa, pn, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3) %>%
+         council, urbrur, hhtype, HIHemp, pp, ch, wa, pn, 
+         BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, tenure) %>%
   remove_labels() %>%
   gather(key = type, value = amount, -ID, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, 
          -council, -urbrur, -hhtype, -HIHemp, -pp, -ch, -wa, -pn, -equ, 
-         -(BENINC01:BENINC40), -(BENINC01_OA1:BENINC40_OA3)) %>%
+         -(BENINC01:BENINC40), -(BENINC01_OA1:BENINC40_OA3), -tenure) %>%
   mutate(survey = "SHS")
 
 # Recode council area, household type, and economic status vars ----
@@ -97,6 +103,10 @@ tidyshs$HIHemp <- decode(tidyshs$HIHemp,
                          search = SHS_HIHECONcodes, 
                          replace = SHS_HIHECONrecode,
                          default = 7)
+
+tidyshs$tenure <- decode(tidyshs$tenure,
+                         search = tenurecodes, 
+                         replace = tenurenames)
 
 # Create SHS benefit dataset ----
 
@@ -120,7 +130,7 @@ tidyshsbens <- tidyshsbens %>%
   left_join(bentypesSHS, by = "ID") %>%
   select(-type, -amount, -pp, -ch, -wa, -pn) %>%
   gather(type, amount, -ID, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -council, -urbrur,
-         -hhtype, -HIHemp, -survey, -equ) %>%
+         -hhtype, -HIHemp, -survey, -equ, -tenure) %>%
   mutate(amount = amount*7/(365*equ),
          survey = "SHS") 
 

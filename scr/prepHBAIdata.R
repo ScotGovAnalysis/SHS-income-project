@@ -56,6 +56,9 @@ tidyhbai <- hbai1819 %>%
          ch = DEPCHLDH,
          wa = round(pp*wawgt/ppwgt),
          pn = round(pp*pnwgt/ppwgt),
+         tenure = ifelse(PTENTYP2 %in% c(1,2,3), PTENTYP2, 
+                         ifelse(PTENTYP2 == 4, 3,
+                                ifelse(PTENTYP2 == 5, 4, 5))),
          hhtype = ifelse(pp == 1 & wa == 1, 1, 
                          ifelse(pp == 2 & wa == 2, 2, 
                                 ifelse(pp >= 3 & wa == pp & pn == 0, 3, 
@@ -66,16 +69,16 @@ tidyhbai <- hbai1819 %>%
                                                                    ifelse(pp == 2 & wa == 1 & pn == 1, 8, 9)))))))),
          ID = row_number()) %>%
   select(ID, hhwgt, ppwgt, chwgt, wawgt, pnwgt, hhtype, HIHemp, pp, ch, wa, pn, 
-         total, earn, ben, privben, occ, inv, oth, equ, SERNUM) %>%
+         total, earn, ben, privben, occ, inv, oth, equ, SERNUM, tenure) %>%
   left_join(tidyhousehol, by = "SERNUM") %>%
   gather(key = type, value = amount, -ID, -SERNUM, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -pp, -ch, -wa, -pn, 
-         -council, -urbrur, -hhtype, - HIHemp, -equ) %>%
+         -council, -urbrur, -hhtype, - HIHemp, -equ, -tenure) %>%
   mutate(survey = "HBAI") %>%
   remove_labels() 
 
 
 
-# Recode council area, household type and economic status vars ----
+# Recode council area, household type, tenure and economic status vars ----
 
 tidyhbai$council <- decode(tidyhbai$council, 
                            search = FRScodes, 
@@ -90,6 +93,11 @@ tidyhbai$hhtype <- decode(tidyhbai$hhtype,
 tidyhbai$HIHemp <- decode(tidyhbai$HIHemp,
                           search = FRS_empstatcodes, 
                           replace = FRS_empstatrecode,
+                          default = "unknown")
+
+tidyhbai$tenure <- decode(tidyhbai$tenure,
+                          search = tenurecodes, 
+                          replace = tenurenames,
                           default = "unknown")
 
 # Create benefit dataset ----
@@ -178,7 +186,7 @@ tidyhbaibens <- filter(tidyhbai, type == "ben") %>%
 tidyhbaibens <- tidyhbaibens %>%
   select(-type, -pp, -ch, -wa, -pn, -amount) %>%
   gather(type, amount, -ID, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -council, -urbrur,
-         -hhtype, -HIHemp, -survey, -equ) %>%
+         -hhtype, -HIHemp, -survey, -equ, -tenure) %>%
   mutate(amount = ifelse(is.na(amount), 0, amount/equ),
          survey = "HBAI") 
 
