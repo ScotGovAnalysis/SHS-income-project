@@ -16,6 +16,12 @@ tidydata$HIHemp <- decode(tidydata$HIHemp,
 
 tidydata$type <- factor(tidydata$type, levels = inctypes)
 
+tidydata$urbrur <- decode(tidydata$urbrur,
+                          search = urbrurcodes,
+                          replace = urbrurclasses)
+
+tidydata$urbrur <- factor(tidydata$urbrur, levels = urbrurclasses)
+
 
 # Get decile points ----
 

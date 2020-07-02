@@ -5,6 +5,10 @@
 
 surveys <- c("Admin", "HBAI", "SHS")
 
+# People
+
+people <-c("people", "children", "adults", "pensioners")
+
 # Income types ----
 
 inctypes <- c("total", "earn", "ben", "occ", "inv", "oth", "privben")
