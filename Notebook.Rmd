@@ -37,8 +37,9 @@ source("scr/functions.R")
 
 # Load colour scheme and other strings
 
-source("scr/colours.R")
 source("scr/strings.R")
+source("scr/colours.R")
+
 
 
 # Load datasets
@@ -218,40 +219,18 @@ tidydata %>%
 
 ```
 
-Median, mean and aggregated weekly earnings by economic status of household head (includes those with zero earnings).
-
-```{r earnings_inc}
-
-
-tidydata %>%
-  filter(type == "earn",
-         HIHemp %in% empstatnames[1:3]) %>%
-  group_by(survey, HIHemp) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            mean = wtd.mean(amount, weights = hhwgt),
-            sum = sum(amount*equ*hhwgt),
-            households = sum(hhwgt)) %>%
-  arrange(HIHemp) %>%
-  mutate(median =  comma(median, prefix = "£", accuracy = 1),
-         mean = comma(mean, prefix = "£", accuracy = 1),
-         sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " million"),
-         households = comma(households, accuracy = 10000)) %>%
-  knitr::kable(align = "lrrrrrr") %>%
-  kable_styling("striped")
-
-```
-
 ```{r earnings_ci}
 
 # Note that HBAI bootstrap mechanism is SRS!
 
-earn_HBAI_CI <- groupwiseMedian2(var = "amount",
+HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "HIHemp",
                 data = filter(tidydata, 
                               type == "earn", 
                               survey == "HBAI", 
-                              HIHemp %in% empstatnames[1:3]) %>%
-                  mutate(weight = ppwgt),
+                              HIHemp %in% empstatnames[1:3],
+                              amount > 0) %>%
+                mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -261,13 +240,14 @@ earn_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 # SHS bootstrap mechanism includes council strata
 
-earn_SHS_CI <- groupwiseMedian3(var = "amount",
+SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "HIHemp",
                 data = filter(tidydata, 
                               type == "earn", 
                               survey == "SHS", 
-                              HIHemp %in% empstatnames[1:3]) %>%
-                  mutate(weight = ppwgt),
+                              HIHemp %in% empstatnames[1:3],
+                              amount > 0) %>%
+                mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -275,19 +255,18 @@ earn_SHS_CI <- groupwiseMedian3(var = "amount",
                 percentile = FALSE,
                 digits = 3)
 
-earn_SHS_CI$survey <- "SHS"
-earn_HBAI_CI$survey <- "HBAI"
+SHS_CI$survey <- "SHS"
+HBAI_CI$survey <- "HBAI"
 
-earn_CI <- rbind(earn_HBAI_CI, earn_SHS_CI) %>%
-  mutate(Median = ifelse(n < 50, NA, Median),
-         Normal.lower = ifelse(n < 50, NA, Normal.lower),
-         Normal.upper = ifelse(n < 50, NA, Normal.upper)) %>%
-  filter(!is.na(Median))
-
-earn_CI$HIHemp = factor(earn_CI$HIHemp, levels = empstatnames)
-
-ggplot(data = earn_CI) +
-  geom_point(aes(x = fct_rev(HIHemp), y = Median, colour = survey), size = 2) +
+rbind(HBAI_CI, SHS_CI) %>%
+  mutate(HIHemp = factor(HIHemp),
+         HIHemp = fct_reorder2(HIHemp, survey, desc(Median))) %>%
+  filter(n >= 50) %>%
+  ggplot() +
+  geom_point(aes(x = HIHemp, 
+                 y = Median, 
+                 colour = survey), 
+             size = 2) +
   geom_segment(aes(x = HIHemp,
                    xend = HIHemp,
                  y = Normal.lower, 
@@ -298,13 +277,12 @@ ggplot(data = earn_CI) +
     scale_colour_manual(values = cols_survey) +
     labs(x = NULL,
          y = "Median and 95% C.I",
-         title = 'Weekly median net household earnings',
-         subtitle = "Includes households with zero earnings") +
+         title = 'Weekly median equivalised household earnings',
+         subtitle = "Excludes households with zero earnings") +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
   theme(legend.position = "top",
         legend.title = element_blank()) +
-    coord_flip(ylim = c(200, 700)) 
-
+    coord_flip(ylim = c(200, 800)) 
 
 ```
 
@@ -313,6 +291,108 @@ ggplot(data = earn_CI) +
 
 - Employed earnings match fairly well, but self-employed earnings do not. (Note that I redid this analysis using the yet unpublished SHS 2019 dataset - this showed this same trend)
 - Self-employed earnings are a source of the earnings differences, but not the only source (as only few people have self-employed earnings)
+
+</div>
+
+## by household type
+
+
+Median, mean and aggregated weekly earnings by household type (excludes those with zero earnings).
+
+```{r earnings_hhtype_exc}
+
+tidydata %>%
+  filter(type == "earn",
+         amount > 0) %>%
+  group_by(survey, hhtype) %>%
+  summarise(median = wtd.quantile(amount, 
+                                  probs = 0.5, 
+                                  weights = ppwgt),
+            mean = wtd.mean(amount, 
+                            weights = hhwgt),
+            sum = sum(amount*equ*hhwgt),
+            households = sum(hhwgt),
+            sample = n()) %>%
+  arrange(hhtype) %>%
+  mutate(median =  comma(median, prefix = "£", accuracy = 1),
+         mean = comma(mean, prefix = "£", accuracy = 1),
+         sum = comma(sum, scale = 1E-6, prefix = "£", suffix = " million"),
+         households = comma(households, accuracy = 10000)) %>%
+  filter(sample >= 50) %>%
+  knitr::kable(align = "lrrrrrr") %>%
+  kable_styling("striped")
+
+```
+
+```{r earnings_hhtype_ci}
+
+# Note that HBAI bootstrap mechanism is SRS!
+
+HBAI_CI <- groupwiseMedian2(var = "amount",
+                group = "hhtype",
+                data = filter(tidydata, 
+                              type == "earn", 
+                              survey == "HBAI", 
+                              amount > 0) %>%
+                mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+# SHS bootstrap mechanism includes council strata
+
+SHS_CI <- groupwiseMedian3(var = "amount",
+                group = "hhtype",
+                data = filter(tidydata, 
+                              type == "earn", 
+                              survey == "SHS", 
+                              amount > 0) %>%
+                mutate(weight = ppwgt),
+                conf = 0.95,
+                R = 100,
+                normal = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
+                digits = 3)
+
+SHS_CI$survey <- "SHS"
+HBAI_CI$survey <- "HBAI"
+
+rbind(HBAI_CI, SHS_CI) %>%
+  mutate(hhtype = factor(hhtype),
+         hhtype = fct_reorder2(hhtype, survey, desc(Median))) %>%
+  filter(n >= 50) %>%
+  ggplot() +
+  geom_point(aes(x = hhtype, 
+                 y = Median, 
+                 colour = survey), 
+             size = 2) +
+  geom_segment(aes(x = hhtype,
+                   xend = hhtype,
+                 y = Normal.lower, 
+                 yend = Normal.upper,
+                 colour = survey),
+               size = 3,
+               alpha = 0.5) +
+    scale_colour_manual(values = cols_survey) +
+    labs(x = NULL,
+         y = "Median and 95% C.I",
+         title = 'Weekly median equivalised household earnings',
+         subtitle = "Excludes households with zero earnings; sample >= 50") +
+  scale_y_continuous(labels = comma_format(prefix = "£")) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+    coord_flip(ylim = c(200, 800)) 
+
+```
+
+
+<div class = "box">
+
+- Reported earnings are generally higher in the SHS than in the HBAI. {>> check this isn't due to net/gross or deductions such as pension contributions and NI<<}
 
 </div>
 
@@ -443,15 +523,11 @@ earn_SHS_CI$survey <- "SHS"
 earn_HBAI_CI$survey <- "HBAI"
 
 earn_CI <- rbind(earn_HBAI_CI, earn_SHS_CI) %>%
-  mutate(Median = ifelse(n < 50, NA, Median),
-         Normal.lower = ifelse(n < 50, NA, Normal.lower),
-         Normal.upper = ifelse(n < 50, NA, Normal.upper),
-         council = factor(council),
-         council = fct_reorder2(council, survey, Median)) %>%
-  filter(!is.na(Median))
+  mutate(council = fct_reorder2(council, survey, desc(Median)))
 
 ggplot(data = earn_CI) +
-  geom_point(aes(x = council, y = Median, colour = survey), size = 2) +
+  geom_point(aes(x = council, y = Median, colour = survey), 
+             size = 2) +
   geom_segment(aes(x = council,
                    xend = council,
                  y = Normal.lower, 
@@ -1543,6 +1619,26 @@ tidydata %>%
         legend.position = "top")
 ```
 
+State Pension (sample >= 100):
+```{r state_pension_hhtype}
+
+tidybens %>%
+  filter(type == "State Pension",
+         amount > 0,
+         pnwgt > 0) %>%
+  group_by(survey, hhtype) %>%
+  summarise(households = comma(sum(hhwgt), 10000),
+            mean = comma(wtd.mean(amount, weights = hhwgt), 1, prefix = "£"),
+            median = comma(wtd.quantile(amount, probs = 0.5, weights = ppwgt), 1, prefix = "£"),
+            total = comma(sum(hhwgt*amount*equ), scale = 1E-6, prefix = "£", suffix = " million"),
+            sample = n()) %>%
+  filter(sample >= 100) %>%
+  arrange(desc(hhtype)) %>%
+  knitr::kable(align = "llrrrrr") %>%
+  kable_styling("striped")
+
+```
+
 <div class="box">
 
 - aggregated income for One pensioner, one adult matches better between SHS and HBAI than aggregated income for Single pensioners and Pensioner Couples. This is because this group's income comes largely from earnings and much less from benefits. Earnings are higher in the SHS, whereas the other main income types (mainly benefits) are much lower.
@@ -1639,57 +1735,329 @@ tidydata %>%
 
 </div>
 
-# Total income - FRS and SHS
+# Self-employed's incomes
 
-We expect average total income to be matching the FRS well, even if the individual income components might not match well enough for detailed analysis (due to imputation of a lot of missing data). 
+```{r selfemployed_sources}
 
-- look at distributions, median, quartiles etc
-- geographical analysis - is total income good enough in each region? Look at median income by region
-- median income by hhld type, urban/rural, economic status, age group, income decile
-- does income match better for those charatceristics that were used for the missing income imputation?
+tidydata %>%
+  filter(HIHemp == "Self-Employed",
+         amount > 0) %>%
+  group_by(survey, type) %>%
+  summarise(median = comma(wtd.quantile(amount, 
+                                  weights = ppwgt, 
+                                  probs = 0.5), 
+                           prefix = "£"),
+            mean = comma(wtd.mean(amount, weights = hhwgt), 
+                         prefix = "£"),
+            total = comma(sum(amount*hhwgt*equ),
+                          scale=1E-6, prefix = "£",
+                          suffix = " million"),
+            households = comma(sum(hhwgt), 10000),
+            sample = n()) %>% 
+  filter(sample >= 100) %>%
+  arrange(type) %>%
+  knitr::kable(align = "llrrrrr") %>%
+  kable_styling("striped")
 
+```
+
+<div class = "box">
+
+- Households with self-employed head have higher earnings in SHS
+- this is consistent with SHS 2019 
+- maybe because SHS doesn't account for self-employed losses? Maybe definitions of self-employment differ between surveys?
+- Households with self-employed head have lower benefits
+- Households with self-employed head have higher incomes, driven by higher earnings
+
+</div>
+
+# Income components
+
+In SHS and FRS, which income sources contribute how much to total income? 
+
+```{r components}
+
+tidydata %>%
+  group_by(survey, type) %>%
+  summarise(amount = sum(amount*hhwgt*equ)) %>%
+  ggplot(aes(x = type,
+           y = amount,
+           fill = survey)) +
+  geom_col(position = 'dodge') +
+  geom_text(aes(y = amount + 70000000,
+                label = comma(amount, scale = 1E-6),
+                colour = survey),
+            show.legend = FALSE,
+            position = position_dodge(width = 1)) +
+  scale_fill_manual(values = cols_survey) +
+  scale_colour_manual(values = cols_survey) +
+  scale_y_continuous(label = comma_format(scale = 1E-9, 
+                                          prefix = "£", 
+                                          suffix = " billion", 
+                                          accuracy = 0.1)) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(title = "Aggregated weekly income by income type", x = NULL, y = NULL)
+
+```
+
+How much contributes each income component to the difference in total income?
+
+```{r aggregate_components}
+
+tidydata %>%
+  group_by(survey, type) %>%
+  summarise(amount = sum(amount*hhwgt*equ)) %>%
+  spread(survey, amount) %>%
+  mutate(totdiff = HBAI[1] - SHS[1],
+         diff = HBAI - SHS,
+         reldiff = diff/HBAI,
+         diffcontr = diff/totdiff) %>%
+  mutate(HBAI = comma(HBAI, scale = 1E-6, prefix = "£", suffix = " million", accuracy = 1),
+         SHS = comma(SHS, scale = 1E-6, prefix = "£", suffix = " million", accuracy = 1),
+         absdiff = comma(diff, scale = 1E-6, prefix = "£", suffix = " million", accuracy = 1),
+         diffcontr = percent(diffcontr),
+         reldiff = percent(reldiff)) %>%
+  select(type, HBAI, SHS, absdiff, diffcontr) %>%
+  mutate(type = factor(type, levels = inctypes)) %>%
+  knitr::kable(align = "lrrrr") %>%
+  kable_styling("striped")
+
+incdiff <- tidydata %>%
+  group_by(survey, type) %>%
+  summarise(amount = sum(amount*hhwgt*equ)) %>%
+  spread(survey, amount) %>%
+  head(1L) %>%
+  mutate(diff = percent(1- SHS/HBAI, accuracy = 0.1)) %>%
+  select(diff) %>% 
+  pull()
+
+```
+
+<div class = "box">
+
+- Total income aggregated to the  whole of Scotland is largely made up of earnings, followed by benefits (which include the state pension) and occupational pensions. 
+- Overall, SHS total income is `r incdiff` lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions. Income from earnings are higher in the SHS. Other income components are relatively small and therefore contribute little to the overall differences in income.
+- We have seen that the lower benefit income mostly affects pensioners (through the state pension) and households with disabled household members (though disability benefits).
+- We have also seen that most of the investment income goes to the wealthiest households. This will affect the income distribution most at the tope, and might therefore not matter as much when looking at low income households. However, a large part of investment income goes to retired households, so this could ascerbate the income underreporting of these households even more.
+
+</div>
+
+```{r aggr_comp_quintiles}
+
+tidydata %>%
+  group_by(survey, type, quintile) %>%
+  summarise(aggr = sum(hhwgt*amount*equ)) %>%
+  ungroup() %>%
+  arrange(quintile, type) %>%
+  mutate(diff = ifelse(survey == "SHS", lag(aggr)-aggr, 0)) %>%
+  filter(survey == "SHS") %>%
+  select(type, diff, quintile) %>%
+  ggplot(aes(x = type,
+           y = diff)) +
+  geom_col(position = 'dodge', aes(fill = ifelse(type == "total", 1, 0)), show.legend = FALSE) +
+  scale_y_continuous(label = comma_format(scale = 1E-6, prefix = "£", suffix = " mn", accuracy = 1)) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(title = "Difference in aggregated weekly income by income type and income quintile",
+       subtitle = "Positive values = HBAI income is larger", x = NULL, y = NULL) +
+  facet_wrap(vars(quintile))
+
+```
+
+```{r component_shares_decile}
+
+# Make table showing differences in income and income compononents
+
+tidydata %>%
+  filter(type != "total") %>%
+  group_by(survey, decile, type) %>%
+  summarise(amount = sum(amount*hhwgt*equ)) %>%
+  ungroup() %>%
+  mutate(decile = factor(decile)) %>%
+  group_by(survey, decile) %>%
+  ggplot(aes(x = decile, y = amount, fill = type)) +
+  geom_col(position = "fill") +
+  scale_fill_manual(values = cols_types) +
+  labs(x  = NULL, y = NULL,
+       title = "Share of aggregated total income by type of income and total income decile") +
+  facet_wrap(~survey, nrow = 2) +
+  theme(legend.title = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank())
+
+```
+
+<div class = "box">
+
+- For all quintiles, the aggregated total income is higher in the HBAI compared to SHS, with the largest differences at the top and at the bottom quintile. However, we will see later that the _average_ income difference decreases with higher incomes.
+- For the lowest income quintile, the difference is driven equally by lower earnings and lower benefits in the SHS.
+- In the second income quintile (this is where the poverty threshold typically sits), the difference is smaller and mainly driven by lower earnings in the SHS.
+- In the third and fourth income quintiles, SHS earnings are now higher than HBAI earnings. However, differences in benefit, occupational pension, and inverstment incomes lead to a lower total income in the SHS in these quintiles.
+- In the top quintile, total income differences are due to differences in incomes from all major sources, but in particular investment income and occupational pensions. Note that this difference is mainly driven by non-reporting rather than undereporting. Therefore, the _average_ income difference at the top is small compared to lower down the income distributions.
+- The lower the total income is, the less important earnings and the more important benefits become.
+
+</div>
+
+```{r inc_sources_council}
+
+tidydata %>%
+  filter(type != "total",
+         survey == "SHS") %>%
+  group_by(survey, type, council) %>%
+  summarise(total = sum(amount),
+            n = n()) %>%
+  group_by(survey, council) %>%
+  mutate(share = total/sum(total)) %>%
+  ungroup() %>%
+  mutate(survey = fct_reorder(survey, share),
+         type = fct_shift(type, 2),
+         council = fct_reorder2(council, desc(type), desc(share))) %>%
+  filter(n >= 50) %>%
+  ggplot(aes(x = council, y = share, fill = type)) + 
+  geom_col(position = "stack") +
+  scale_fill_manual(values = cols_types) +
+  coord_flip() +
+  labs(x = NULL, y = NULL, 
+       title = "Income sources by council area") +
+  theme(legend.title = element_blank())
+  
+```
+
+```{r inc_sources_urbrur}
+
+tidydata %>%
+  filter(type != "total",
+         survey == "SHS") %>%
+  group_by(type, urbrur) %>%
+  summarise(total = sum(amount),
+            n = n()) %>%
+  group_by(urbrur) %>%
+  mutate(share = total/sum(total)) %>%
+  ungroup() %>%
+  mutate(type = fct_shift(type, 2),
+         urbrur = fct_rev(urbrur)) %>%
+  filter(n >= 50) %>%
+  ggplot(aes(x = urbrur, y = share, fill = type)) + 
+  geom_col(position = "stack") +
+  scale_fill_manual(values = cols_types) +
+  coord_flip() +
+  labs(x = NULL, y = NULL, 
+       title = "Income sources by urban/rural class",
+       subtitle = "Sample >= 50") +
+  theme(legend.title = element_blank())
+  
+```
+
+```{r ages_council}
+
+tidydata %>%
+  filter(type == "total",
+         survey == "SHS") %>%
+  group_by(council) %>%
+  summarise(sample = n(),
+            people = sum(ppwgt),
+            children = sum(chwgt),
+            waadults = sum(wawgt),
+            pensioners = sum(pnwgt)) %>%
+  mutate(children = children/people,
+         adults = waadults/people,
+         pensioners = pensioners/people) %>%
+  select(council, children, adults, pensioners) %>%
+  gather(group, share, -council) %>%
+  ungroup() %>%
+  mutate(group = factor(group, levels = people),
+         group = fct_rev(group),
+         council = fct_reorder2(council, desc(group), desc(share))) %>%
+  ggplot(aes(x = council, y = share, fill = group)) + 
+  geom_col(position = "stack") +
+  scale_fill_manual(values = wes_palettes[["IsleofDogs1"]]) +
+  scale_y_continuous(labels = percent_format()) +
+  coord_flip() +
+  labs(x = NULL, y = NULL,
+       title = "Age profile of council areas") +
+  theme(legend.title = element_blank(),
+        legend.position = "top") +
+  guides(fill = guide_legend(reverse = TRUE))
+  
+```
+
+```{r ages_urbrur}
+
+tidydata %>%
+  filter(type == "total",
+         survey == "SHS") %>%
+  group_by(urbrur) %>%
+  summarise(sample = n(),
+            people = sum(ppwgt),
+            children = sum(chwgt),
+            waadults = sum(wawgt),
+            pensioners = sum(pnwgt)) %>%
+  mutate(children = children/people,
+         adults = waadults/people,
+         pensioners = pensioners/people) %>%
+  select(urbrur, children, adults, pensioners) %>%
+  gather(group, share, -urbrur) %>%
+  ungroup() %>%
+  mutate(group = factor(group, levels = people),
+         group = fct_rev(group),
+         urbrur = fct_rev(urbrur)) %>%
+  ggplot(aes(x = urbrur, y = share, fill = group)) + 
+  geom_col(position = "stack") +
+  geom_text(aes(y = ifelse(group == "children", 0.05, ifelse(group == "pensioners", 0.85, 0.5)),
+                label = percent(share, 1)),
+            colour = "white",
+            hjust = 0,
+            fontface = "bold") +
+  scale_fill_manual(values = wes_palettes[["IsleofDogs1"]]) +
+  coord_flip() +
+  labs(x = NULL, y = NULL,
+       title = "Age profile of urban/rural areas",
+       subtitle = "Sample >= 50") +
+  theme(legend.title = element_blank(),
+        legend.position = "top",
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank()) +
+  guides(fill = guide_legend(reverse = TRUE))
+  
+```
+
+<div class = "box">
+
+- The six council areas with the highest benefit shares are, according to SHS data, Dumfries & Galloway, Inverclyde, North Ayrshire, East Ayrshire, West Dunbartonshire, and Dundee City. 
+- The eight council areas with the largest proportion of pensioners are Na h-Eileanan Siar, Argyl & Bute, Dumfries & Galloway, South Ayrshire, Scottish Borders, Orkney Islands, Angus, and Perth and Kinross.
+- Breaking the country down to urban and rural areas, small towns and other (not large) urban areas have the highest shares of benefit income. 
+- Remote small towns and remote rural areas on the other hand have the largest proportions of pensioners.
+
+</div>
+
+# Total income
 ## Income distribution
 
 ```{r income_distributions}
 
 tidydata %>%
   filter(type == "total") %>%
-  ggplot(aes(x = amount, weight = ppwgt, colour = survey, fill = survey )) +
+  ggplot(aes(x = amount, 
+             weight = ppwgt/sum(ppwgt), 
+             colour = survey, fill = survey )) +
   geom_vline(xintercept = HBAImedian, colour = cols_survey[1]) +
   geom_vline(xintercept = SHSmedian, colour = cols_survey[2]) +
   geom_vline(xintercept = 0.6*HBAImedian, colour = cols_survey[1]) +
   geom_vline(xintercept = 0.6*SHSmedian, colour = cols_survey[2]) +
   geom_density(size = 1, alpha = 0.5, bw = 0.02) +
-  scale_x_log10(limits = c(20, 20000), labels = comma_format(prefix = "£")) +
-  scale_y_continuous(labels = comma_format(scale = 1E-6, suffix = " million")) +
+  scale_x_log10(limits = c(20, 20000), 
+                labels = comma_format(prefix = "£")) +
   scale_color_manual(values = cols_survey) +
   scale_fill_manual(values = cols_survey) +
-  labs(title = "SHS and FRS household income distribution",
+  labs(title = "Household income distributions",
        subtitle = "Vertical lines show poverty thresholds and medians",
-       x = "Weekly income",
-       y = "Number of people") +
+       x = "Weekly equivalised household income",
+       y = NULL) +
   theme(legend.position = "top",
-        legend.title = element_blank())
-
-tidydata %>%
-  filter(type == "total") %>%
-  ggplot(aes(x = amount, weight = ppwgt, colour = survey, fill = survey )) +
-  geom_vline(xintercept = HBAImedian, colour = cols_survey[1]) +
-  geom_vline(xintercept = SHSmedian, colour = cols_survey[2]) +
-  geom_vline(xintercept = 0.6*HBAImedian, colour = cols_survey[1]) +
-  geom_vline(xintercept = 0.6*SHSmedian, colour = cols_survey[2]) +
-  coord_cartesian(xlim = c(20, 20000)) +
-  stat_ecdf(geom = "step", size = 1, alpha = 0.5) +
-  scale_x_log10(labels = comma_format(prefix = "£")) +
-  scale_y_continuous(labels = percent_format(1)) +
-  scale_color_manual(values = cols_survey) +
-  scale_fill_manual(values = cols_survey) +
-  labs(title = "SHS and FRS cumulative household income distribution",
-       subtitle = "Vertical lines show poverty thresholds and medians",
-       x = "Weekly income",
-       y = "Proportion of households") +
-  theme(legend.position = "top",
-        legend.title = element_blank())
+        legend.title = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
 
 tidydata %>%
   filter(type == "total") %>%
@@ -1709,20 +2077,19 @@ tidydata %>%
   scale_y_continuous(labels = percent_format(1)) +
   scale_color_manual(values = cols_survey) +
   scale_fill_manual(values = cols_survey) +
-  labs(title = "SHS and FRS cumulative household income distribution",
-       subtitle = "Vertical lines show poverty thresholds and medians",
-       x = "Weekly income",
-       y = "Proportion of households") +
+  labs(title = "Cumulative household income distributions",
+       subtitle = "Vertical lines show relative poverty (BHC) thresholds and medians",
+       x = "Weekly equivalised household income",
+       y = "Proportion of people") +
   theme(legend.position = "top",
         legend.title = element_blank())
 
 ```
 
-
 <div class = "box">
 
 - The income distributions look largely similar, with the SHS income distribution being slightly wider.
-- Near the relative poverty threshold (£310 in 2016-19), the SHS cumulative income curve is higher, meaning more households sit below that threshold in the SHS compared to the HBAI.
+- Near the relative poverty thresholds, the SHS cumulative income curve is higher, meaning more households sit below that threshold in the SHS compared to the HBAI.
 
 </div>
 
@@ -1757,61 +2124,11 @@ tidydata %>%
 
 <div class = "box">
 
-- The income decile points are at similar levels for high incomes and diverge towards lower incomes.
-- This suggests that it would be advisable to calculate poverty thresholds for each survey separately, based on each survey's data.
+- The income decile points are at similar levels for high incomes and diverge towards lower incomes, with (average) income increasingly underreported in the SHS at lower incomes.
 
 </div>
 
 ## Median income by council area
-
-```{r median_council, include = FALSE}
-
-samplesize <- tidydata %>%
-  filter(type == "total") %>%
-  group_by(survey, council) %>%
-  summarise(sample = sum(n)) %>%
-  spread(survey, sample) %>%
-  rename(HBAI_sample = HBAI,
-         SHS_sample = SHS)
-
-councilinc <- tidydata %>%
-  filter(type == "total") %>%
-  group_by(survey, council) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
-  spread(survey, median) %>%
-  rename(HBAI_median = HBAI,
-         SHS_median = SHS) %>%
-  left_join(samplesize, by = "council") 
-
-# Table 
-
-mutate(councilinc, 
-       sample = ifelse(is.na(HBAI_sample), "too small", 
-                         ifelse(HBAI_sample >= 50, "ok", "too small")),
-       HBAI_median = ifelse(sample == "ok", comma(HBAI_median, accuracy = 1, prefix = "£"), NA),
-       SHS_median = comma(SHS_median, accuracy = 1, prefix = "£")) %>%
-  arrange(council) %>%
-  select(council, sample, everything())
-
-
-# Chart - Median income by council
-councilinc$council <- decode(councilinc$council, search = councilnames, replace = councilshort)
-
-councilinc %>%
-  filter(HBAI_sample >= 50) %>%
-  ggplot(aes(label = council, x = HBAI_median, y = SHS_median)) +
-  geom_point(aes(size = HBAI_sample, alpha = HBAI_sample)) +
-  geom_text_repel() +
-  geom_abline(slope = 1, intercept = 0) +
-   theme(legend.position = "top") +
-  scale_x_continuous(limits = c(400, 700)) +
-  scale_y_continuous(limits = c(400, 650)) +
-  guides(size = guide_legend("HBAI sample size"), 
-         alpha = guide_legend("HBAI sample size")) +
-  labs(title = "Median income by council - HBAI vs. SHS")
-
-```
-
 
 ```{r median_council_ci}
 
@@ -1820,23 +2137,28 @@ councilinc %>%
 
 HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "council",
-                data = filter(tidydata, type == "total", survey == "HBAI") %>%
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "HBAI",
+                              council %in% popokcouncils) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
-                basic = TRUE,
-                percentile = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
                 digits = 3)
 
 HBAI_CI_all <- groupwiseMedian2(var = "amount",
-                data = filter(tidydata, type == "total", survey == "HBAI") %>%
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "HBAI") %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
-                basic = TRUE,
-                percentile = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
                 digits = 3) %>%
   mutate(survey = "HBAI") %>%
   select(survey, Median, n, Conf.level, Normal.lower, Normal.upper)
@@ -1845,73 +2167,71 @@ HBAI_CI_all <- groupwiseMedian2(var = "amount",
 
 SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "council",
-                data = filter(tidydata, type == "total", survey == "SHS") %>%
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "SHS",
+                              council %in% popokcouncils) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
-                basic = TRUE,
-                percentile = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
                 digits = 3)
 
 SHS_CI_all <- groupwiseMedian3(var = "amount",
-                data = filter(tidydata, type == "total", survey == "SHS") %>%
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "SHS") %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
-                basic = TRUE,
-                percentile = TRUE,
+                basic = FALSE,
+                percentile = FALSE,
                 digits = 3) %>%
   mutate(survey = "SHS") %>%
-  select(survey, Median, n, Conf.level, Normal.lower, Normal.upper)
+  select(survey, Median, Normal.lower, Normal.upper, Conf.level,  n)
 
-rbind(HBAI_CI_all, SHS_CI_all)
+rbind(HBAI_CI_all, SHS_CI_all) %>%
+  select(survey, Median, Normal.lower, Normal.upper, Conf.level,  n) %>%
+  mutate_at(c("Median", "Normal.lower", "Normal.upper"), comma_format(1, prefix = "£")) %>%
+           knitr::kable(align = "lrrrrr") %>%
+  kable_styling("striped")
 
 
 SHS_CI$survey <- "SHS"
 HBAI_CI$survey <- "HBAI"
 
 CI <- rbind(HBAI_CI, SHS_CI) %>%
-  mutate(Median = ifelse(n < 50, NA, Median),
-         Normal.lower = ifelse(n < 50, NA, Normal.lower),
-         Normal.upper = ifelse(n < 50, NA, Normal.upper),
-         Basic.lower = ifelse(n < 50, NA, Basic.lower),
-         Basic.upper = ifelse(n < 50, NA, Basic.upper),
-         Percentile.lower = ifelse(n < 50, NA, Percentile.lower),
-         Percentile.upper = ifelse(n < 50, NA, Percentile.upper)) %>%
-  filter(!is.na(Median))
+  mutate(council = fct_reorder2(council, survey, desc(Median)))
 
-
-levels <-  filter(CI, n > 50) %>% 
-  select(survey, council, Median) %>%
-  spread(survey, Median) %>%
-  mutate(diff = abs(HBAI-SHS)) %>%
-  arrange(desc(diff)) %>%
-  filter(!is.na(diff)) %>%
-  mutate(council = factor(council, levels = as.character(council), ordered = TRUE)) %>%
-  arrange(council)
-
-CI$council <- factor(CI$council, levels(levels$council))
-
-
-ggplot(data = filter(CI, !is.na(council))) +
-  geom_hline(yintercept = HBAImedian, colour = cols_survey[1], alpha = 0.2, size = 1.5) +
-  geom_hline(yintercept = SHSmedian, colour = cols_survey[2], alpha = 0.2, size = 1.5) +
-  geom_point(aes(x = council, y = Median, colour = survey), size = 2) +
+ggplot(CI) +
+  geom_hline(yintercept = HBAImedian, 
+             colour = cols_survey[1], 
+             alpha = 0.2, 
+             size = 1.5) +
+  geom_hline(yintercept = SHSmedian, 
+             colour = cols_survey[2], 
+             alpha = 0.2, 
+             size = 1.5) +
+  geom_point(aes(x = council,
+                 y = Median, 
+                 colour = survey), 
+             size = 2) +
   geom_segment(aes(x = council,
                    xend = council,
-                 y = Normal.lower, 
-                 yend = Normal.upper,
-                 colour = survey),
+                   y = Normal.lower, 
+                   yend = Normal.upper,
+                   colour = survey),
                size = 3,
                alpha = 0.5) +
-  geom_text(data = filter(CI, survey == "HBAI", !is.na(council)),
+  geom_text(data = filter(CI, survey == "HBAI"),
             mapping = aes(x = council, y = 780, label =  n),
             hjust = 1,
             colour = cols_survey[1],
             show.legend = FALSE) +
-  geom_text(data = filter(CI, survey == "SHS", !is.na(council)),
+  geom_text(data = filter(CI, survey == "SHS"),
             mapping = aes(x = council, y = 810, label =  n),
             hjust = 1,
             colour = cols_survey[2],
@@ -1919,8 +2239,8 @@ ggplot(data = filter(CI, !is.na(council))) +
     scale_colour_manual(values = cols_survey) +
     labs(x = NULL,
          y = "Median and 95% C.I",
-         title = 'Weekly median net household income, SHS 2018 and HBAI 2018/19',
-         subtitle = 'Sorted by income difference; sample sizes shown on right') +
+         title = 'Weekly median equivalised household income, SHS 2018 and HBAI 2018/19',
+         subtitle = 'Sample sizes shown on right; excludes council areas with large population discrepancies') +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
   theme(legend.position = "top",
         legend.title = element_blank()) +
@@ -1928,56 +2248,23 @@ ggplot(data = filter(CI, !is.na(council))) +
   
 ```
 
-
 <div class = "box">
 
 - Using 95% confidence intervals (C.I.), median incomes overlap (to some degree) for all council areas where the HBAI sample size is large enough to estimate the median (sample >=50, true for 22 out of the 32 council areas).
 - For the HBAI, the C.I. are calculated using a bootstrapping method which resamples the dataset without accounting for the complex survey design. The HBAI C.I. are therefore only illustrative and may be wider.
-- For some council areas, the overlaps are only marginal, such as Glasgow, Renfrewshire, Aberdeenshire, East Dunbartonshire, and Stirling, even though some of these have relatively large HBAI sample sizes (Aberdeenshire, Glasgow, Renfrewshire).
+- For some council areas, the overlaps are only marginal, such as Renfrewshire, Aberdeenshire, East Dunbartonshire, and Stirling even though some of these have relatively large HBAI sample sizes (Aberdeenshire, Renfrewshire).
 - It would be good to check what the overlaps look like for different data years, i.e. SHS 2019 (pre-release access only) or HBAI 2017/18.
 
 </div>
 
 ## Median income by urban/rural area
 
-```{r median_urbrur, include = FALSE}
-
-samplesize <- tidydata %>%
-  filter(type == "total") %>%
-  group_by(survey, urbrur) %>%
-  summarise(sample = sum(n)) %>%
-  spread(survey, sample) %>%
-  rename(HBAI_sample = HBAI,
-         SHS_sample = SHS)
-
-urbrurinc <- tidydata %>%
-  filter(type == "total") %>%
-  group_by(survey, urbrur) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
-  spread(survey, median) %>%
-  rename(HBAI_median = HBAI,
-         SHS_median = SHS) %>%
-  left_join(samplesize, by = "urbrur") 
-
-# Table - Median income by urban/rural class
-
-mutate(urbrurinc, 
-       HBAI_median = comma(HBAI_median, accuracy = 1, prefix = "£"),
-       SHS_median = comma(SHS_median, accuracy = 1, prefix = "£"),
-       urbrurclass = urbrurclasses) %>%
-  arrange(urbrur) %>%
-  select(urbrurclass, HBAI_median, SHS_median, HBAI_sample, SHS_sample) %>%
-  knitr::kable(align = "lrrrr") %>%
-  kable_styling("striped")
-
-```
-
 
 ```{r median_urbrur_ci}
 
 # Note that HBAI bootstrap mechanism is SRS!
 
-UR_HBAI_CI <- groupwiseMedian2(var = "amount",
+HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "urbrur",
                 data = filter(tidydata, type == "total", survey == "HBAI") %>%
                   mutate(weight = ppwgt),
@@ -1990,7 +2277,7 @@ UR_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 # SHS bootstrap mechanism includes council strata
 
-UR_SHS_CI <- groupwiseMedian3(var = "amount",
+SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "urbrur",
                 data = filter(tidydata, type == "total", survey == "SHS") %>%
                   mutate(weight = ppwgt),
@@ -2001,19 +2288,12 @@ UR_SHS_CI <- groupwiseMedian3(var = "amount",
                 percentile = FALSE,
                 digits = 3)
 
-UR_SHS_CI$survey <- "SHS"
-UR_HBAI_CI$survey <- "HBAI"
+SHS_CI$survey <- "SHS"
+HBAI_CI$survey <- "HBAI"
 
-UR_CI <- rbind(UR_HBAI_CI, UR_SHS_CI) %>%
-  mutate(Median = ifelse(n < 50, NA, Median),
-         Normal.lower = ifelse(n < 50, NA, Normal.lower),
-         Normal.upper = ifelse(n < 50, NA, Normal.upper)) %>%
-  filter(!is.na(Median))
-
-UR_CI$urbrur <- decode(UR_CI$urbrur, search = urbrurcodes, replace = urbrurclasses)
-UR_CI$urbrur <- factor(UR_CI$urbrur, levels = urbrurclasses)
-
-ggplot(data = UR_CI, aes(x = fct_rev(urbrur), y = Median)) +
+rbind(UR_HBAI_CI, UR_SHS_CI) %>%
+  filter(!is.na(Median)) %>%
+  ggplot(aes(x = fct_rev(urbrur), y = Median)) +
   geom_hline(yintercept = HBAImedian, colour = cols_survey[1], alpha = 0.2, size = 1.5) +
   geom_hline(yintercept = SHSmedian, colour = cols_survey[2], alpha = 0.2, size = 1.5) +
   geom_point(aes(colour = survey), size = 2) +
@@ -2031,7 +2311,7 @@ ggplot(data = UR_CI, aes(x = fct_rev(urbrur), y = Median)) +
     scale_colour_manual(values = cols_survey) +
     labs(x = NULL,
          y = "Median and 95% C.I",
-         title = 'Weekly median net household income, SHS 2018 and HBAI 1819',
+         title = 'Weekly median equivalised household income, SHS 2018 and HBAI 1819',
          subtitle = 'Median values shown on right') +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
   theme(legend.position = "top",
@@ -2053,31 +2333,14 @@ ggplot(data = UR_CI, aes(x = fct_rev(urbrur), y = Median)) +
 - child, working-age, pensioners
 - also: age group of HIH??
 
-```{r median_agegroup, include = FALSE}
-
-# Table - Median income by age group
-
-filter(tidydata, type == "total") %>%
-  group_by(survey) %>%
-  summarise(People = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
-            Children = wtd.quantile(amount, probs = 0.5, weights = chwgt),
-            WorkingAgeAdults = wtd.quantile(amount, probs = 0.5, weights = wawgt),
-            Pensioners = wtd.quantile(amount, probs = 0.5, weights = pnwgt)) %>%
-  mutate(People = comma(People, accuracy = 1, prefix  ="£"),
-         Children = comma(Children, accuracy = 1, prefix  ="£"),
-         WorkingAgeAdults = comma(WorkingAgeAdults, accuracy = 1, prefix  ="£"),
-         Pensioners = comma(Pensioners, accuracy = 1, prefix  ="£")) %>%
-  knitr::kable(align = "lrrrr") %>%
-  kable_styling("striped")
-
-```
-
 ```{r median_agegroup_ci}
 
 # Note that HBAI bootstrap mechanism is SRS!
 
 ch_HBAI_CI <- groupwiseMedian2(var = "amount",
-                data = filter(tidydata, type == "total", survey == "HBAI") %>% 
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "HBAI") %>% 
                 mutate(weight = chwgt),
                 conf = 0.95,
                 R = 100,
@@ -2087,7 +2350,9 @@ ch_HBAI_CI <- groupwiseMedian2(var = "amount",
                 digits = 3)
 
 wa_HBAI_CI <- groupwiseMedian2(var = "amount",
-                data = filter(tidydata, type == "total", survey == "HBAI") %>% 
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "HBAI") %>% 
                 mutate(weight = wawgt),
                 conf = 0.95,
                 R = 100,
@@ -2109,7 +2374,9 @@ pn_HBAI_CI <- groupwiseMedian2(var = "amount",
 # SHS bootstrap mechanism includes council strata
 
 ch_SHS_CI <- groupwiseMedian3(var = "amount",
-                data = filter(tidydata, type == "total", survey == "SHS") %>% 
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "SHS") %>% 
                 mutate(weight = chwgt),
                 conf = 0.95,
                 R = 100,
@@ -2119,7 +2386,9 @@ ch_SHS_CI <- groupwiseMedian3(var = "amount",
                 digits = 3)
 
 wa_SHS_CI <- groupwiseMedian3(var = "amount",
-                data = filter(tidydata, type == "total", survey == "SHS") %>% 
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "SHS") %>% 
                 mutate(weight = wawgt),
                 conf = 0.95,
                 R = 100,
@@ -2129,7 +2398,9 @@ wa_SHS_CI <- groupwiseMedian3(var = "amount",
                 digits = 3)
 
 pn_SHS_CI <- groupwiseMedian3(var = "amount",
-                data = filter(tidydata, type == "total", survey == "SHS") %>% 
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "SHS") %>% 
                 mutate(weight = pnwgt),
                 conf = 0.95,
                 R = 100,
@@ -2152,12 +2423,11 @@ Age_HBAI_CI <- rbind(ch_HBAI_CI, wa_HBAI_CI, pn_HBAI_CI) %>%
 Age_SHS_CI <- rbind(ch_SHS_CI, wa_SHS_CI, pn_SHS_CI) %>%
   mutate(survey = "SHS")
 
-Age_CI <- rbind(Age_HBAI_CI, Age_SHS_CI) %>%
+rbind(Age_HBAI_CI, Age_SHS_CI) %>%
   select(survey, group, Median, Normal.lower, Normal.upper, n) %>%
   mutate(group = factor(group, levels = agegrouplevels),
-         group = fct_rev(group))
-
-ggplot(data = Age_CI) +
+         group = fct_rev(group)) %>%
+  ggplot() +
   geom_hline(yintercept = HBAImedian, colour = cols_survey[1], alpha = 0.2, size = 1.5) +
   geom_hline(yintercept = SHSmedian, colour = cols_survey[2], alpha = 0.2, size = 1.5) +
   geom_point(aes(x = group, y = Median, colour = survey), size = 2) +
@@ -2194,44 +2464,16 @@ ggplot(data = Age_CI) +
 
 ## Median income by household type
 
-```{r median_hhtype, include = FALSE}
-
-samplesize <- tidydata %>%
-  filter(type == "total") %>%
-  group_by(survey, hhtype) %>%
-  summarise(sample = sum(n)) %>%
-  spread(survey, sample) %>%
-  rename(HBAI_sample = HBAI,
-         SHS_sample = SHS)
-
-hhtypeinc <- tidydata %>%
-  filter(type == "total") %>%
-  group_by(survey, hhtype) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
-  spread(survey, median) %>%
-  rename(HBAI_median = HBAI,
-         SHS_median = SHS) %>%
-  left_join(samplesize, by = "hhtype") 
-
-# Table - Median income by hhtype
-
-mutate(hhtypeinc, 
-       HBAI_median = comma(HBAI_median, accuracy = 1, prefix = "£"),
-       SHS_median = comma(SHS_median, accuracy = 1, prefix = "£"),
-       hhtype = factor(hhtype, levels = hhtypenames)) %>%
-  arrange(hhtype)
-
-```
-
-
 ```{r median_hhtype_ci}
 
 # Note that HBAI bootstrap mechanism is SRS!
 
-hhtype_HBAI_CI <- groupwiseMedian2(var = "amount",
+HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "hhtype",
-                data = filter(tidydata, type == "total", survey == "HBAI") %>%
-                  mutate(weight = ppwgt),
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "HBAI") %>%
+                mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -2241,10 +2483,12 @@ hhtype_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 # SHS bootstrap mechanism includes council strata
 
-hhtype_SHS_CI <- groupwiseMedian3(var = "amount",
+SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "hhtype",
-                data = filter(tidydata, type == "total", survey == "SHS") %>%
-                  mutate(weight = ppwgt),
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "SHS") %>%
+                mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -2252,21 +2496,17 @@ hhtype_SHS_CI <- groupwiseMedian3(var = "amount",
                 percentile = FALSE,
                 digits = 3)
 
-hhtype_SHS_CI$survey <- "SHS"
-hhtype_HBAI_CI$survey <- "HBAI"
+SHS_CI$survey <- "SHS"
+HBAI_CI$survey <- "HBAI"
 
-hhtype_CI <- rbind(hhtype_HBAI_CI, hhtype_SHS_CI) %>%
-  mutate(Median = ifelse(n < 50, NA, Median),
-         Normal.lower = ifelse(n < 50, NA, Normal.lower),
-         Normal.upper = ifelse(n < 50, NA, Normal.upper)) %>%
-  filter(!is.na(Median))
-
-hhtype_CI$hhtype <- factor(hhtype_CI$hhtype, levels = hhtypenames)
-
-ggplot(data = hhtype_CI) +
+rbind(HBAI_CI, SHS_CI) %>%
+  filter(n >= 50) %>%
+  mutate(hhtype = factor(hhtype),
+         hhtype = fct_reorder2(hhtype, survey, desc(Median))) %>%
+  ggplot(aes(x = hhtype, y = Median)) +
   geom_hline(yintercept = HBAImedian, colour = cols_survey[1], alpha = 0.2, size = 1.5) +
   geom_hline(yintercept = SHSmedian, colour = cols_survey[2], alpha = 0.2, size = 1.5) +
-  geom_point(aes(x = fct_rev(hhtype), y = Median, colour = survey), size = 2) +
+  geom_point(aes(x = hhtype, y = Median, colour = survey), size = 2) +
   geom_segment(aes(x = hhtype,
                    xend = hhtype,
                  y = Normal.lower, 
@@ -2277,7 +2517,7 @@ ggplot(data = hhtype_CI) +
     scale_colour_manual(values = cols_survey) +
     labs(x = NULL,
          y = "Median and 95% C.I",
-         title = 'Weekly median net household income, SHS 2018 and HBAI 1819') +
+         title = 'Weekly median equivalised household income') +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
   theme(legend.position = "top",
         legend.title = element_blank()) +
@@ -2295,46 +2535,16 @@ ggplot(data = hhtype_CI) +
 
 ## Median income by economic status of highest income householder
 
-```{r median_eco, include = FALSE}
-
-samplesize <- tidydata %>%
-  filter(type == "total") %>%
-  group_by(survey, HIHemp) %>%
-  summarise(sample = sum(n)) %>%
-  spread(survey, sample) %>%
-  rename(HBAI_sample = HBAI,
-         SHS_sample = SHS)
-
-HIHempinc <- tidydata %>%
-  filter(type == "total") %>%
-  group_by(survey, HIHemp) %>%
-  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
-  spread(survey, median) %>%
-  rename(HBAI_median = HBAI,
-         SHS_median = SHS) %>%
-  left_join(samplesize, by = "HIHemp") %>%
-  mutate(HBAI_median = ifelse(HBAI_sample < 50, NA, HBAI_median))
-
-# Table - Median income by HIHemp
-
-mutate(HIHempinc, 
-       HBAI_median = ifelse(is.na(HBAI_median), NA, comma(HBAI_median, accuracy = 1, prefix = "£")),
-       SHS_median = comma(SHS_median, accuracy = 1, prefix = "£"),
-       HIHemp = factor(HIHemp, levels = empstatnames)) %>%
-  arrange(HIHemp)
-
-
-```
-
-
 ```{r median_eco_ci}
 
 # Note that HBAI bootstrap mechanism is SRS!
 
-HIHemp_HBAI_CI <- groupwiseMedian2(var = "amount",
+HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "HIHemp",
-                data = filter(tidydata, type == "total", survey == "HBAI") %>%
-                  mutate(weight = ppwgt),
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "HBAI") %>%
+                mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -2344,10 +2554,12 @@ HIHemp_HBAI_CI <- groupwiseMedian2(var = "amount",
 
 # SHS bootstrap mechanism includes council strata
 
-HIHemp_SHS_CI <- groupwiseMedian3(var = "amount",
+SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "HIHemp",
-                data = filter(tidydata, type == "total", survey == "SHS") %>%
-                  mutate(weight = ppwgt),
+                data = filter(tidydata, 
+                              type == "total", 
+                              survey == "SHS") %>%
+                mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
                 normal = TRUE,
@@ -2355,18 +2567,14 @@ HIHemp_SHS_CI <- groupwiseMedian3(var = "amount",
                 percentile = FALSE,
                 digits = 3)
 
-HIHemp_SHS_CI$survey <- "SHS"
-HIHemp_HBAI_CI$survey <- "HBAI"
+SHS_CI$survey <- "SHS"
+HBAI_CI$survey <- "HBAI"
 
-HIHemp_CI <- rbind(HIHemp_HBAI_CI, HIHemp_SHS_CI) %>%
-  mutate(Median = ifelse(n < 50, NA, Median),
-         Normal.lower = ifelse(n < 50, NA, Normal.lower),
-         Normal.upper = ifelse(n < 50, NA, Normal.upper)) %>%
-  filter(!is.na(Median))
-
-HIHemp_CI$HIHemp <- factor(HIHemp_CI$HIHemp, levels = empstatnames)
-
-ggplot(data = HIHemp_CI) +
+rbind(HBAI_CI, SHS_CI) %>%
+  mutate(HIHemp <- factor(HIHemp, levels = empstatnames),
+         HIHemp = fct_reorder2(HIHemp, survey, Median)) %>%
+  filter(n >= 50 ) %>% 
+  ggplot() +
   geom_hline(yintercept = HBAImedian, colour = cols_survey[1], alpha = 0.2, size = 1.5) +
   geom_hline(yintercept = SHSmedian, colour = cols_survey[2], alpha = 0.2, size = 1.5) +
   geom_point(aes(x = fct_rev(HIHemp), y = Median, colour = survey), size = 2) +
@@ -2380,7 +2588,8 @@ ggplot(data = HIHemp_CI) +
     scale_colour_manual(values = cols_survey) +
     labs(x = NULL,
          y = "Median and 95% C.I",
-         title = 'Weekly median net household income, SHS 2018 and HBAI 1819') +
+         title = 'Weekly median equivalised household income',
+         subtitle = "Sample >= 50") +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
   theme(legend.position = "top",
         legend.title = element_blank()) +
@@ -2397,154 +2606,3 @@ ggplot(data = HIHemp_CI) +
 - Incomes of the disabled also doesn't match too well.
 
 </div>
-
-# Income components
-
-In SHS and FRS, which income sources contribute how much to total income? 
-
-
-```{r components}
-
-# Make chart showing total income amount and components
-# de-equivalise
-
-tidydata %>%
-  group_by(survey, type) %>%
-  summarise(amount = sum(amount*hhwgt*equ)) %>%
-  ggplot(aes(x = type,
-           y = amount,
-           fill = survey)) +
-  geom_col(position = 'dodge') +
-  geom_text(aes(y = amount + 70000000,
-                label = comma(amount, scale = 1E-6),
-                colour = survey),
-            show.legend = FALSE,
-            position = position_dodge(width = 1)) +
-  scale_fill_manual(values = cols_survey) +
-  scale_colour_manual(values = cols_survey) +
-  scale_y_continuous(label = comma_format(scale = 1E-9, 
-                                          prefix = "£", 
-                                          suffix = " billion", 
-                                          accuracy = 0.1)) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-  labs(title = "Aggregated weekly income by income type", x = NULL, y = NULL)
-
-```
-
-Which income components contribute most to the differences?
-
-```{r aggregate_components}
-
-# Make table showing differences in income and income compononents
-
-tidydata %>%
-  group_by(survey, type) %>%
-  summarise(amount = sum(amount*hhwgt*equ)) %>%
-  spread(survey, amount) %>%
-  mutate(totdiff = HBAI[1] - SHS[1],
-         diff = HBAI - SHS,
-         reldiff = diff/HBAI,
-         diffcontr = diff/totdiff) %>%
-  arrange(desc(abs(diffcontr))) %>%
-  mutate(HBAI = comma(HBAI, scale = 1E-6, prefix = "£", suffix = " million", accuracy = 1),
-         SHS = comma(SHS, scale = 1E-6, prefix = "£", suffix = " million", accuracy = 1),
-         absdiff = comma(diff, scale = 1E-6, prefix = "£", suffix = " million", accuracy = 1),
-         diffcontr = percent(diffcontr),
-         reldiff = percent(reldiff)) %>%
-  select(type, HBAI, SHS, absdiff, diffcontr) %>%
-  knitr::kable(align = "lrrrr") %>%
-  kable_styling("striped")
-
-incdiff <- tidydata %>%
-  group_by(survey, type) %>%
-  summarise(amount = sum(amount*hhwgt*equ)) %>%
-  spread(survey, amount) %>%
-  head(1L) %>%
-  mutate(diff = percent(1- SHS/HBAI, accuracy = 0.1)) %>%
-  select(diff) %>% 
-  pull()
-
-```
-
-<div class = "box">
-
-- Total income aggregated to the  whole of Scotland is largely made up of earnings, followed by benefits (which include the state pension) and occupational pensions. Overall, SHS total income is `r incdiff` lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions. Income from earnings are higher in the SHS. Other income components are relatively small and therefore contribute little to the overall differences in income.
-- Do investment incomes matter for poverty (= low income) measurement though?
-
-</div>
-
-```{r aggr_comp_quintiles}
-
-# Make chart showing total income amount and components
-
-tidydata %>%
-  group_by(survey, type, quintile) %>%
-  summarise(aggr = sum(hhwgt*amount*equ)) %>%
-  ungroup() %>%
-  arrange(quintile, type) %>%
-  mutate(diff = ifelse(survey == "SHS", lag(aggr)-aggr, 0)) %>%
-  filter(survey == "SHS") %>%
-  select(type, diff, quintile) %>%
-  ggplot(aes(x = type,
-           y = diff)) +
-  geom_col(position = 'dodge') +
-  scale_y_continuous(label = comma_format(scale = 1E-6, prefix = "£", suffix = " mn", accuracy = 1)) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-  labs(title = "Difference in aggregated weekly income by income type and income quintile",
-       subtitle = "Positive values = HBAI income is larger", x = NULL, y = NULL) +
-  facet_wrap(vars(quintile))
-
-```
-
-
-<div class = "box">
-
-- For all quintiles, the aggregated total income is higher in the HBAI compared to SHS, with the absolute difference increasing with higher incomes. Note that we showed earlier that this was similar for _median_ incomes, but that the differences *decreased* with higher incomes.
-- For the lowest income quintile, aggregated earnings incomes reported in the SHS are higher than in the HBAI. Benefits are considerably lower though and largely explain why total SHS income is lower than HBAI income in this quintile.
-- In the second income quintile (this is where the poverty threshold sits), the higher HBAI earnings income largely explains the differences in total aggregated incomes in this quintile.
-- In the third and fourth income quintiles, SHS earnings are again higher than HBAI earnings. However, differences in benefit, occupational pension, and inverstment incomes lead to a lower total income in the SHS in these quintiles.
-- In the top quintile, total income differences are due to differences in incomes from all major sources, but in particular occupational pensions and income from investments.
-
-</div>
-
-```{r component_shares_decile}
-
-# Make table showing differences in income and income compononents
-
-tidydata %>%
-  filter(type != "total") %>%
-  group_by(survey, decile, type) %>%
-  summarise(amount = sum(amount*hhwgt*equ)) %>%
-  ungroup() %>%
-  mutate(decile = factor(decile)) %>%
-  group_by(survey, decile) %>%
-  ggplot(aes(x = decile, y = amount, fill = type)) +
-  geom_col(position = "fill") +
-  scale_fill_manual(values = cols_types) +
-  labs(x  = "Total income decile", y = NULL,
-       title = "Share of aggregated total income by type of income and decile") +
-  facet_wrap(~survey, nrow = 2) +
-  theme(legend.title = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks = element_blank())
-
-```
-
-
-
-<div class = "box">
-
-- The lower the total income is, the less important earnings and the more important benefits become.
-
-</div>
-
-
-
-# Self-employed's incomes
-
-- higher earnings in SHS -> due to variation? Check SHS19
-- leads to higher incomes
-- benefits??
-- other income sources? what about deductions?
