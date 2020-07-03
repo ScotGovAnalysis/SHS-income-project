@@ -99,7 +99,7 @@ Median, mean and aggregated weekly earnings (excluding households with no earnin
 
 tidydata %>%
   filter(type == "earn",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -127,7 +127,7 @@ earn_HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, 
                               type == "earn", 
                               survey == "HBAI",
-                              amount > 0) %>%
+                              amount != 0) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
@@ -142,7 +142,7 @@ earn_SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, 
                               type == "earn", 
                               survey == "SHS",
-                              amount > 0) %>%
+                              amount != 0) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
@@ -203,7 +203,7 @@ Median, mean and aggregated weekly earnings by economic status of household head
 tidydata %>%
   filter(type == "earn",
          HIHemp %in% empstatnames[1:3],
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, HIHemp) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -229,7 +229,7 @@ HBAI_CI <- groupwiseMedian2(var = "amount",
                               type == "earn", 
                               survey == "HBAI", 
                               HIHemp %in% empstatnames[1:3],
-                              amount > 0) %>%
+                              amount != 0) %>%
                 mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
@@ -246,7 +246,7 @@ SHS_CI <- groupwiseMedian3(var = "amount",
                               type == "earn", 
                               survey == "SHS", 
                               HIHemp %in% empstatnames[1:3],
-                              amount > 0) %>%
+                              amount != 0) %>%
                 mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
@@ -303,7 +303,7 @@ Median, mean and aggregated weekly earnings by household type (excludes those wi
 
 tidydata %>%
   filter(type == "earn",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, hhtype) %>%
   summarise(median = wtd.quantile(amount, 
                                   probs = 0.5, 
@@ -333,7 +333,7 @@ HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, 
                               type == "earn", 
                               survey == "HBAI", 
-                              amount > 0) %>%
+                              amount != 0) %>%
                 mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
@@ -349,7 +349,7 @@ SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, 
                               type == "earn", 
                               survey == "SHS", 
-                              amount > 0) %>%
+                              amount != 0) %>%
                 mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
@@ -456,7 +456,7 @@ Weekly earnings by council area (excludes households with zero earnings, council
 
 councilsn50 <- filter(tidydata, 
        type == "earn",
-       amount > 0,
+       amount != 0,
        survey == "HBAI") %>%
   group_by(council) %>%
   count() %>%
@@ -465,7 +465,7 @@ councilsn50 <- filter(tidydata,
 
 tidydata %>%
   filter(type == "earn",
-         amount > 0,
+         amount != 0,
          council %in% councilsn50,
          council %in% popokcouncils) %>%
   group_by(survey, council) %>%
@@ -491,7 +491,7 @@ earn_HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "council",
                 data = filter(tidydata, 
                               type == "earn", 
-                              amount > 0,
+                              amount != 0,
                               council %in% councilsn50,
                               council %in% popokcouncils,
                               survey == "HBAI") %>%
@@ -507,7 +507,7 @@ earn_SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "council",
                 data = filter(tidydata, 
                               type == "earn", 
-                              amount > 0,
+                              amount != 0,
                               council %in% councilsn50,
                               council %in% popokcouncils,
                               survey == "SHS") %>%
@@ -566,7 +566,7 @@ Weekly benefit income (excluding households with no benefit income).
 
 tidydata %>%
   filter(type == "ben",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -587,7 +587,7 @@ Weekly benefit income for households with no pensioners (excluding households wi
 
 tidydata %>%
   filter(type == "ben",
-         amount > 0,
+         amount != 0,
          pnwgt == 0) %>%
   group_by(survey) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
@@ -609,7 +609,7 @@ Weekly benefit income for households with pensioners only (excluding households 
 
 tidydata %>%
   filter(type == "ben",
-         amount > 0,
+         amount != 0,
          pnwgt > 0) %>%
   group_by(survey) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
@@ -639,7 +639,7 @@ HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, 
                               type == "ben", 
                               survey == "HBAI",
-                              amount > 0,
+                              amount != 0,
                               pnwgt == 0) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
@@ -656,7 +656,7 @@ SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, 
                               type == "ben", 
                               survey == "SHS",
-                              amount > 0,
+                              amount != 0,
                               pnwgt == 0) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
@@ -746,7 +746,7 @@ HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, 
                               type == "ben", 
                               survey == "HBAI",
-                              amount > 0,
+                              amount != 0,
                               pnwgt > 0) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
@@ -763,7 +763,7 @@ SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, 
                               type == "ben", 
                               survey == "SHS",
-                              amount > 0,
+                              amount != 0,
                               pnwgt > 0) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
@@ -849,7 +849,7 @@ Equivalised weekly household income from benefits (excludes households with no b
 
 tidydata %>%
   filter(type == "ben",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, hhtype) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -877,7 +877,7 @@ HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, 
                               type == "ben", 
                               survey == "HBAI", 
-                              amount > 0) %>%
+                              amount != 0) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
@@ -893,7 +893,7 @@ SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, 
                               type == "ben", 
                               survey == "SHS", 
-                              amount > 0) %>%
+                              amount != 0) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
@@ -940,7 +940,7 @@ ggplot(data = CI) +
 
 tidydata %>%
   filter(type == "ben",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, HIHemp) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -968,7 +968,7 @@ HBAI_CI <- groupwiseMedian2(var = "amount",
                 data = filter(tidydata, 
                               type == "ben", 
                               survey == "HBAI", 
-                              amount > 0) %>%
+                              amount != 0) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
@@ -984,7 +984,7 @@ SHS_CI <- groupwiseMedian3(var = "amount",
                 data = filter(tidydata, 
                               type == "ben", 
                               survey == "SHS", 
-                              amount > 0) %>%
+                              amount != 0) %>%
                   mutate(weight = ppwgt),
                 conf = 0.95,
                 R = 100,
@@ -1035,7 +1035,7 @@ Weekly benefit income by council area (excludes households with no benefit incom
 
 councilsn50 <- filter(tidydata, 
        type == "ben",
-       amount > 0,
+       amount != 0,
        survey == "HBAI") %>%
   group_by(council) %>%
   count() %>%
@@ -1044,7 +1044,7 @@ councilsn50 <- filter(tidydata,
 
 tidydata %>%
   filter(type == "ben",
-         amount > 0,
+         amount != 0,
          council %in% councilsn50,
          council %in% popokcouncils) %>%
   group_by(survey, council) %>%
@@ -1069,7 +1069,7 @@ HBAI_CI <- groupwiseMedian2(var = "amount",
                 group = "council",
                 data = filter(tidydata, 
                               type == "ben", 
-                              amount > 0,
+                              amount != 0,
                               council %in% councilsn50,
                               council %in% popokcouncils,
                               survey == "HBAI") %>%
@@ -1085,7 +1085,7 @@ SHS_CI <- groupwiseMedian3(var = "amount",
                 group = "council",
                 data = filter(tidydata, 
                               type == "ben", 
-                              amount > 0,
+                              amount != 0,
                               council %in% councilsn50,
                               council %in% popokcouncils,
                               survey == "SHS") %>%
@@ -1217,7 +1217,7 @@ Disability benefits combine:
 
 tidybens %>%
   filter(type %in% str_trunc(disbens, 30),
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, type) %>%
   summarise(tot = sum(amount*hhwgt*equ),
             median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
@@ -1239,7 +1239,7 @@ tidybens %>%
 
 tidybens %>%
   filter(type %in% str_trunc(disbens, 30),
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, type) %>%
   summarise(tot = sum(amount*hhwgt*equ),
             median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
@@ -1276,7 +1276,7 @@ tidybens %>%
 
 tidybens %>%
   filter(type == "Tax Credits",
-         amount > 0,
+         amount != 0,
          HIHemp %in% c("Part-time Employee", "Full-time Employee")) %>%
   group_by(survey, HIHemp) %>%
   summarise(households = comma(sum(hhwgt), 10000),
@@ -1304,7 +1304,7 @@ tidybens %>%
 
 tidybens %>%
   filter(type == "Housing Benefit",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, tenure) %>%
   summarise(households = comma(sum(hhwgt), 10000),
             mean = comma(wtd.mean(amount, weights = hhwgt), 1, prefix = "£"),
@@ -1330,7 +1330,7 @@ tidybens %>%
 
 tidybens %>%
   filter(type == "Child Benefit",
-         amount > 0,
+         amount != 0,
          chwgt > 0) %>%
   group_by(survey, hhtype) %>%
   summarise(households = comma(sum(hhwgt), 10000),
@@ -1356,7 +1356,7 @@ tidybens %>%
 
 tidybens %>%
   filter(type == "Universal Credit",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey) %>%
   summarise(households = comma(sum(hhwgt), 10000),
             mean = comma(wtd.mean(amount, weights = hhwgt), 1, prefix = "£"),
@@ -1380,7 +1380,7 @@ tidybens %>%
 
 tidybens %>%
   filter(type == "Pension Credit",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey) %>%
   summarise(households = comma(sum(hhwgt), 10000),
             mean = comma(wtd.mean(amount, weights = hhwgt), 1, prefix = "£"),
@@ -1406,7 +1406,7 @@ Total weekly benefit income for single working-age adult households:
 
 tidybens %>%
   filter(hhtype == "Single adult",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey) %>%
   summarise(total = comma(sum(amount*hhwgt*equ), 
                           scale = 1E-6, prefix = "£",
@@ -1429,7 +1429,7 @@ Total weekly benefit income for single working-age adult households - main benef
 tidybens %>%
   mutate(type = ifelse(type %in% str_trunc(disbens, 30), "Disability", type)) %>%
   filter(hhtype == "Single adult",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, type) %>%
   summarise(total = comma(sum(amount*hhwgt*equ),
                           scale = 1E-6, prefix = "£",
@@ -1462,7 +1462,7 @@ Weekly equivalised investment income (excludes households with no investment inc
 
 tidydata %>%
   filter(type == "inv",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey) %>%
   summarise(total = sum(amount*hhwgt*equ),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -1484,7 +1484,7 @@ tidydata %>%
 
 tidydata %>%
   filter(type == "inv",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, HIHemp) %>%
   summarise(tot = sum(amount*hhwgt*equ),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -1507,7 +1507,7 @@ tidydata %>%
 
 tidydata %>%
   filter(type == "inv",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, hhtype) %>%
   summarise(tot = sum(amount*hhwgt*equ),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -1530,7 +1530,7 @@ tidydata %>%
 
 tidydata %>%
   filter(type == "inv",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, decile) %>%
   summarise(tot = sum(amount*hhwgt*equ),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -1619,12 +1619,39 @@ tidydata %>%
         legend.position = "top")
 ```
 
+Types of benefits (PIP, DLA, ESA, AA, CA, IB, SDA, IIDB combined into "Disability"):
+```{r benefits_types_pntype}
+
+tidybens %>%
+  filter(pnwgt > 0,
+         hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
+  mutate(type = factor(type),
+         type = fct_collapse(type, Disability = str_trunc(disbens, 30))) %>%
+  group_by(survey, hhtype, type) %>%
+  summarise(total = sum(hhwgt*amount*equ)) %>%
+  ungroup() %>%
+  group_by(survey, hhtype) %>%
+  filter(type %in% type[order(-total)[1:5]]) %>%
+  ungroup() %>%
+  mutate(type = fct_reorder(type, total)) %>%
+  ggplot(aes(x = hhtype, y = total, fill = type)) +
+  geom_col() +
+  scale_fill_manual(values = cols_bens) +
+  facet_wrap(~survey, nrow = 2) +
+  labs(title = "What are the main benefits for each type of pensioner household?", 
+       subtitle = "Aggregated weekly benefit income of the 5 most common benefits; includes pensioner households only",
+       x = NULL, y = NULL) +
+  scale_y_continuous(labels = comma_format(scale = 1E-6, suffix = " million")) +
+  theme(legend.title = element_blank())
+
+```
+
 State Pension (sample >= 100):
 ```{r state_pension_hhtype}
 
 tidybens %>%
   filter(type == "State Pension",
-         amount > 0,
+         amount != 0,
          pnwgt > 0) %>%
   group_by(survey, hhtype) %>%
   summarise(households = comma(sum(hhwgt), 10000),
@@ -1652,7 +1679,7 @@ Pensioners households receiving State Pension:
 
 tidybens %>%
   filter(type == "State Pension",
-         amount > 0,
+         amount != 0,
          hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
   group_by(survey, hhtype) %>%
   summarise(total = comma(sum(amount*hhwgt*equ), scale = 1E-6,
@@ -1684,7 +1711,7 @@ Households receiving occupational pensions:
 
 tidydata %>%
   filter(type == "occ",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey) %>%
   summarise(total = sum(amount*hhwgt*equ),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -1704,7 +1731,7 @@ tidydata %>%
 
 tidydata %>%
   filter(type == "occ",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, HIHemp) %>%
   summarise(tot = sum(amount*hhwgt*equ),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -1741,7 +1768,7 @@ tidydata %>%
 
 tidydata %>%
   filter(HIHemp == "Self-Employed",
-         amount > 0) %>%
+         amount != 0) %>%
   group_by(survey, type) %>%
   summarise(median = comma(wtd.quantile(amount, 
                                   weights = ppwgt, 
@@ -2291,7 +2318,7 @@ SHS_CI <- groupwiseMedian3(var = "amount",
 SHS_CI$survey <- "SHS"
 HBAI_CI$survey <- "HBAI"
 
-rbind(UR_HBAI_CI, UR_SHS_CI) %>%
+rbind(HBAI_CI, SHS_CI) %>%
   filter(!is.na(Median)) %>%
   ggplot(aes(x = fct_rev(urbrur), y = Median)) +
   geom_hline(yintercept = HBAImedian, colour = cols_survey[1], alpha = 0.2, size = 1.5) +

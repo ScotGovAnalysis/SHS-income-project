@@ -12,7 +12,7 @@ output:
 
 From previous work done comparing SHS and HBAI data, we expect the average total income to be matching fairly well, even if the individual income components might not match well enough for detailed analysis due to the different remits of the two surveys and resulting methods. Here, we look at how the individual income components differ between the surveys and how that might affect different groups of the population differently.
 
-We compared SHS 2018 income data (the new, broader definition) with HBAI 2018/19 income data. For the HBAI data, we didn't use the standard income variable,  but instead used income before top-income adjustment, and ignored child income (except for benefits) and any income deductions, such as all maintenance and child support payments, parental contributions to students living away from home, or student loan repayments. This way, we can compare the data from the surveys more directly and don't (initially at least) focus on any discrepancies that originate not from the collected data itself but the data processing at a later stage. We also set negative earnings and investment income in the HBAI to zero {>> I assume these come from negative net profits of the self-employed <<}, as there are no negative earnings and investments in the SHS. 
+We compared SHS 2018 income data (the new, broader definition) with HBAI 2018/19 income data. For the HBAI data, we used net income before top-income adjustment, and included all income components, including those that are not available in the SHS, such as child income, and deductions (council tax, pension contributions, maintenance and child support payments, parental contributions to students living away from home, and student loan repayments). We also set negative earnings and investment income in the HBAI to zero {>> I assume these come from negative net profits of the self-employed; should we do this, though? <<}, as there are no negative earnings and investments in the SHS. And finally, we deducted Council Tax from SHS income (but not water and sewerage charges).
 
 We also looked at administrative data on benefits to quantify the amount of benefit underreporting in the SHS (and the HBAI).
 
@@ -61,7 +61,7 @@ Median benefit income across the two surveys matches better for some **household
 
 For **single adult households**, this is caused by people underreporting disability benefits in the SHS, see [Single adults' benefit incomes][Single adults' benefit incomes]. 
 
-For **pensioner couple households**, the difference in median benefit income between the two surveys is largely due to non-reporting of state pension for some people. {>> it's not clear why this isn't also the case for single pensioners - follow up? <<}
+For **pensioner couple households**, the difference in median benefit income between the two surveys is largely due to underreporting of the amount of state pension received. This affects households with two pensioners most. In addition, many pensioners, in particular those who are single, do not report receiving any state pension at all (although these are only included in these summary statistics if they report some other benefit income).
 
 Looking at household **economic status**, median benefit incomes for households where the highest income householder is a full-time employee match well between surveys and show a small benefit amount and little variability. There is more variability and discrepancy in median benefit incomes for part-time employee and self-employed households. Median benefit income C.I.s from SHS and HBAI do not overlap at all for retired and disabled households, with the SHS benefit incomes consistently below HBAI benefit incomes. Reasons for this are largely non-reporting of state pension, and under- and non-reporting of disability benefits.
 
@@ -155,3 +155,23 @@ Incomes for most **household types** match well, except, again, for pensioners, 
 
 Incomes of households where the household head (the highest income householder) is a **full- or part-time employee** match fairly well, which is no surprise as income from employed earnings also matches fairly well. Income of **self-employed households** varies widely and C.I.s overlap only little between the two survey. As expected, incomes of the **retired** don't match well, similarly to pensioners' incomes in the age group and household type breakdowns. Incomes of the **disabled** also don't match too well, due to undereporting of disability benefits, which are the main income source of these households.
 
+
+# Open questions
+
+- How well do housing costs match? In the HBAI, housing costs include rent and mortgage interest payment (and some other, smaller charges). In the SHS however, housing costs include rent and all mortgage payments.
+
+- In the analysis here, we didn't use the usual HBAI BHC income variable, but income without top-income adjustments, and setting negative self-employed earnings to zero. What is the impact of this on (for example) median income?
+
+- For some council areas, C.I.s overlaps of median benefit income are only marginal, such as Renfrewshire, Aberdeenshire, East Dunbartonshire, and Stirling, despite some of these having relatively large HBAI sample sizes (Aberdeenshire, Renfrewshire). Note also, that none of these areas were noted earlier for particularly high pensioner shares or benefit income shares. (However, C.I.s for all council areas and for both surveys are fairly wide, showing much income variation within each council area.) Is this just sampling variability?
+
+- Self-employed earnings are much higher in the SHS compared to the HBAI. Is this because the SHS doesn't deduct net losses? And is that why there are no negative self-emplyed earnings in the SHS?
+
+- can we calculate better confidence intervals for the HBAI data using the correct resamples dataset?
+- SHS doesn't ask about children's benefits such as child DLA - check hhlds with children's benefit income
+- Should we include recommendations for SHS questionnaire or editing changes? I.e. state pensions, wording change for disability benefits to harmonise with FRS
+- according to 2009 Ipsos Mori paper, there are changes in the definition of economic status bwetween two surveys, especially with respect to students who are working (in FRS ILO definition, these would be considered in work, whereas in SHS they would be considered students). Might need to recode FRS definition using EdType, or use a different economic status variable.
+- explain child definition: in this analysis the definition of a child in the SHS was recoded to match that of the HBAI (i.e. includes 17-19 year-olds living at home, not married, and in full-time non-advanced education)
+- add charts on where disability benefits go to by hhld type, and maybe eco status (similar to investment income or occ. pensions)
+- how important is children's income? I excluded it from HBAI income in this analysis. Ipsos Mori report showed it made up 1% of single parents' income
+- add income sources by hhld type chart
+- what exactly are the income deductions in the HBAI dataset? DWP: "Covers pension contribs, maintenance & student loan payments, also payments to insurance policies and contributions from parents to students, deducted at the end, as don't obviously come off any particular component" 
