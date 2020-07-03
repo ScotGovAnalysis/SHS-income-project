@@ -50,8 +50,9 @@ tidyhbai <- hbai1819 %>%
          privben = epribnhh/equ,
          occ = hntocchh/equ,
          inv = ifelse(hntinvhh >= 0, hntinvhh/equ, 0),
-         oth =  emiscihh/equ,
-         total = (earn + ben + privben + occ + inv + oth),
+         oth =  (emiscihh + inchilhh)/equ,
+         ded =  -eothdehh/equ,
+         total = (earn + ben + privben + occ + inv + oth + ded),
          pp = ADULTH + DEPCHLDH,
          ch = DEPCHLDH,
          wa = round(pp*wawgt/ppwgt),
@@ -69,7 +70,7 @@ tidyhbai <- hbai1819 %>%
                                                                    ifelse(pp == 2 & wa == 1 & pn == 1, 8, 9)))))))),
          ID = row_number()) %>%
   select(ID, hhwgt, ppwgt, chwgt, wawgt, pnwgt, hhtype, HIHemp, pp, ch, wa, pn, 
-         total, earn, ben, privben, occ, inv, oth, equ, SERNUM, tenure) %>%
+         total, earn, ben, privben, occ, inv, oth, ded, equ, SERNUM, tenure) %>%
   left_join(tidyhousehol, by = "SERNUM") %>%
   gather(key = type, value = amount, -ID, -SERNUM, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -pp, -ch, -wa, -pn, 
          -council, -urbrur, -hhtype, - HIHemp, -equ, -tenure) %>%

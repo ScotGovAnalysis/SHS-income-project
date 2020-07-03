@@ -26,7 +26,7 @@ wes_palettes <- list(
 cols_survey <- wes_palettes[["Moonrise2"]]
 names(cols_survey) = c("HBAI", "SHS", "Admin")
 
-cols_types <- wes_palettes[["IsleofDogs1"]]
+cols_types <- c(wes_palettes[["IsleofDogs1"]], "grey20")
 names(cols_types) <- inctypes[-1]
 
 cols_types2 <- c(wes_palettes[["FantasticFox1"]], 

@@ -56,7 +56,7 @@ tidydata$quintile <- decode(tidydata$decile,
                             replace = c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5),
                             default = NA)
 
-# get medians
+# get medians ----
 
 SHSmedian <- filter(tidydata, type == "total", survey == "SHS") %>% 
   mutate(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
@@ -129,7 +129,7 @@ tidybens_agg <- tidybens %>%
   arrange(desc(type), survey)
 
 
-# <!-- # Annex - Survey variables -->
+# <!-- # Annex - Survey variables --> ----
 #   
 #   <!-- Relevant variable names in SHS and FRS datasets.  -->
 #   

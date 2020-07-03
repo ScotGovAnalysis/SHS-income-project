@@ -41,21 +41,44 @@ personshs <- person18 %>%
 # Note there is one hhld with one dependent child and no (present) adults
 # check <- filter(personshs, wa == 0 & pn == 0)
 
+# Work out council tax from council tax band and single person discount ----
+# Council tax is deducted from household income in the HBAI
+# Note that water and sewerage charges are part of housing costs in the HBAI, so I won't include them here
+
+
+counciltax <- read_excel("ext/docs/CouncilTax1819.xlsx", sheet = "CouncilTax") %>%
+  mutate(COUNCIL = as.numeric(COUNCIL)) %>%
+  select(-council) %>%
+  remove_labels()
+
 # Get age group weights, income vars, equivalise ----
 
 tidyshs <- hhold18 %>%
   select(UNIQID, MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, 
-         LA_GRWT, COUNCIL, SHS_6CLA, HIHECON, TENURE) %>%
+         LA_GRWT, COUNCIL, SHS_6CLA, HIHECON, TENURE, COUNCILTAXBAND) %>%
   left_join(personshs, by = "UNIQID") %>%
+  remove_labels() %>%
+  left_join(counciltax, by = "COUNCIL") %>%
   mutate_at(vars(MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3), ~replace_na(., 0)) %>%
-  mutate(equ = 0.67 + (pp-u14-1)*0.33 + u14*0.2,
+  mutate(band = COUNCILTAXBAND,
+         counciltax = ifelse(band == "A", A, 
+                             ifelse(band == "B", B,
+                                    ifelse(band == "C", C,
+                                           ifelse(band == "D", D,
+                                                  ifelse(band == "E", E,
+                                                         ifelse(band == "F", F,
+                                                                ifelse(band == "G", G, 
+                                                                       ifelse(band == "H", H, NA))))))) ),
+         counciltax_disc = ifelse(pp - ch == 1, 0.75 * counciltax, counciltax),
+         equ = 0.67 + (pp-u14-1)*0.33 + u14*0.2,
          earn = EARNINC*7/(365*equ),
          ben = BENINC*7/(365*equ),
          privben = (MSCINC02 + MSCINC06)*7/(365*equ),
          occ = MSCINC01*7/(365*equ),
          inv = MSCINC07*7/(365*equ),
          oth = (MSCINC03 + MSCINC04 + MSCINC05 + MSCINC08 + MSCINC09 + MSCINC10)*7/(365*equ),
-         total = (earn + ben + privben + occ + inv + oth),
+         ded = ifelse(!is.na(counciltax), -counciltax_disc*7/(365*equ), 0),
+         total = (earn + ben + privben + occ + inv + oth + ded),
          hhwgt = LA_GRWT,
          ppwgt = round(LA_GRWT*pp),
          chwgt = round(LA_GRWT*ch),
@@ -78,7 +101,7 @@ tidyshs <- hhold18 %>%
                                                                    ifelse(pp == 2 & wa == 1 & pn == 1, 8, 9)))))))),
          ID = row_number()) %>%
   select(ID, hhwgt, ppwgt, chwgt, wawgt, pnwgt, 
-         total, earn, ben, privben, occ, inv, oth, equ,
+         total, earn, ben, privben, occ, inv, oth, ded, equ,
          council, urbrur, hhtype, HIHemp, pp, ch, wa, pn, 
          BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, tenure) %>%
   remove_labels() %>%
@@ -86,6 +109,7 @@ tidyshs <- hhold18 %>%
          -council, -urbrur, -hhtype, -HIHemp, -pp, -ch, -wa, -pn, -equ, 
          -(BENINC01:BENINC40), -(BENINC01_OA1:BENINC40_OA3), -tenure) %>%
   mutate(survey = "SHS")
+
 
 # Recode council area, household type, and economic status vars ----
 

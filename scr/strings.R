@@ -11,7 +11,7 @@ people <-c("people", "children", "adults", "pensioners")
 
 # Income types ----
 
-inctypes <- c("total", "earn", "ben", "occ", "inv", "oth", "privben")
+inctypes <- c("total", "earn", "ben", "occ", "inv", "oth", "privben", "ded")
 
 # Council names ----
 
