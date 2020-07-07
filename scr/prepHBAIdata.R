@@ -45,11 +45,13 @@ tidyhbai <- hbai1819 %>%
   left_join(HBAIweights, by = "SERNUM") %>%
   left_join(tidyadult, by = "SERNUM") %>%
   mutate(equ = eqobhchh,
-         earn = ifelse(enternhh >= 0, enternhh/equ, 0),
+         earn = enternhh/equ,
+         #earn = ifelse(enternhh >= 0, enternhh/equ, 0),
          ben = ebeninhh/equ,
          privben = epribnhh/equ,
          occ = hntocchh/equ,
-         inv = ifelse(hntinvhh >= 0, hntinvhh/equ, 0),
+         inv = hntinvhh/equ,
+         #inv = ifelse(hntinvhh >= 0, hntinvhh/equ, 0),
          oth =  (emiscihh + inchilhh)/equ,
          ded =  -eothdehh/equ,
          total = (earn + ben + privben + occ + inv + oth + ded),

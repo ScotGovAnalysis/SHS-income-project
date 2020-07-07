@@ -55,7 +55,7 @@ counciltax <- read_excel("ext/docs/CouncilTax1819.xlsx", sheet = "CouncilTax") %
 
 tidyshs <- hhold18 %>%
   select(UNIQID, MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, 
-         LA_GRWT, COUNCIL, SHS_6CLA, HIHECON, TENURE, COUNCILTAXBAND) %>%
+         LA_GRWT, COUNCIL, SHS_6CLA, HIHECON, TENURE, COUNCILTAXBAND, HINCMINC, HH4) %>%
   left_join(personshs, by = "UNIQID") %>%
   remove_labels() %>%
   left_join(counciltax, by = "COUNCIL") %>%
@@ -68,7 +68,7 @@ tidyshs <- hhold18 %>%
                                                   ifelse(band == "E", E,
                                                          ifelse(band == "F", F,
                                                                 ifelse(band == "G", G, 
-                                                                       ifelse(band == "H", H, NA))))))) ),
+                                                                       ifelse(band == "H", H, B))))))) ),
          counciltax_disc = ifelse(pp - ch == 1, 0.75 * counciltax, counciltax),
          equ = 0.67 + (pp-u14-1)*0.33 + u14*0.2,
          earn = EARNINC*7/(365*equ),
@@ -86,7 +86,7 @@ tidyshs <- hhold18 %>%
          pnwgt = round(LA_GRWT*pn),
          council = COUNCIL,
          urbrur = SHS_6CLA,
-         HIHemp = HIHECON,
+         HIHemp = ifelse(HIHECON != 8, HIHECON, ifelse(is.na(HINCMINC), 8, ifelse(HINCMINC <= 0, 8, ifelse(is.na(HH4), 3, ifelse(HH4 >= 30, 2, 3))))),
          tenure = ifelse(TENURE == 1, 4,
                          ifelse(TENURE == 2, 5,
                                 ifelse(TENURE == 3, 1,
