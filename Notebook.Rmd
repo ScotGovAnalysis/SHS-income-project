@@ -1262,6 +1262,61 @@ tidybens %>%
 
 ```
 
+```{r disability_hhtype}
+
+tidybens %>%
+  filter(type %in% disbens,
+         survey != "Admin",
+         amount != 0) %>%
+  group_by(survey, hhtype) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(amount, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            sample = n(),
+            people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(share = tot/sum(tot),
+         hhtype = fct_reorder2(hhtype, desc(survey), desc(share))) %>%
+  ggplot(aes(x = hhtype, y = share, fill = survey)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = cols_survey) +
+  scale_y_continuous(label = percent_format(1)) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Share of aggregated disability benefits across household types") +
+  coord_flip()
+
+```
+
+```{r disability_eco}
+
+tidybens %>%
+  filter(type %in% disbens,
+         survey != "Admin",
+         amount != 0) %>%
+  group_by(survey, HIHemp) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(amount, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            sample = n(),
+            people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(share = tot/sum(tot),
+         HIHemp = fct_reorder2(HIHemp, desc(survey), desc(share))) %>%
+  ggplot(aes(x = HIHemp, y = share, fill = survey)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = cols_survey) +
+  scale_y_continuous(label = percent_format(1)) +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Share of aggregated disability benefits across household types") +
+  coord_flip()
+
+```
 
 <div class = "box">
 
@@ -1811,7 +1866,7 @@ tidydata %>%
            y = amount,
            fill = survey)) +
   geom_col(position = 'dodge') +
-  geom_text(aes(y = amount + 70000000,
+  geom_text(aes(y = ifelse(type == "ded", amount + 140000000, amount + 70000000),
                 label = comma(amount, scale = 1E-6),
                 colour = survey),
             show.legend = FALSE,
@@ -1836,14 +1891,14 @@ tidydata %>%
   group_by(survey, type) %>%
   summarise(amount = sum(amount*hhwgt*equ)) %>%
   spread(survey, amount) %>%
-  mutate(totdiff = HBAI[1] - SHS[1],
+  mutate(totdiff = sum(abs(HBAI[2:length(HBAI)])) - sum(abs(SHS[2:length(SHS)])),
          diff = HBAI - SHS,
          reldiff = diff/HBAI,
-         diffcontr = diff/totdiff) %>%
+         diffcontr = ifelse(type == "total", 1, abs(diff)/totdiff)) %>%
   mutate(HBAI = comma(HBAI, scale = 1E-6, prefix = "£", suffix = " million", accuracy = 1),
          SHS = comma(SHS, scale = 1E-6, prefix = "£", suffix = " million", accuracy = 1),
          absdiff = comma(diff, scale = 1E-6, prefix = "£", suffix = " million", accuracy = 1),
-         diffcontr = percent(diffcontr),
+         diffcontr = percent(diffcontr, 1),
          reldiff = percent(reldiff)) %>%
   select(type, HBAI, SHS, absdiff, diffcontr) %>%
   mutate(type = factor(type, levels = inctypes)) %>%
@@ -1887,7 +1942,7 @@ tidydata %>%
   theme(legend.position = "top",
         legend.title = element_blank()) +
   labs(title = "Difference in aggregated weekly income by income type and income quintile",
-       subtitle = "Positive values = HBAI income is larger", x = NULL, y = NULL) +
+       subtitle = "Positive values = HBAI incomes are larger / HBAI deductions are smaller", x = NULL, y = NULL) +
   facet_wrap(vars(quintile))
 
 ```
@@ -1897,7 +1952,9 @@ tidydata %>%
 # Make table showing differences in income and income compononents
 
 tidydata %>%
-  filter(type != "total") %>%
+  filter(type != "total",
+         type != "ded",
+         amount >= 0) %>%
   group_by(survey, decile, type) %>%
   summarise(amount = sum(amount*hhwgt*equ)) %>%
   ungroup() %>%
@@ -1907,7 +1964,8 @@ tidydata %>%
   geom_col(position = "fill") +
   scale_fill_manual(values = cols_types) +
   labs(x  = NULL, y = NULL,
-       title = "Share of aggregated total income by type of income and total income decile") +
+       title = "Share of aggregated total income by type of income and total income decile",
+       subtitle = "Excludes deductions; excludes households with negative income components") +
   facet_wrap(~survey, nrow = 2) +
   theme(legend.title = element_blank(),
         axis.text.y = element_blank(),
@@ -1930,6 +1988,7 @@ tidydata %>%
 
 tidydata %>%
   filter(type != "total",
+         type != "ded",
          survey == "SHS") %>%
   group_by(survey, type, council) %>%
   summarise(total = sum(amount),
@@ -1946,7 +2005,8 @@ tidydata %>%
   scale_fill_manual(values = cols_types) +
   coord_flip() +
   labs(x = NULL, y = NULL, 
-       title = "Income sources by council area") +
+       title = "Income sources by council area, SHS",
+       subtitle = "Excludes deductions") +
   theme(legend.title = element_blank())
   
 ```
@@ -1955,6 +2015,7 @@ tidydata %>%
 
 tidydata %>%
   filter(type != "total",
+         type != "ded",
          survey == "SHS") %>%
   group_by(type, urbrur) %>%
   summarise(total = sum(amount),
@@ -1970,8 +2031,8 @@ tidydata %>%
   scale_fill_manual(values = cols_types) +
   coord_flip() +
   labs(x = NULL, y = NULL, 
-       title = "Income sources by urban/rural class",
-       subtitle = "Sample >= 50") +
+       title = "Income sources by urban/rural class, SHS",
+       subtitle = "Sample >= 50; excludes deductions") +
   theme(legend.title = element_blank())
   
 ```
@@ -2002,7 +2063,7 @@ tidydata %>%
   scale_y_continuous(labels = percent_format()) +
   coord_flip() +
   labs(x = NULL, y = NULL,
-       title = "Age profile of council areas") +
+       title = "Age profile of council areas, SHS") +
   theme(legend.title = element_blank(),
         legend.position = "top") +
   guides(fill = guide_legend(reverse = TRUE))
@@ -2039,7 +2100,7 @@ tidydata %>%
   scale_fill_manual(values = wes_palettes[["IsleofDogs1"]]) +
   coord_flip() +
   labs(x = NULL, y = NULL,
-       title = "Age profile of urban/rural areas",
+       title = "Age profile of urban/rural areas, SHS",
        subtitle = "Sample >= 50") +
   theme(legend.title = element_blank(),
         legend.position = "top",
@@ -2057,6 +2118,58 @@ tidydata %>%
 - Remote small towns and remote rural areas on the other hand have the largest proportions of pensioners.
 
 </div>
+
+```{r component_shares_hhtype}
+
+# Make table showing differences in income and income compononents
+
+tidydata %>%
+  filter(type != "total",
+         type != "ded") %>%
+  group_by(survey, hhtype, type) %>%
+  summarise(amount = sum(amount*hhwgt*equ),
+            sample = n()) %>%
+  ungroup() %>%
+  mutate(hhtype = factor(hhtype),
+         hhtype = fct_reorder2(hhtype, desc(type), desc(amount))) %>%
+  filter(sample >= 50) %>%
+  ggplot(aes(x = hhtype, y = amount, fill = type)) +
+  geom_col(position = "fill") +
+  scale_fill_manual(values = cols_types) +
+  labs(x  = NULL, y = NULL,
+       title = "Aggregated total income by income source and household type",
+       subtitle = "Excludes deductions") +
+  coord_flip() +
+  facet_wrap(~survey, ncol = 2) +
+  theme(legend.title = element_blank())
+
+```
+
+```{r component_shares_eco}
+
+# Make table showing differences in income and income compononents
+
+tidydata %>%
+  filter(type != "total",
+         type != "ded") %>%
+  group_by(survey, HIHemp, type) %>%
+  summarise(amount = sum(amount*hhwgt*equ),
+            sample = n()) %>%
+  ungroup() %>%
+  mutate(HIHemp = factor(HIHemp),
+         HIHemp = fct_reorder2(HIHemp, desc(type), desc(amount))) %>%
+  filter(sample >= 50) %>%
+  ggplot(aes(x = HIHemp, y = amount, fill = type)) +
+  geom_col(position = "fill") +
+  scale_fill_manual(values = cols_types) +
+  labs(x  = NULL, y = NULL,
+       title = "Aggregated total income by income source and economic status of household head",
+       subtitle = "Sample >= 50; excludes deductions") +
+  coord_flip() +
+  facet_wrap(~survey, ncol = 2) +
+  theme(legend.title = element_blank())
+
+```
 
 # Total income
 ## Income distribution
