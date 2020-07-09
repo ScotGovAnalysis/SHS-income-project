@@ -5,7 +5,7 @@ output:
     code_folding: hide
     number_sections: yes
     toc: yes
-    toc_depth: 1
+    toc_depth: 2
     css: "scr/styles.css"
     
 editor_options: 
@@ -40,8 +40,6 @@ source("scr/functions.R")
 source("scr/strings.R")
 source("scr/colours.R")
 
-
-
 # Load datasets
 
 adult_1819 <- readRDS("output/adult_1819.rds")
@@ -51,16 +49,25 @@ hbai1819 <- readRDS("output/hbai1819.rds")
 person18 <- readRDS("output/person18.rds")
 hhold18 <- readRDS("output/hhold18.rds")
 
-
 # Create tidy datasets
 
 source("scr/prepSHSdata.R")
 source("scr/prepHBAIdata.R")
 
-
 # Combine all data
 
 source("scr/prepdata.R")
+
+# Change some theme elements (charts)
+
+theme_update(legend.position = "top",
+             legend.title = element_blank(),
+             panel.background = element_blank(),
+             panel.grid.major.x = element_line(colour = "grey95"),
+             panel.grid.minor.x = element_line(colour = "grey95"),
+             panel.grid.major.y = element_line(colour = "grey95"),
+             axis.ticks = element_blank(),
+             text = element_text(size=14))
 
 ```
 
@@ -176,21 +183,10 @@ ggplot(data = earn_CI) +
          title = 'Weekly median net household earnings by household income decile',
          subtitle = 'Excludes hhlds with no earnings income') +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(100, 1200))
+  coord_flip(ylim = c(100, 1200))
 
 ```
 
-<div class = "box">
-
-- Median earnings are higher in the SHS compared to the HBAI
-- however, for lower income deciles, SHS earnings are slightly lower
-- across income deciles, median earnings match fairly well
-- There is more earnings variation in the top decile and the lowest four deciles, and less in 5th to 9th decile.
-- In the 3rd decile (this is where the poverty thresholds sits), median earnings C.I.s don't overlap between the two surveys
-
-</div>
 
 ## by economic status
 
@@ -198,7 +194,6 @@ ggplot(data = earn_CI) +
 Median, mean and aggregated weekly earnings by economic status of household head (excludes those with zero earnings).
 
 ```{r earnings_exc}
-
 
 tidydata %>%
   filter(type == "earn",
@@ -280,19 +275,10 @@ rbind(HBAI_CI, SHS_CI) %>%
          title = 'Weekly median equivalised household earnings',
          subtitle = "Excludes households with zero earnings") +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(200, 800)) 
+  coord_flip(ylim = c(200, 800)) 
 
 ```
 
-
-<div class = "box">
-
-- Employed earnings match fairly well, but self-employed earnings do not. (Note that I redid this analysis using the yet unpublished SHS 2019 dataset - this showed this same trend)
-- Self-employed earnings are a source of the earnings differences, but not the only source (as only few people have self-employed earnings)
-
-</div>
 
 ## by household type
 
@@ -383,18 +369,10 @@ rbind(HBAI_CI, SHS_CI) %>%
          title = 'Weekly median equivalised household earnings',
          subtitle = "Excludes households with zero earnings; sample >= 50") +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(200, 800)) 
+  coord_flip(ylim = c(200, 800)) 
 
 ```
 
-
-<div class = "box">
-
-- Reported earnings are generally higher in the SHS than in the HBAI. {>> check this isn't due to net/gross or deductions such as pension contributions and NI<<}
-
-</div>
 
 ## by council area
 
@@ -426,9 +404,7 @@ tidydata %>%
   coord_flip() +
   labs(x = NULL, y = NULL,
        title = "Difference in household populations (SHS vs HBAI) by council area",
-       subtitle = "Positive values = HBAI population too high; excludes councils with < 50 cases") +
-  theme(legend.title = element_blank(),
-        legend.position = "top")
+       subtitle = str_wrap("Positive values = HBAI population too high; excludes councils with < 50 cases", 80)) 
 
 # Get council areas where hhld pop difference isn't too large
 
@@ -541,19 +517,9 @@ ggplot(data = earn_CI) +
          title = 'Weekly median net household earnings by council area',
          subtitle = 'Excludes hhlds with no earnings, councils with < 50 cases, councils where hhld pop off by > 50%') +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(100, 1000))
+  coord_flip(ylim = c(100, 1000))
 
 ```
-
-<div class = "box">
-
-- HBAI data cannot meaningfully be analysed at a sub-Scotland level, as the weighting regime for the FRS doesn't account for geography within Scotland. Therefore, when looking at household population by council area, there are large discrepancies between SHS and HBAI.
-- When only comparing the ten council areas where household numbers were similar between SHS and HBAI, median earnings matched fairly well
-
-</div>
-
 
 
 # Benefit income
@@ -691,9 +657,7 @@ ggplot(data = CI) +
          title = 'Working-age adults - weekly median benefit income by household income decile',
          subtitle = 'Excludes hhlds with no benefit income and households with pensioners') +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(-100, 400))
+  coord_flip(ylim = c(-100, 400))
 
 ```
 
@@ -727,10 +691,10 @@ tidybens %>%
   scale_fill_manual(values = cols_bens) +
   facet_wrap(~survey, nrow = 2) +
   labs(title = "What are the main benefits in each income decile?", 
-       subtitle = "Aggregated weekly benefit income of the 5 most common benefits in each income decile; excludes households with pensioners",
+       subtitle = str_wrap("Aggregated weekly benefit income of the 5 most common benefits in each income decile; excludes households with pensioners", 80),
        x = NULL, y = NULL) +
   scale_y_continuous(labels = comma_format(scale = 1E-6, suffix = " million")) +
-  theme(legend.title = element_blank())
+  theme(legend.position = "right")
 
 ```
 
@@ -796,11 +760,9 @@ ggplot(data = CI) +
     labs(x = NULL,
          y = "Median and 95% C.I",
          title = 'Pensioner hhlds - weekly median benefit income by household income decile',
-         subtitle = 'Includes hhlds with pensioners only; excludes hhlds with no benefit income') +
+         subtitle = str_wrap('Includes hhlds with pensioners only; excludes hhlds with no benefit income', 80)) +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(-100, 400))
+  coord_flip(ylim = c(-100, 400))
 
 ```
 
@@ -822,24 +784,13 @@ tidybens %>%
   scale_fill_manual(values = cols_bens) +
   facet_wrap(~survey, nrow = 2) +
   labs(title = "What are the main benefits in each income decile?", 
-       subtitle = "Aggregated weekly benefit income of the 5 most common benefits in each income decile; includes pensioner households only",
+       subtitle = str_wrap("Aggregated weekly benefit income of the 5 most common benefits in each income decile; includes pensioner households only", 80),
        x = NULL, y = NULL) +
   scale_y_continuous(labels = comma_format(scale = 1E-6, suffix = " million")) +
-  theme(legend.title = element_blank())
+  theme(legend.position = "right")
 
 ```
 
-<div class = "box">
-
-- The following analysis excludes households with no benefit income.
-- Average benefit incomes and benefit income distribution are very different for households with pensioners compared to those without. Benefit incomes for working-age households are much lower than for pensioners, due to the universally provided state pension, the largest benefit.
-- Mean, median and total benefit income for pensioner households is lower in the SHS than the HBAI. There are also fewer pensioner households receiving any benefits in the SHS compared to HBAI.
-- Across income deciles, median benefit incomes for pensioner households are generally below, or at a similar level to the HBAI.
-- Median benefit incomes for _low-income_ pensioner households differ markedly between surveys. For income deciles 3 to 10, median benefit incomes match reasonably well, although vary widely in both surveys.
-- For households with no pensioners, mean, median and total benefit income is also lower in the SHS, and more markedly so, but there are more households in receipt of any benefit income in the SHS compared to the HBAI.
-- Median benefit income of non-pensioner households is relatively small and driven by child benefit, housing benefit and disability benefits. Towards the lower income deciles, median benefit income increases and has a larger uncertainty.
-
-</div>
 
 ## by household type
 
@@ -928,9 +879,7 @@ ggplot(data = CI) +
          title = 'Equivalised weekly median household benefit income',
          subtitle = "Excludes households with no benefit income") +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(-100, 400)) 
+  coord_flip(ylim = c(-100, 400)) 
 
 ```
 
@@ -1019,9 +968,7 @@ ggplot(data = CI) +
          title = 'Equivalised weekly median household benefit income',
          subtitle = "Excludes households with no benefit income") +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(-90, 410)) 
+  coord_flip(ylim = c(-90, 410)) 
 
 ```
 
@@ -1121,11 +1068,9 @@ ggplot(data = CI) +
     labs(x = NULL,
          y = "Median and 95% C.I",
          title = 'Weekly median benefit income by council area',
-         subtitle = 'Excludes hhlds with no benefit income, councils with < 50 cases, councils where hhld pop off by > 50%') +
+         subtitle = str_wrap('Excludes hhlds with no benefit income, councils with < 50 cases, councils where hhld pop off by > 50%', 80)) +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(-100, 400))
+  coord_flip(ylim = c(-100, 400))
 
 ```
 
@@ -1191,9 +1136,7 @@ tidybens_agg %>%
   scale_y_continuous(labels = comma_format(scale = 1E-6, suffix = " million", prefix = "£")) +
   coord_flip() +
   labs(x = NULL, y = NULL,
-       title = "Aggregated weekly benefit income of the largest benefits") +
-  theme(legend.position = "top",
-        legend.title = element_blank())
+       title = "Aggregated weekly benefit income of the largest benefits") 
 
 ```
 ## State Pension
@@ -1230,12 +1173,12 @@ tidybens %>%
   ggplot(aes(x = type, y = mean, fill = survey)) +
   geom_col(position = 'dodge') +
   scale_fill_manual(values = cols_survey) +
+  scale_y_continuous(labels = comma_format(prefix = "£")) +
   coord_flip() +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
   labs(x = NULL, y = NULL,
        title = "Mean disability-related benefit income per hhld",
-       subtitle = "Excludes households who receive none of these benefits; sample >= 50")
+       subtitle = "Excludes households who receive none of these benefits; sample >= 50") +
+  theme(panel.grid.major.y = element_blank())
 
 tidybens %>%
   filter(type %in% str_trunc(disbens, 30),
@@ -1252,12 +1195,12 @@ tidybens %>%
   ggplot(aes(x = type, y = n, fill = survey)) +
   geom_col(position = 'dodge') +
   scale_fill_manual(values = cols_survey) +
+  scale_y_continuous(labels = comma_format(accuracy = 1)) +
   coord_flip() +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
   labs(x = NULL, y = NULL,
        title = "Number of people in households receiving disability-related benefits",
-       subtitle = "Sample >= 100")
+       subtitle = "Sample >= 100") +
+  theme(panel.grid.major.y = element_blank())
 
 
 ```
@@ -1282,11 +1225,10 @@ tidybens %>%
   geom_col(position = "dodge") +
   scale_fill_manual(values = cols_survey) +
   scale_y_continuous(label = percent_format(1)) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
   labs(x = NULL, y = NULL,
        title = "Share of aggregated disability benefits across household types") +
-  coord_flip()
+  coord_flip() + 
+  theme(panel.grid.major.y = element_blank())
 
 ```
 
@@ -1310,19 +1252,12 @@ tidybens %>%
   geom_col(position = "dodge") +
   scale_fill_manual(values = cols_survey) +
   scale_y_continuous(label = percent_format(1)) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
   labs(x = NULL, y = NULL,
        title = "Share of aggregated disability benefits across household types") +
-  coord_flip()
+  coord_flip() +
+   theme(panel.grid.major.y = element_blank())
 
 ```
-
-<div class = "box">
-
-- Disability benefit is subject to both, underreporting of the amount, and non-reporting of receipt for SHS, compared to HBAI
-
-</div>
 
 
 ## Tax credits
@@ -1346,12 +1281,6 @@ tidybens %>%
 
 ```
 
-<div class = "box">
-
-- Tax credits are also underreported in the SHS compared to the HBAI. This affects mainly part-time employees.
-
-</div>
-
 
 ## Housing Benefit
 
@@ -1373,12 +1302,6 @@ tidybens %>%
 
 ```
 
-<div class = "box">
-
-- Housing benefit amounts and numbers match fairly well between surveys; however, both surveys underreport this benefit to a similar degree.
-
-</div>
-
 ## Child Benefit
 
 ```{r child_benefit}
@@ -1399,12 +1322,6 @@ tidybens %>%
 
 ```
 
-<div class = "box">
-
-- Child benefit income in the SHS is only slightly lower than in the HBAI, due to some households with two adults and children not reporting receipt of this benefit.
-
-</div>
-
 ## Universal credit
 
 ```{r universal_credit}
@@ -1423,11 +1340,6 @@ tidybens %>%
   kable_styling("striped")
 
 ```
-<div class = "box">
-
-- Sample sizes are too small for breakdowns, but data (see above) shows that the aggregated Universal Credit amount is vastly underreported in the SHS, compared to HBAI, and even more compared to admin data.
-
-</div>
 
 ## Pension credit
 
@@ -1447,12 +1359,6 @@ tidybens %>%
   kable_styling("striped")
 
 ```
-
-<div class = "box">
-
-- Sample sizes are too small for further breakdowns, but pension credit is subject to both, underreporting of the amount, and non-reporting of receipt for SHS, compared to HBAI.
-
-</div>
 
 # Single working-age adult benefit income
 
@@ -1503,12 +1409,6 @@ tidybens %>%
 
 ```
 
-<div class = "box">
-
-- Many more single adult households in the SHS than the HBAI report (any) benefit income, and therefore _aggregated_ benefit income for single adult households is higher in the SHS compared to the HBAI. However, we have seen that _average_ benefit income is lower for this group in the SHS. This is mainly driven by underreporting of disability benefits, which, combined, are the most important benefits for this group.
-
-</div>
-
 
 # Investment income
 
@@ -1554,11 +1454,10 @@ tidydata %>%
   geom_col(position = "dodge") +
   scale_fill_manual(values = cols_survey) +
   scale_y_continuous(label = percent_format(1)) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
   labs(x = NULL, y = NULL,
        title = "Share of aggregated investment income across household types") +
-  coord_flip()
+  coord_flip() +
+   theme(panel.grid.major.y = element_blank())
 
 tidydata %>%
   filter(type == "inv",
@@ -1577,11 +1476,10 @@ tidydata %>%
   geom_col(position = "dodge") +
   scale_fill_manual(values = cols_survey) +
   scale_y_continuous(label = percent_format(1)) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
   labs(x = NULL, y = NULL,
        title = "Share of aggregated investment income across household types") +
-  coord_flip()
+  coord_flip() +
+   theme(panel.grid.major.y = element_blank())
 
 tidydata %>%
   filter(type == "inv",
@@ -1600,21 +1498,12 @@ tidydata %>%
   geom_col(position = "dodge") +
   scale_fill_manual(values = cols_survey) +
   scale_y_continuous(label = percent_format(1)) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
   labs(x = NULL, y = NULL,
        title = "Share of aggregated investment income across income deciles") +
-  coord_flip()
+  coord_flip() +
+   theme(panel.grid.major.y = element_blank())
 
 ```
-
-<div class = "box">
-
-- Investment income is hugely underreported in the SHS compared to the HBAI, even though we are using the HBAI data before top-income adjustments (which would correct top incomes upwards). This is largely due to non-reporting of any investment income.
-- most of investment income is held by retired households, and by working-age two adult households, therefore the underreporting in the SHS might affect the incomes of these groups more.
-- similarly, most of investment income is held by the richest households
-
-</div>
 
 # Pensioners' incomes
 
@@ -1635,8 +1524,8 @@ tidydata %>%
   facet_wrap(vars(hhtype)) +
   labs(x = NULL, y = NULL, 
        title = "Aggregated weekly income and income sources for pensioner households") +
-  theme(legend.title = element_blank(),
-        legend.position = "top")
+   theme(panel.grid.major.x = element_blank())
+
 
 tidydata %>%
   filter(hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
@@ -1653,8 +1542,7 @@ tidydata %>%
   labs(x = NULL, y = NULL, 
        title = "Mean equivalised weekly income and income sources for pensioner households",
        subtitle = "Each bar only includes hhlds who have that type of income; sample >= 50") +
-  theme(legend.title = element_blank(),
-        legend.position = "top")
+   theme(panel.grid.major.x = element_blank())
 
 tidydata %>%
   filter(hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner")) %>%
@@ -1670,8 +1558,7 @@ tidydata %>%
   labs(x = NULL, y = NULL, 
        title = "Numbers of pensioner households receiving income and each income type",
        subtitle = "Sample >= 100") +
-  theme(legend.title = element_blank(),
-        legend.position = "top")
+   theme(panel.grid.major.x = element_blank())
 ```
 
 Types of benefits (PIP, DLA, ESA, AA, CA, IB, SDA, IIDB combined into "Disability"):
@@ -1694,10 +1581,11 @@ tidybens %>%
   scale_fill_manual(values = cols_bens) +
   facet_wrap(~survey, nrow = 2) +
   labs(title = "What are the main benefits for each type of pensioner household?", 
-       subtitle = "Aggregated weekly benefit income of the 5 most common benefits; includes pensioner households only",
+       subtitle = str_wrap("Aggregated weekly benefit income of the 5 most common benefits; includes pensioner households only", 80),
        x = NULL, y = NULL) +
   scale_y_continuous(labels = comma_format(scale = 1E-6, suffix = " million")) +
-  theme(legend.title = element_blank())
+  theme(legend.position = "right") +
+   theme(panel.grid.major.x = element_blank())
 
 ```
 
@@ -1754,12 +1642,6 @@ tidybens %>%
 
 ```
 
-<div class = "box">
-
-- The average amount of state pension received matches well between HBAI and SHS
-- However, the SHS reports fewer recipients of state pension
-
-</div>
 
 Households receiving occupational pensions:
 ```{r occ_pension}
@@ -1801,21 +1683,12 @@ tidydata %>%
   geom_col(position = "dodge") +
   scale_fill_manual(values = cols_survey) +
   scale_y_continuous(label = percent_format(1)) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
   labs(x = NULL, y = NULL,
        title = "Share of aggregated occupational pensions income across household types") +
-  coord_flip()
+  coord_flip() +
+   theme(panel.grid.major.y = element_blank())
 
 ```
-
-<div class = "box">
-
-- the SHS only slightly underreports income from occupational pensions compared to the HBAI.
-- the underreporting is due to non-reporting
-- most of occ pension income goes to retired people
-
-</div>
 
 # Self-employed's incomes
 
@@ -1843,16 +1716,6 @@ tidydata %>%
 
 ```
 
-<div class = "box">
-
-- Households with self-employed head have higher earnings in SHS
-- this is consistent with SHS 2019 
-- maybe because SHS doesn't account for self-employed losses? Maybe definitions of self-employment differ between surveys?
-- Households with self-employed head have lower benefits
-- Households with self-employed head have higher incomes, driven by higher earnings
-
-</div>
-
 # Income components
 
 In SHS and FRS, which income sources contribute how much to total income? 
@@ -1877,9 +1740,8 @@ tidydata %>%
                                           prefix = "£", 
                                           suffix = " billion", 
                                           accuracy = 0.1)) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-  labs(title = "Aggregated weekly income by income type", x = NULL, y = NULL)
+  labs(title = "Aggregated weekly income by income type", x = NULL, y = NULL) +
+   theme(panel.grid.major.x = element_blank())
 
 ```
 
@@ -1916,15 +1778,6 @@ incdiff <- tidydata %>%
 
 ```
 
-<div class = "box">
-
-- Total income aggregated to the  whole of Scotland is largely made up of earnings, followed by benefits (which include the state pension) and occupational pensions. 
-- Overall, SHS total income is `r incdiff` lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions. Income from earnings are higher in the SHS. Other income components are relatively small and therefore contribute little to the overall differences in income.
-- We have seen that the lower benefit income mostly affects pensioners (through the state pension) and households with disabled household members (though disability benefits).
-- We have also seen that most of the investment income goes to the wealthiest households. This will affect the income distribution most at the tope, and might therefore not matter as much when looking at low income households. However, a large part of investment income goes to retired households, so this could ascerbate the income underreporting of these households even more.
-
-</div>
-
 ```{r aggr_comp_quintiles}
 
 tidydata %>%
@@ -1939,11 +1792,10 @@ tidydata %>%
            y = diff)) +
   geom_col(position = 'dodge', aes(fill = ifelse(type == "total", 1, 0)), show.legend = FALSE) +
   scale_y_continuous(label = comma_format(scale = 1E-6, prefix = "£", suffix = " mn", accuracy = 1)) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
   labs(title = "Difference in aggregated weekly income by income type and income quintile",
        subtitle = "Positive values = HBAI incomes are larger / HBAI deductions are smaller", x = NULL, y = NULL) +
-  facet_wrap(vars(quintile))
+  facet_wrap(vars(quintile)) +
+   theme(panel.grid.major.x = element_blank())
 
 ```
 
@@ -1963,26 +1815,17 @@ tidydata %>%
   ggplot(aes(x = decile, y = amount, fill = type)) +
   geom_col(position = "fill") +
   scale_fill_manual(values = cols_types) +
+  scale_y_continuous(labels = percent_format()) +
   labs(x  = NULL, y = NULL,
        title = "Share of aggregated total income by type of income and total income decile",
        subtitle = "Excludes deductions; excludes households with negative income components") +
   facet_wrap(~survey, nrow = 2) +
-  theme(legend.title = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks = element_blank())
+  theme(legend.position = "right",
+        axis.ticks = element_blank()) +
+   theme(panel.grid.major.x = element_blank())
 
 ```
 
-<div class = "box">
-
-- For all quintiles, the aggregated total income is higher in the HBAI compared to SHS, with the largest differences at the top and at the bottom quintile. However, we will see later that the _average_ income difference decreases with higher incomes.
-- For the lowest income quintile, the difference is driven equally by lower earnings and lower benefits in the SHS.
-- In the second income quintile (this is where the poverty threshold typically sits), the difference is smaller and mainly driven by lower earnings in the SHS.
-- In the third and fourth income quintiles, SHS earnings are now higher than HBAI earnings. However, differences in benefit, occupational pension, and inverstment incomes lead to a lower total income in the SHS in these quintiles.
-- In the top quintile, total income differences are due to differences in incomes from all major sources, but in particular investment income and occupational pensions. Note that this difference is mainly driven by non-reporting rather than undereporting. Therefore, the _average_ income difference at the top is small compared to lower down the income distributions.
-- The lower the total income is, the less important earnings and the more important benefits become.
-
-</div>
 
 ```{r inc_sources_council}
 
@@ -2003,11 +1846,13 @@ tidydata %>%
   ggplot(aes(x = council, y = share, fill = type)) + 
   geom_col(position = "stack") +
   scale_fill_manual(values = cols_types) +
+  scale_y_continuous(labels = percent_format()) +
   coord_flip() +
   labs(x = NULL, y = NULL, 
        title = "Income sources by council area, SHS",
        subtitle = "Excludes deductions") +
-  theme(legend.title = element_blank())
+  theme(legend.position = "right") +
+   theme(panel.grid.major.y = element_blank())
   
 ```
 
@@ -2029,11 +1874,13 @@ tidydata %>%
   ggplot(aes(x = urbrur, y = share, fill = type)) + 
   geom_col(position = "stack") +
   scale_fill_manual(values = cols_types) +
+  scale_y_continuous(labels = percent_format() ) +
   coord_flip() +
   labs(x = NULL, y = NULL, 
        title = "Income sources by urban/rural class, SHS",
        subtitle = "Sample >= 50; excludes deductions") +
-  theme(legend.title = element_blank())
+  theme(legend.position = "right") +
+   theme(panel.grid.major.y = element_blank())
   
 ```
 
@@ -2064,9 +1911,8 @@ tidydata %>%
   coord_flip() +
   labs(x = NULL, y = NULL,
        title = "Age profile of council areas, SHS") +
-  theme(legend.title = element_blank(),
-        legend.position = "top") +
-  guides(fill = guide_legend(reverse = TRUE))
+  guides(fill = guide_legend(reverse = TRUE)) +
+   theme(panel.grid.major.y = element_blank())
   
 ```
 
@@ -2102,22 +1948,14 @@ tidydata %>%
   labs(x = NULL, y = NULL,
        title = "Age profile of urban/rural areas, SHS",
        subtitle = "Sample >= 50") +
-  theme(legend.title = element_blank(),
-        legend.position = "top",
-        axis.text.x = element_blank(),
+  theme(axis.text.x = element_blank(),
         axis.ticks = element_blank()) +
-  guides(fill = guide_legend(reverse = TRUE))
+  guides(fill = guide_legend(reverse = TRUE)) +
+   theme(panel.grid.major.y = element_blank(),
+         panel.grid.major.x = element_blank())
   
 ```
 
-<div class = "box">
-
-- The six council areas with the highest benefit shares are, according to SHS data, Dumfries & Galloway, Inverclyde, North Ayrshire, East Ayrshire, West Dunbartonshire, and Dundee City. 
-- The eight council areas with the largest proportion of pensioners are Na h-Eileanan Siar, Argyl & Bute, Dumfries & Galloway, South Ayrshire, Scottish Borders, Orkney Islands, Angus, and Perth and Kinross.
-- Breaking the country down to urban and rural areas, small towns and other (not large) urban areas have the highest shares of benefit income. 
-- Remote small towns and remote rural areas on the other hand have the largest proportions of pensioners.
-
-</div>
 
 ```{r component_shares_hhtype}
 
@@ -2136,12 +1974,14 @@ tidydata %>%
   ggplot(aes(x = hhtype, y = amount, fill = type)) +
   geom_col(position = "fill") +
   scale_fill_manual(values = cols_types) +
+  scale_y_continuous(labels = percent_format()) +
   labs(x  = NULL, y = NULL,
        title = "Aggregated total income by income source and household type",
        subtitle = "Excludes deductions") +
   coord_flip() +
   facet_wrap(~survey, ncol = 2) +
-  theme(legend.title = element_blank())
+  theme(legend.position = "right") +
+   theme(panel.grid.major.y = element_blank())
 
 ```
 
@@ -2162,12 +2002,14 @@ tidydata %>%
   ggplot(aes(x = HIHemp, y = amount, fill = type)) +
   geom_col(position = "fill") +
   scale_fill_manual(values = cols_types) +
+  scale_y_continuous(labels = percent_format()) +
   labs(x  = NULL, y = NULL,
-       title = "Aggregated total income by income source and economic status of household head",
+       title = str_wrap("Aggregated total income by income source and economic status of household head", 70),
        subtitle = "Sample >= 50; excludes deductions") +
   coord_flip() +
   facet_wrap(~survey, ncol = 2) +
-  theme(legend.title = element_blank())
+  theme(legend.position = "right") +
+   theme(panel.grid.major.y = element_blank())
 
 ```
 
@@ -2191,13 +2033,12 @@ tidydata %>%
   scale_color_manual(values = cols_survey) +
   scale_fill_manual(values = cols_survey) +
   labs(title = "Household income distributions",
-       subtitle = "Vertical lines show poverty thresholds and medians",
+       subtitle = "Vertical lines show poverty thresholds and medians; note log x scale",
        x = "Weekly equivalised household income",
        y = NULL) +
-  theme(legend.position = "top",
-        legend.title = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank())
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+   theme(panel.grid.major.y = element_blank())
 
 tidydata %>%
   filter(type == "total") %>%
@@ -2206,32 +2047,31 @@ tidydata %>%
   geom_vline(xintercept = SHSmedian, colour = cols_survey[2]) +
   geom_vline(xintercept = 0.6*HBAImedian, colour = cols_survey[1]) +
   geom_vline(xintercept = 0.6*SHSmedian, colour = cols_survey[2]) +
-  coord_cartesian(xlim = c(100,1500)) +
+  coord_cartesian(xlim = c(0, 1000)) +
   stat_ecdf(geom = "step", size = 1, alpha = 0.5) +
   geom_text(data = tail(tidydata, 1L), 
             aes(x = HBAImedian + 20, y = 1, label = "Medians"), 
             colour = "grey20",
             hjust = 0, 
             show.legend = FALSE) +
-  scale_x_log10(labels = comma_format(prefix = "£")) +
-  scale_y_continuous(labels = percent_format(1)) +
+  geom_text(data = tail(tidydata, 1L), 
+            aes(x = 0.6*HBAImedian + 10, y = 1, label = "Poverty lines"), 
+            colour = "grey20",
+            hjust = 0, 
+            show.legend = FALSE) +
+  scale_x_continuous(labels = comma_format(prefix = "£"), breaks = c(0, 200, 400, 600, 800, 1000)) +
+  scale_y_continuous(labels = percent_format()) +
   scale_color_manual(values = cols_survey) +
   scale_fill_manual(values = cols_survey) +
   labs(title = "Cumulative household income distributions",
-       subtitle = "Vertical lines show relative poverty (BHC) thresholds and medians",
+       subtitle = "Note linear x scale",
        x = "Weekly equivalised household income",
        y = "Proportion of people") +
-  theme(legend.position = "top",
-        legend.title = element_blank())
+   theme(panel.grid.major.y = element_blank(),
+         axis.text.y = element_text())
 
 ```
 
-<div class = "box">
-
-- The income distributions look largely similar, with the SHS income distribution being slightly wider.
-- Near the relative poverty thresholds, the SHS cumulative income curve is higher, meaning more households sit below that threshold in the SHS compared to the HBAI.
-
-</div>
 
 ## Income decile points
 
@@ -2253,20 +2093,13 @@ tidydata %>%
   scale_fill_manual(values = cols_survey) +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
   scale_x_discrete(labels = sprintf("%1.0f", seq(1,9))) +
-  theme(legend.position = 'top',
-        legend.title = element_blank()) +
   labs(x = NULL, y = NULL,
-       title = "Income decile points",
-       subtitle = "These are the nine income thresholds that split the population into 10 equal-sized groups")
-
+       title = "Weekly net equivalised household income decile points",
+       subtitle = str_wrap("These are the nine income thresholds that split the populations into 10 equal-sized groups", 80)) +
+  theme(panel.grid.major.x = element_blank())
 
 ```
 
-<div class = "box">
-
-- The income decile points are at similar levels for high incomes and diverge towards lower incomes, with (average) income increasingly underreported in the SHS at lower incomes.
-
-</div>
 
 ## Median income by council area
 
@@ -2379,23 +2212,13 @@ ggplot(CI) +
     scale_colour_manual(values = cols_survey) +
     labs(x = NULL,
          y = "Median and 95% C.I",
-         title = 'Weekly median equivalised household income, SHS 2018 and HBAI 2018/19',
+         title = 'Weekly median equivalised household income',
          subtitle = 'Sample sizes shown on right; excludes council areas with large population discrepancies') +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(200, 800)) 
+  coord_flip(ylim = c(200, 800)) 
   
 ```
 
-<div class = "box">
-
-- Using 95% confidence intervals (C.I.), median incomes overlap (to some degree) for all council areas where the HBAI sample size is large enough to estimate the median (sample >=50, true for 22 out of the 32 council areas).
-- For the HBAI, the C.I. are calculated using a bootstrapping method which resamples the dataset without accounting for the complex survey design. The HBAI C.I. are therefore only illustrative and may be wider.
-- For some council areas, the overlaps are only marginal, such as Renfrewshire, Aberdeenshire, East Dunbartonshire, and Stirling even though some of these have relatively large HBAI sample sizes (Aberdeenshire, Renfrewshire).
-- It would be good to check what the overlaps look like for different data years, i.e. SHS 2019 (pre-release access only) or HBAI 2017/18.
-
-</div>
 
 ## Median income by urban/rural area
 
@@ -2451,27 +2274,16 @@ rbind(HBAI_CI, SHS_CI) %>%
     scale_colour_manual(values = cols_survey) +
     labs(x = NULL,
          y = "Median and 95% C.I",
-         title = 'Weekly median equivalised household income, SHS 2018 and HBAI 1819',
+         title = 'Weekly median equivalised household income',
          subtitle = 'Median values shown on right') +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(200, 800)) 
+  coord_flip(ylim = c(200, 800)) 
 
 ```
 
-<div class = "box">
-
-- Incomes overlap fairly well for urban and accessible rural areas.
-- Incomes in remote rural areas overlap slightly less, but also have the smalles HBAI sample.
-- Income in small towns overlaps the least.
-
-</div>
 
 ## Median income by age group 
 
-- child, working-age, pensioners
-- also: age group of HIH??
 
 ```{r median_agegroup_ci}
 
@@ -2557,13 +2369,13 @@ ch_SHS_CI$group <- "Children"
 wa_SHS_CI$group <- "WorkingAgeAdults"
 pn_SHS_CI$group <- "Pensioners"
 
-Age_HBAI_CI <- rbind(ch_HBAI_CI, wa_HBAI_CI, pn_HBAI_CI) %>%
+HBAI_CI <- rbind(ch_HBAI_CI, wa_HBAI_CI, pn_HBAI_CI) %>%
   mutate(survey = "HBAI")
 
-Age_SHS_CI <- rbind(ch_SHS_CI, wa_SHS_CI, pn_SHS_CI) %>%
+SHS_CI <- rbind(ch_SHS_CI, wa_SHS_CI, pn_SHS_CI) %>%
   mutate(survey = "SHS")
 
-rbind(Age_HBAI_CI, Age_SHS_CI) %>%
+rbind(HBAI_CI, SHS_CI) %>%
   select(survey, group, Median, Normal.lower, Normal.upper, n) %>%
   mutate(group = factor(group, levels = agegrouplevels),
          group = fct_rev(group)) %>%
@@ -2587,20 +2399,12 @@ rbind(Age_HBAI_CI, Age_SHS_CI) %>%
     scale_colour_manual(values = cols_survey) +
     labs(x = NULL,
          y = "Median and 95% C.I",
-         title = 'Weekly median net household income, SHS 2018 and HBAI 1819') +
+         title = 'Weekly median net household income') +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(200, 800)) 
+  coord_flip(ylim = c(200, 800)) 
 
 ```
 
-<div class = "box">
-
-- Working-age adults' and children's incomes overlap well.
-- Pensioners' incomes don't overlap.
-
-</div>
 
 ## Median income by household type
 
@@ -2659,19 +2463,10 @@ rbind(HBAI_CI, SHS_CI) %>%
          y = "Median and 95% C.I",
          title = 'Weekly median equivalised household income') +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(200, 800)) 
+  coord_flip(ylim = c(200, 800)) 
 
 ```
 
-<div class = "box" >
-
-- Incomes for most hhld types overlap well, except pensioners
-- Single pensioner and pensioner couples' income don't overlap, with SHS pensioners' incomes lower than in the HBAI.
-- Incomes of households with 3 or more adults and no children overlap little, but have very wide C.I., indicating large variation of incomes in this group.
-
-</div>
 
 ## Median income by economic status of highest income householder
 
@@ -2731,18 +2526,7 @@ rbind(HBAI_CI, SHS_CI) %>%
          title = 'Weekly median equivalised household income',
          subtitle = "Sample >= 50") +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  theme(legend.position = "top",
-        legend.title = element_blank()) +
-    coord_flip(ylim = c(200, 800)) 
+  coord_flip(ylim = c(200, 800)) 
 
 ```
 
-<div class = "box">
-
-- incomes of full- and part-time employees match well, suggesting that income from employed earnings may also match well.
-- self-employed income varies widely and overlaps only little between the two surveys.
-- The HBAI unemployed sample is too small to produce estimates.
-- Incomes of the retired don't match well, similarly to pensioners' incomes in the household type breakdown.
-- Incomes of the disabled also doesn't match too well.
-
-</div>
