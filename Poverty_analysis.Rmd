@@ -1,0 +1,184 @@
+---
+title: "SHS income project - poverty"
+output: 
+  html_notebook:
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+```{r setup, include = FALSE}
+
+# Set global chunk options
+
+knitr::opts_chunk$set(fig.width = 10, fig.asp = 0.5)
+
+# Load packages
+
+library(plyr) # needed for groupwiseMedian function
+library(tidyverse)
+library(naniar) # for dealing with missing values
+library(labelled) # to remove labels from imported data
+library(scales) # for comma and percent formats
+library(ggrepel) # for non-overlapping chart annotation
+library(Hmisc) # for weighted quartiles
+library(boot) # needed for groupwiseMedian function
+library(readxl)
+
+# Load functions
+
+source("functions.R")
+
+# Load strings and colour scheme
+
+source("strings.R")
+source("colours.R")
+
+# Load datasets
+
+source("prepSHSdata.R")
+source("prepHBAIdata.R")
+source("prepdata.R")
+
+```
+
+# Characteristics of low income households
+
+We may understand now the differences in income measured in SHS and FRS. So what does that mean for poverty? Do SHS and FRS identify the same kind of households as being in poverty?
+
+## Household characteristics
+
+Hhld type (working-age/pensioners, children, number of adults), economic status, tenure, ethnicity(?)
+
+Responses to financial questions & matdep questions?
+
+```{r poverty_numbers}
+
+tidydata %>%
+  filter(type == "total") %>%
+  group_by(survey, low60bhc) %>%
+  summarise(people = sum(ppwgt),
+            children = sum(chwgt),
+            waadults = sum(wawgt),
+            pensioners = sum(pnwgt)) %>%
+  mutate(pprate = people/sum(people),
+         chrate = children/sum(children),
+         warate = waadults/sum(waadults),
+         pnrate = pensioners/sum(pensioners),
+         chcomp = children/people,
+         wacomp = waadults/people,
+         pncomp = pensioners/people) %>%
+  filter(low60bhc == 1) %>%
+  select(-low60bhc, -children, -waadults, -pensioners) %>%
+  gather(key, value, -survey) %>%
+  mutate(measure = ifelse(key %in% c("people", "children", "waadults", "pensioners"), "Number",
+                          ifelse(key %in% c("pprate", "chrate", "warate", "pnrate"), "Rate",
+                                 "Composition")),
+         key = ifelse(str_starts(key, "pp"), "people", 
+                      ifelse(str_starts(key, "ch"), "children", 
+                             ifelse(str_starts(key, "wa"), "waadults", 
+                                    ifelse(str_starts(key, "pn"), "pensioners", key))))) %>%
+  mutate(key = factor(key, levels = c("people", "children", "waadults", "pensioners")),
+         key = fct_rev(key),
+         measure = factor(measure, levels = c("Number", "Composition", "Rate"))) %>%
+  ggplot(aes(x = key, y = value, fill = survey)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(label = ifelse(measure == "Number", comma(value, 10000), percent(value, 1)),
+                y = ifelse(measure == "Number", 20000, 0.01)),
+            position = position_dodge(width = 1),
+            hjust = 0,
+            colour = "white") +
+  scale_fill_manual(values = cols_survey) +
+  scale_colour_manual(values = cols_survey) +
+  theme(legend.title = element_blank(),
+        legend.position = "top",
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Numbers, composition, and rates of individuals in relative poverty BHC",
+       subtitle = "Assuming Scottish, survey-specific poverty thresholds") +
+    coord_flip() +
+  facet_wrap(~measure, scales = "free")
+
+
+```
+
+
+```{r poverty_hhtype}
+
+# Note, the chart below doesn't work due to different totals - look at compositions and rates instead!
+
+tidydata %>%
+  filter(type == "total") %>%
+  group_by(survey, low60bhc, hhtype) %>%
+  summarise(people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey, hhtype) %>%
+  mutate(rate = people/sum(people)) %>%
+  filter(low60bhc == 1) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(comp = people/sum(people)) %>%
+  mutate(hhtype = factor(hhtype, levels = hhtypenames),
+         hhtype = fct_rev(hhtype)) %>%
+  ggplot(aes(x = hhtype, y = comp, fill = survey)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(y = comp + 0.02,
+                label = percent(comp, 1),
+                colour = survey),
+            position = position_dodge(width = 1)) +
+  scale_fill_manual(values = cols_survey) +
+  scale_colour_manual(values = cols_survey) +
+  theme(legend.title = element_blank(),
+        legend.position = "top",
+        axis.text.x = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Composition of people in relative poverty BHC by household type",
+       subtitle = "Assuming Scottish, survey-specific poverty thresholds") +
+  coord_flip()
+
+tidydata %>%
+  filter(type == "total") %>%
+  group_by(survey, low60bhc, hhtype) %>%
+  summarise(people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey, hhtype) %>%
+  mutate(rate = people/sum(people)) %>%
+  filter(low60bhc == 1) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(comp = people/sum(people)) %>%
+  mutate(hhtype = factor(hhtype, levels = hhtypenames),
+         hhtype = fct_rev(hhtype)) %>%
+  ggplot(aes(x = hhtype, y = rate, fill = survey)) +
+  geom_col(position = "dodge") +
+  geom_text(aes(y = rate + 0.02,
+                label = percent(rate, 1),
+                colour = survey),
+            position = position_dodge(width = 1)) +
+  scale_fill_manual(values = cols_survey) +
+  scale_colour_manual(values = cols_survey) +
+  theme(legend.title = element_blank(),
+        legend.position = "top",
+        axis.text.x = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Relative poverty rates BHC",
+       subtitle = "Assuming Scottish, survey-specific poverty thresholds") +
+  coord_flip()
+
+```
+
+<div class = "box">
+
+- HBAI poverty numbers slightly below official poverty numbers. This is largely due to using Scottish median for poverty threshold
+- SHS poverty is higher, in particular for pensioners, with poverty rates in clear contrast to the generally accepted picture of lower pensioner poverty
+
+</div>
+
+## Area characteristics
+
+LA, urban/rural, SIMD deciles (??)
