@@ -84,6 +84,43 @@ tidydata <- tidydata %>%
   left_join(lowinc, by = c("survey", "ID"))
 
 
+
+# Get some summary stats ----
+
+medianearnings <- tidydata %>%
+  filter(type == "earn") %>%
+  group_by(survey) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt)) %>%
+  select(median) %>% pull()
+
+names(medianearnings) <- c("HBAI", "SHS")
+
+# Get councils with a large enough sample size (households with earnings > 0)
+
+councilsn50 <- filter(tidydata, 
+                      type == "total",
+                      survey == "HBAI") %>%
+  group_by(council) %>%
+  count() %>%
+  filter(n >= 50) %>%
+  select(council) %>% pull()
+
+# Get council areas where hhld pop difference isn't too large
+
+popokcouncils <- tidydata %>%
+  filter(type == "total") %>%
+  group_by(survey, council) %>%
+  summarise(households = sum(hhwgt),
+            sample = n()) %>%
+  ungroup() %>%
+  filter(sample >= 50) %>%
+  select(-sample) %>%
+  spread(survey, households) %>%
+  mutate(diff = (HBAI - SHS)/SHS) %>%
+  filter(abs(diff) < 0.5) %>%
+  select(council) %>%
+  pull()
+
 # Check for missing data ----
 
 # View(miss_var_summary(tidyhbai))

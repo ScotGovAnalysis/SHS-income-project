@@ -51,16 +51,23 @@ counciltax <- read_excel("ext/docs/CouncilTax1819.xlsx", sheet = "CouncilTax") %
   select(-council) %>%
   remove_labels()
 
+# Get manually allocated council tax bands from SHCS
+
+SHCScounciltaxbands <- read_excel("ext/docs/SHCS counciltaxbands.xlsx") %>%
+  remove_labels()
+
 # Get age group weights, income vars, equivalise ----
 
 tidyshs <- hhold18 %>%
   select(UNIQID, MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, 
          LA_GRWT, COUNCIL, SHS_6CLA, HIHECON, TENURE, COUNCILTAXBAND, HINCMINC, HH4) %>%
   left_join(personshs, by = "UNIQID") %>%
-  remove_labels() %>%
+  remove_attributes(c("label", "format.sas")) %>%
+  left_join(SHCScounciltaxbands, by = "UNIQID") %>%
   left_join(counciltax, by = "COUNCIL") %>%
   mutate_at(vars(MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3), ~replace_na(., 0)) %>%
   mutate(band = COUNCILTAXBAND,
+         band = ifelse(band %in% c("A", "B", "C", "D", "E", "F", "G", "H"), band, ctb_matched),
          counciltax = ifelse(band == "A", A, 
                              ifelse(band == "B", B,
                                     ifelse(band == "C", C,
