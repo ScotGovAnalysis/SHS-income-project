@@ -114,37 +114,21 @@ Earnings are the largest source of income for economically active households, an
 
 ## Benefits lower 
 
-```{r bendiff, echo=FALSE}
-
-bendiff <- tidydata %>%
-  filter(type != "total") %>%
-  group_by(survey, type) %>%
-  summarise(amount = sum(amount*hhwgt*equ)) %>%
-  spread(survey, amount) %>%
-  mutate(diff = abs(HBAI - SHS),
-         diffcontr = percent(diff/sum(diff), 1)) %>% 
-  filter(type == "ben") %>%
-  select(diffcontr) %>% pull()
-
-```
-
-Generally, the reported benefit income is lower in the SHS than in the HBAI. The lower benefit income in the SHS explains `r bendiff` of the total income difference between these two surveys (section \@ref(compover)). (Note that when comparing benefit incomes, one should keep in mind that benefits in the HBAI are already underreported (to varying degrees, section \@ref(typover)). The lower benefit income in the SHS is caused by one or a combination of the following: 
+Generally, the reported benefit income is lower in the SHS than in the HBAI. The lower benefit income in the SHS explains `r filter(incdiff, type == "ben") %>% select(diffcontr) %>% pull()` of the total income difference between these two surveys (section \@ref(compover)). (Note that when comparing benefit incomes, one should keep in mind that benefits in the HBAI are already underreported (to varying degrees, section \@ref(typover)). The lower benefit income in the SHS is caused by one or a combination of the following: 
 
 * households not reporting they receive a benefit even though they do (= non-reporting)
 * households not reporting all the benefits they receive (= non-reporting)
 * households reporting a lower benefit amount then they actually receive (= underreporting)
 
-**Working-age households** (defined here as households with no adults above state pension age) receive on average much lower benefits compared to pensioner households (section \@ref(bensumm)). Benefit income of working-age households in the top five income deciles is small and mainly made up of disability benefits, followed by Child Benefit. In the lower income deciles, average benefit income increases, and is made up of disability benefits and Child Benefit, and increasingly (with lower incomes) also with Tax Credits, Housing Benefit and Universal Credit. Benefit income of the bottom income decile is quite low (lower than in deciles 2-4), a common feature of survey-based income data, and probably partly due to various reporting errors. When comparing benefit income for working-age households _across the two surveys_, it appears that disability benefits, Tax Credits, Child Benefit and Universal Credit are lower in the SHS (section \@ref(benincwa)). We will see later that these are underreported in the SHS compared to the HBAI, as are almost all benefits (section \@ref(typover)). The lower income deciles also show large data variability with large uncertainty for both surveys (section \@ref(benincwa)).
+Median benefit income across the two surveys matches best for those **household types** that don't get many benefits, such as working-age adult households without any children, where the median benefit income is zero in both surveys, but also working-age households with children, where average benefit income is only slightly lower in the SHS. Working-age households (defined here as households with no adults above state pension age) receive on average much lower benefits compared to pensioner households (section \@ref(bensumm)). 
 
-**Pensioner households** have on average a much higher benefit income than working-age households due to the State Pension, which is the largest benefit income source and almost universal. The State Pension is followed in importance by disability benefits, Housing Benefit and Pension Credit. Average benefit incomes for pensioner households are quite variable across all income deciles and in both surveys, with SHS central estimates consistently below the HBAI estimates. Median benefit income 95% confidence intervals (C.I.s) don't overlap in the bottom and the 7th income decile, with the SHS estimates far below the HBAI ones. The lower benefit income in the SHS is due to underreporting and/or non-reporting of State Pension and other benefits (section \@ref(benincpn)). In fact, almost all pensioner households in the HBAI report receipt of a benefit, but not so in the SHS: many pensioner households do not report receipt of any benefits, such as the state pension (sections \@ref(bensumm) and \@ref(statepen)). More detail on the income sources of pensioner households is available in section [Pensioners’ incomes too low][Pensioners’ incomes too low].
+For **Working-age households without children**, average benefit income in the top four income deciles is very small and mainly made up of disability benefits and Housing Benefit. In the lower income deciles, average benefit income increases and is made up increasingly (with lower incomes) with Housing Benefit. Other common benefits in the lower income deciles are Univeral Credit, disability benefits, Tax Credits, Council Tax Reduction and Income Support. Households in the second decile have the highest benefit income, whereas the benefit income of the bottom income decile is much lower, a common feature of survey-based income data, and probably partly due to various reporting errors. For **Working-age households with children**, Child Benefit is the main benefit, and reported aross all incomes. In the lower income deciles, Tax Credits dominate the benefit variety, followed by Housing Benefit and Universal Credit. When comparing benefit income for working-age households across the two surveys, it appears that average benefit amounts for most benefit types are lower in the SHS (section \@ref(benincdec)). We will see later that almost all benefits are underreported in the SHS compared to the HBAI (section \@ref(typover)).
 
-Median benefit income across the two surveys matches best for those **household types** that don't get many benefits, such as working-age adult households without any children, where the median benefit income is zero in both surveys. On the other hand, median benefit incomes for pensioner households and households with children differ considerably between surveys, with SHS benefit income consistently lower (section \@ref(benhhtype)). For **pensioner couple households**, the difference in median benefit income between the two surveys is partly due to underreporting of the amount of state pension received. This can affect households with two pensioners twice as much compared to those with only one pensioner. In addition, many pensioners in the SHS do not report receiving any state pension at all (section \@ref(statepen)).
+**Pensioner households** have on average a much higher benefit income than working-age households (section \@ref(bensumm)) due to the State Pension (section \@ref(statepen)), which is the largest benefit income source and dwarfes income from other benefits such as Housing Benefit, Pension Credit and disability benefits. The average benefit income of pensioner households in the SHS is lower compared to the HBAI (section \@ref(bensumm)). The lower benefit income in the SHS is partly due to underreporting of the amount of state pension received. This can affect households with two pensioners twice as much compared to those with only one pensioner. In addition, many pensioners in the SHS do not report receiving any state pension at all (section \@ref(statepen)). In fact, almost all pensioner households in the HBAI report receipt of a benefit, but not so in the SHS: many pensioner households do not report receipt of any benefits (sections \@ref(bensumm) and \@ref(statepen)). More detail on the income sources of pensioner households is available in section [Pensioners’ incomes too low][Pensioners’ incomes too low].
 
-For **households with children**, ...
+Looking at household **economic status**, median benefit incomes for households where the highest income householder is a full-time employee or self-employed match well between surveys and show a small benefit amount and little variability. There is more variability and discrepancy in median benefit incomes for part-time employee households, with the average SHS benefit amounts lower. All other groups show considerable differences in median benefit incomes, with the SHS amount also consistently lower. We have seen the reasons for this for retired households earlier. As for households with a **permanently sick/disabled household** head, under- and non-reporting of Universal Credit and Tax Credits explains the benefit income difference (sections \@ref(beneco), \@ref(uc) and \@ref(tc)). Non-reporting of benefits is identified by comparing the number of households who report they receive the benefit. Underreporting of benefits is identified when the median benefit amounts (of those who report them) differ.
 
-Looking at household **economic status**, median benefit incomes for households where the highest income householder is a full-time employee or self-employed match well between surveys and show a small benefit amount and little variability. There is more variability and discrepancy in median benefit incomes for part-time employee households. All other groups show considerable differences in median benefit incomes, with the SHS amount consistently lower. Median benefit income C.I.s from SHS and HBAI do not overlap at all for retired and disabled households. Reasons for this are largely non-reporting of state pension, and under- and non-reporting of disability benefits (section \@ref(beneco)). Non-reporting of benefits is identified by comparing the number of households who report they receive the benefit. Underreporting of benefits is identified when the median benefit amounts (of those who report them) differ.
-
-Looking across **council areas**, we need to remind ourselves that the HBAI is not designed for sub-Scotland level analysis, and household numbers in each council area are not designed to be accurate. However, removing those council areas with very large (>50%) discrepancies in number of households, and also excluding council areas with too small sample sizes, we're left with less than half of the council areas for comparison across surveys. In these, benefit incomes match reasonably well, but with very wide C.I.s (section \@ref(bencounc)).
+Looking across **council areas**, we need to remind ourselves that the HBAI is not designed for sub-Scotland level analysis, and household numbers in each council area are not designed to be accurate. However, removing those council areas with very large (>50%) discrepancies in number of households, and also excluding council areas with too small sample sizes, we're left with less than half of the council areas for comparison across surveys. In these, benefit incomes match reasonably well, but with very wide 95% confidence intervals (C.I.s) (section \@ref(bencounc)).
 
 Benefits are the largest source of income for economically inactive households, such as pensioner households and those households that are inactive due to disability. Therefore, benefit underreporting hugely influences the total income for these households.
 
@@ -174,17 +158,17 @@ bencontr <- tidybens_agg %>%
 
 ```
 
-The largest benefit by far is the State Pension, which makes up almost half of all benefit income (`r filter(bencontr, type =="State Pension") %>% select(HBAI_share) %>% pull()` based on HBAI data). This is followed by the combined disability and carers' benefits, followed by Tax Credits, Housing Benefit, Child Benefit, Universal Credit, Pension Credit, and many smaller benefits (section \@ref(typover)).
+The largest benefit by far is the State Pension, which makes up almost half of all benefit income (`r filter(bencontr, type =="State Pension") %>% select(HBAI_share) %>% pull()` based on HBAI data). This is followed by the combined disability and carers' benefits (`r filter(bencontr, type =="Disability") %>% select(HBAI_share) %>% pull()`), followed by Tax Credits (`r filter(bencontr, type =="Tax Credits") %>% select(HBAI_share) %>% pull()`), Housing Benefit (`r filter(bencontr, type =="Housing Benefit") %>% select(HBAI_share) %>% pull()`), Child Benefit (`r filter(bencontr, type =="Child Benefit") %>% select(HBAI_share) %>% pull()`), Universal Credit (`r filter(bencontr, type =="Universal Credit") %>% select(HBAI_share) %>% pull()`), Pension Credit (`r filter(bencontr, type =="Pension Credit") %>% select(HBAI_share) %>% pull()`), and many smaller benefits (section \@ref(typover)).
 
-All of the big benefits except for Housing Benefit are underreported in the SHS compared to the HBAI. (Note that the HBAI also underreports all of the big benefits compared to administrative data.) This could be due to underreporting of the amount received, not reporting a benefit, or a combination of both. Underreporting of State Pension and disability benefits explains most of the benefit income differences between the two surveys (section \@ref(typover)).
+All of the big benefits except for Housing Benefit are underreported in the SHS compared to the HBAI. (Note that the HBAI also underreports all of the big benefits compared to administrative data.) This could be due to underreporting of the amount received, not reporting a benefit, or a combination of both. Underreporting of State Pension and disability benefits together explains two thirds of the benefit income differences between the two surveys (section \@ref(typover)).
 
-The underreporting of (all but one) benefits means that those household types with a large share of their income coming from benefits will be affected more, and show a lower income in the SHS compared to the HBAI. This largely affects households with low or no earnings: pensioners, who receive a large part of their income through the state pension (and other, smaller benefits such as disability and carers' benefits, Pension Credit and Winter Fuel Payment), and households with disabled household members who receive disability and carers' benefits. I expect it also affects other low-earnings households through Tax Credits and Universal Credit. These households will show too low an income in the SHS.
+The underreporting of (all but one) benefits means that those household types with a large share of their income coming from benefits will be affected more, and show a lower income in the SHS compared to the HBAI. This largely affects households with low or no earnings: pensioners, who receive a large part of their income through the state pension (and other, smaller benefits such as Pension Credit, Housing Benefit, disability and carers' benefits and Winter Fuel Payment), and households with disabled household members who receive mainly Housing Benefit, disability and carers' benefits and Universal Credit (section \@ref(beneco)). I expect it also affects other low-earnings households through Tax Credits and Universal Credit. These households will show too low an income in the SHS.
 
-To add more detail, **State Pension** is fairly well captured in the HBAI (covers `r filter(bencontr, type =="State Pension") %>% select(HBAI_capt) %>% pull()` of the aggregated admin data amount), but less so in the SHS (`r filter(bencontr, type =="State Pension") %>% select(SHS_capt) %>% pull()`) (section \@ref(typover)). This discrepancy explains `r filter(bencontr, type =="State Pension") %>% select(diffcontr) %>% pull()` of the total benefit income difference between HBAI and SHS. It originates in a smaller number of single pensioners in the SHS reporting that they receive the State Pension, even though the average payments are comparable between surveys, and also in too low State Pension amounts in SHS pensioner couple households, maybe because only the state pension of one householder is reported (section \@ref(statepen)).
+To add more detail, **State Pension** is fairly well captured in the HBAI (covers `r filter(bencontr, type =="State Pension") %>% select(HBAI_capt) %>% pull()` of the aggregated admin data amount), but less so in the SHS (`r filter(bencontr, type =="State Pension") %>% select(SHS_capt) %>% pull()`) (section \@ref(typover)). This discrepancy explains `r filter(bencontr, type =="State Pension") %>% select(diffcontr) %>% pull()` of the total benefit income difference between HBAI and SHS. It originates in a smaller number of pensioner households in the SHS reporting that they receive the State Pension, but also slightly smaller average payments. It is also possible that in SHS pensioner couple households only the state pension of one householder is reported (section \@ref(statepen)).
 
-Combined **disability and carers' benefits** are captured to `r filter(bencontr, type =="Disability") %>% select(HBAI_capt) %>% pull()` in the HBAI, and only to `r filter(bencontr, type =="Disability") %>% select(SHS_capt) %>% pull()` in the SHS. These include Disability Living Allowance, Personal Independence Payment, Attendance Allowance, Employment Support Allowance, Carers' Allowance, Severe Disablement Allowance, and Industrial Injuries Disablement Benefit. I included Carers' Allowance in this list as I expect most carers to live in the same household as the person they care for. The discrepancy between HBAI and SHS disability benefit incomes explains a further `r filter(bencontr, type =="Disability") %>% select(diffcontr) %>% pull()` of the total benefit income difference between HBAI and SHS. Disability benefits in the SHS are subject to both, underreporting of the amount, and non-reporting of receipt. Underreporting can be identified by comparing the average benefit amounts, and non-reporting can be identified by comparing the numbers of households who report that they receive this benefit (sections \@ref(typover) and \@ref(disimportant)). A large part of the disability benefits goes to pensioner households; however, single adult households are also an important recipient of these benefits (section \@ref(diswho)).
+Combined **disability and carers' benefits** are captured to `r filter(bencontr, type =="Disability") %>% select(HBAI_capt) %>% pull()` in the HBAI, and only to `r filter(bencontr, type =="Disability") %>% select(SHS_capt) %>% pull()` in the SHS. These include Disability Living Allowance, Personal Independence Payment, Attendance Allowance, Employment Support Allowance, Carers' Allowance, Severe Disablement Allowance, and Industrial Injuries Disablement Benefit. I included Carers' Allowance in this list as I expect most carers to live in the same household as the person they care for. The discrepancy between HBAI and SHS disability benefit incomes explains a further `r filter(bencontr, type =="Disability") %>% select(diffcontr) %>% pull()` of the total benefit income difference between HBAI and SHS. Disability benefits in the SHS are subject to both, underreporting of the amount, and non-reporting of receipt. Underreporting can be identified by comparing the average benefit amounts, and non-reporting can be identified by comparing the numbers of households who report that they receive this benefit (sections \@ref(typover), \@ref(disimportant), and \@ref(diswho)). A large part of the disability benefits goes to pensioner households; however, single adult households are also important recipients of these benefits (section \@ref(diswho)).
 
-**Tax credits** are also underreported in the SHS compared to the HBAI, explaining a further `r filter(bencontr, type =="Tax Credits") %>% select(diffcontr) %>% pull()` of the benefit income difference between the surveys. A large part of this is part-time employee households underrerporting the amount of Tax Credit they get. Both surveys vastly underreport Tax Credit compared to admin data (sections \@ref(typover) and \@ref(tc)).
+**Tax credits** are also underreported in the SHS compared to the HBAI, explaining a further `r filter(bencontr, type =="Tax Credits") %>% select(diffcontr) %>% pull()` of the benefit income difference between the surveys. A large part of this is part-time employee households underreporting the amount of Tax Credit they get. Both surveys vastly underreport Tax Credit compared to admin data (sections \@ref(typover) and \@ref(tc)).
 
 **Housing Benefit** is underreported to a similar degree in both surveys, but comparable between surveys and across tenures (sections \@ref(typover) and \@ref(hb)).
 
@@ -194,15 +178,17 @@ Combined **disability and carers' benefits** are captured to `r filter(bencontr,
 
 ## Investment income much lower
 
-Investment income is hugely underreported in the SHS compared to the HBAI, even though we are using the HBAI data before top-income adjustments (which would correct top incomes upwards). The massively lower investment income in the SHS is largely due to the fact that only very few households in the SHS report any investment income, even though they report on average higher amounts. Most of investment income is held by retired households, and by working-age two adult households; these are therefore the groups whose total income is affected more by investment income underreporting. Similarly, most of investment income is held by the richest households (section \@ref(investment)).
+Investment income makes up `r filter(incdiff, type == "inv") %>% select(HBAIshare) %>% pull()` of total income according to the HBAI. Investment income is hugely underreported in the SHS compared to the HBAI, even though we are using the HBAI data before top-income adjustments (which would correct top incomes upwards). This underreporting explains `r filter(incdiff, type == "inv") %>% select(diffcontr) %>% pull()` of the difference in total income (section \@ref(compover)).
+
+The massively lower investment income in the SHS is largely due to the fact that only very few households in the SHS report any investment income, even though they report on average higher amounts. Most of investment income is held by retired households, by working-age couple households, and by the richest households; these are therefore the groups whose total income is affected more by investment income underreporting (section \@ref(investment)).
 
 ## Pensioners' incomes too low
 
-**Single pensioner** and **pensioner couple** households get the major part of their income from benefits, which is mainly the State Pension. As the State Pension is underreported in the SHS (compared to the HBAI), household income is underrerported for these household types. The underreporting of State Pension is due to both, underreporting of the amount, and non-reporting of receiving the benefit. Many single pensioners in particular did not report that they received any State Pension at all. As for _pensioner couple_ households, the numbers reporting that they did receive the State Pension was comparable across surveys, but the average amount was lower in the SHS. It is possible that this is because only the State Pension of one person in the couple was considered (section \@ref(pensources)). 
+**Single pensioner** and **pensioner couple** households get the major part of their income from benefits, which is mainly the State Pension. As the State Pension is underreported in the SHS (compared to the HBAI), household income is underrerported for these household types. The underreporting of State Pension is due to both, underreporting of the amount, and non-reporting of receiving the benefit. Many single pensioners in particular did not report that they received any State Pension at all. As for pensioner couple households, the numbers reporting that they did receive the State Pension was similar across surveys, but the average amount was lower in the SHS. It is possible that this is because only the State Pension of one person in the couple was reported in the SHS (section \@ref(pensources)). 
 
-In addition to differences in benefit income (which is mainly the state pension), there are also large differences in occupational pensions and investment income. The difference in investment income is mostly due to non-reporting of investment income in the SHS compared to the HBAI. It should be noted that most of investment income in Scotland goes to retired households, see also section [Investment income much lower][Investment income much lower]. Similarly, fewer people in the SHS report any occupational pension income, although in the aggregate, the SHS occupational pensions income is only slightly below that in the HBAI (sections \@ref(investment) and \@ref(occpen)).
+In addition to differences in benefit income (which is mainly the state pension), there are also large differences in occupational pensions and investment income. The difference in investment income is mostly due to non-reporting of investment income in the SHS compared to the HBAI. It should be noted that most of investment income in Scotland goes to retired households, see also sections [Investment income much lower][Investment income much lower] and \@ref(investment). Similarly, fewer people in the SHS report any occupational pension income, although average occupational pension income for those who receive it is comparable (section \@ref(occpen)).
 
-Households with **one working-age adult and one pensioner** get a major part of their income through earnings, followed by occupational pensions and benefits (section \@ref(pensources)). This means that this group is less affected by underreported benefit income, and we will see that the median total income of this group matches better across surveys compared to single pensioner or pensioner couple households (section \@ref(inchhtype)).
+Households with **one working-age adult and one pensioner** get a major part of their income through earnings, followed by benefits and occupational pensions (section \@ref(pensources)). This means that this group is less affected by underreported benefit income than the two other pensioner household types, and we will see that the median total income of this group matches better across surveys compared to single pensioner or pensioner couple households (section \@ref(inchhtype)).
 
 And as mentioned before, **Pension Credit**, an income-related benefit for pensioners is subject to both, considerable underreporting of the amount, and non-reporting of receipt for SHS, compared to HBAI. This also contributes in a small part to the benefit income underreporting for pensioners (section \@ref(pc)).
 
@@ -225,7 +211,7 @@ Total income aggregated to the whole of Scotland is largely made up of earnings,
 
 Overall, SHS total income is `r incdiff` lower than HBAI total income. The differences come mainly from lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions. Income from earnings is higher in the SHS. Other income components are relatively small and therefore contribute less to the overall differences in income (section \@ref(compover)).
 
-We have seen that the lower benefit income mostly affects pensioners (through the state pension) and households with disabled household members (through disability benefits) (sections \@ref(beneco), \@ref(benhhtype), and \@ref(singleadult)).
+We have seen that the lower benefit income mostly affects pensioners (through the state pension) and households with disabled household members (through disability benefits) (section \@ref(beneco)).
 
 We have also seen that most of the investment income goes to the wealthiest households. This will affect the income distribution most at the top, and might therefore not matter as much when looking at low income households. However, a large part of investment income goes to retired households, so this could exacerbate the income underreporting of these households even more (sections \@ref(investment) and \@ref(comptype)).
 
@@ -233,43 +219,41 @@ Across the **income distribution**, earnings drive the difference between survey
 
 As for **regional underreporting**, this is difficult to ascertain from comparison with HBAI data, because the HBAI's weighting regime doesn't allow sub-Scotland analysis. However, we would expect underreported incomes in those local areas that have a high share of their income coming from benefits, and also in local areas with many pensioners (whose main income source is the State Pension, a benefit).
 
-The six council areas with the highest benefit shares are, according to SHS data, Dumfries & Galloway, Inverclyde, North Ayrshire, East Ayrshire, West Dunbartonshire, and Dundee City (section \@ref(comparea). The eight council areas with the largest proportion of pensioners are Na h-Eileanan Siar, Argyll & Bute, Dumfries & Galloway, South Ayrshire, Scottish Borders, Orkney Islands, Angus, and Perth & Kinross (section \@ref(ageprofile)).
+The six council areas with the highest benefit shares are, according to SHS data, Dumfries & Galloway, Inverclyde, North Ayrshire, East Ayrshire, West Dunbartonshire, and Dundee City (section \@ref(comparea)). The eight council areas with the largest proportion of pensioners are Na h-Eileanan Siar, Argyll & Bute, Dumfries & Galloway, South Ayrshire, Scottish Borders, Orkney Islands, Angus, and Perth & Kinross (section \@ref(ageprofile)).
 
-Breaking the country down to urban and rural areas, small towns and other (not large) urban areas have the highest shares of benefit income (section \@ref(comparea)). Remote small towns and remote rural areas on the other hand have the largest proportions of pensioners (section \@ref(ageprofile)).
+As for urban and rural areas, small towns and other (not large) urban areas have the highest shares of benefit income (section \@ref(comparea)). Remote small towns and remote rural areas on the other hand have the largest proportions of pensioners (section \@ref(ageprofile)).
 
 ## Total income overall
 
-Having identified some issues in the measurement of the various _income components_, we will now see how these affect total income.
+Having identified some issues in the measurement of the various income components, we will now see how these affect total income.
 
 The income **distributions** in the SHS and the HBAI look largely similar, with the SHS income distribution being slightly wider, and the SHS **median** slightly lower (`r comma(SHSmedian, prefix = "£")` versus `r comma(HBAImedian, prefix = "£")`). Near the relative poverty threshold, the SHS cumulative income curve is higher, meaning more households sit below that threshold in the SHS compared to the HBAI. This means that more people are considered to be in relative poverty when using the SHS dataset compared to the HBAI dataset (section \@ref(incdist)).
 
-The nine income decile points (the thresholds in each dataset that split the populations into ten equal-sized groups) are slightly higher for the SHS for high incomes, level at the sixth decile point, and diverge towards lower incomes, with SHS incomes being markedly lower. This shows that more households in the SHS have lower incomes compared to the HBAI, whereas the high income end of the distribution matches better between surveys. We have seen this is largely caused by benefit underreporting and higher earnings in the SHS (relative to the HBAI). The lower the income, the more important benefit income becomes, and the more affected total income is by benefit underreporting (section \@ref(incdec)).
+Median incomes in the SHS are slightly higher than in the HBAI for higher income deciles; they level up in the sixth decile, and diverge towards lower incomes, with SHS incomes becoming markedly lower in the lowest decile. This shows that more households in the SHS have lower incomes compared to the HBAI, whereas the high income end of the distribution matches better between surveys. We have seen that this pattern is largely driven by earnings, the largest components of total income. In addition, the lower the income, the more important benefit income becomes, and the more affected total income is by benefit underreporting - although it appears that there is no benefit underreporting in the 3rd and 4th decile (sections \@rel(compdist) and \@ref(incdec)).
 
-Median income C.I.s overlap to some degree for all 17 **council areas** where we compared surveys. We excluded those council areas where the HBAI household populations were too far off (> 50% compared to SHS household population). For some council areas, the overlaps are only marginal, such as East Dunbartonshire, Aberdeenshire, Stirling, and Moray, with Aberdeenshire having a  relatively large HBAI sample size. Note also, that none of these areas were noted earlier for particularly high proportions of pensioners or benefit income shares. However, C.I.s for all council areas and for both surveys are fairly wide, showing much income variation within each council area (section \@ref(inccounc)).
+Median income 95% confidence intervals (C.I.s) overlap to some degree for most of the 17 **council areas** where we compared surveys. We excluded those council areas where the HBAI household populations were too far off (> 50% compared to SHS household population) or the sample sizes in the HBAI too small. For some council areas, the difference in median total income was quite large though, such as East Dunbartonshire, Aberdeenshire, Stirling, and Moray. This is probably driven by differences in earnings. None of these areas were noted earlier for particularly high proportions of pensioners or benefit income shares. However, C.I.s for all council areas and for both surveys are fairly wide, showing much income variation within each council area (section \@ref(inccounc)).
 
 Median incomes match fairly well for **urban** and accessible rural areas. Median incomes in remote areas match slightly less well, but also have fairly wide C.I.s (section \@ref(incarea)).
 
-Median incomes of **working-age adults** and **children** match well, but **pensioners**' incomes are much lower in the SHS, and C.I.s do not overlap. We saw that this is largely due to underreporting of the State Pension, as well as occupational pensions and investment income (sections \@ref(incage) and \@ref(pensources)).
+Median incomes of **working-age adults** and **children** match well, but **pensioners**' incomes are much lower in the SHS, and C.I.s do not overlap. We saw that this is largely due to underreporting and non-reporting of the State Pension, as well as occupational pensions and investment income (sections \@ref(incage) and \@ref(pensources)).
 
-Incomes for most **household types** match well, except, again, for pensioners, whose income is much lower in the SHS. Incomes of households with 3 or more adults (and no children) have very wide C.I.s, indicating large variation of incomes in this group. Single adult incomes match surprisingly well, considering how much benefit income is underreported for this group. However, earnings in this group are higher in the SHS than the HBAI and appear to balance out the benefit underreporting (section \@ref(inchhtype)).
+Incomes for most **household types** match well, except, again, for pensioners, whose income is much lower in the SHS. Incomes of households with 3 or more working-age adults (and no children) have very wide C.I.s, indicating large variation of incomes in this group (section \@ref(inchhtype)).
 
 Incomes of households where the household head (the highest income householder) is a **full- or part-time employee** match fairly well, which is no surprise as income from employed earnings also matches fairly well. As expected, incomes of the **retired** don't match well, similarly to pensioners' incomes in the age group and household type breakdowns. Incomes of households with a **disabled** household head also don't match too well, due to undereporting of disability benefits, which are the main income source of these households (section \@ref(inceco)).
 
-Households where the head is **self-employed** had very variable incomes and a higher median in the SHS, driven by much higher earnings (section \@ref(earneco)). This is consistent with the (yet unpublished and therefore not included) SHS 2019 data, so not a blip. On the other hand, benefit income is lower, but has much less of an impact as it is on average much less important than earnings (section \@ref(beneco)). Reasons for the higher earnings of the self-employed in the SHS could include that the SHS my not fully account for self-employed losses, or not in the same way as the HBAI. For example, the SHS doesn't accept negative earnings responses. Also, the definitions of self-employment may differ between surveys. Note that households where the head is self-employed make up only 7% of all households (according to SHS 2018), so maybe this issue isn't very important.
+Households where the head is **self-employed** had very variable incomes and a higher median in the SHS, driven by much higher earnings (section \@ref(earneco)). This is consistent with the (yet unpublished and therefore not included) SHS 2019 data. Reasons for the higher earnings of the self-employed in the SHS could include that the SHS may not fully account for self-employed losses, or not in the same way as the HBAI. For example, the SHS doesn't accept negative earnings responses. Also, the definitions of self-employment may differ between surveys. Note that households where the head is self-employed make up only `r filter(ecoshares, HIHemp == "Self-Employed") %>% select(share) %>% pull()` of all households (according to SHS 2018), so maybe this issue isn't very important.
 
 ## Open questions
 
-- How well do housing costs match? There are some inherent differences between surveys of what's included as a housing cost. The main difference is for home owners with a mortgage: While the HBAI considers only the mortgage interest as a housing cost, the SHS also includes mortgage capital repayments. Furthermore, the HBAI also includes rent, water and sewerage charges, and (structural) home insurance. In the SHS, housing costs include rent and mortgage payments.
+- How well do housing costs match? There are some inherent differences between surveys in what's included as a housing cost. The main difference is for home owners with a mortgage: While the HBAI considers only the mortgage interest as a housing cost, the SHS also includes capital repayments. Furthermore, the HBAI also includes rent, water and sewerage charges, and (structural) home insurance. In the SHS, housing costs also include rent.
 
-- In the analysis here, we didn't use the usual HBAI BHC income variable, but income without top-income adjustments. The reason for this is that the top-income adjusted income figures are only available for gross income, but not net income. The effect on the median is small. The HBAI median without top-income adjustment is `r comma(HBAImedian, prefix = "£", accuracy = 1)`, whereas the top-income adjusted median is £517. We expect higher incomes to be affected more.
+- In the analysis here, we didn't use the usual HBAI BHC income variable on which the official income and poverty statistics are based, but income without top-income adjustments. The reason for this is that the top-income adjusted income figures are only available for gross income, but not net income. However, the effect on the median is small. The HBAI median without top-income adjustment is `r comma(HBAImedian, prefix = "£", accuracy = 1)`, whereas the top-income adjusted median is £517. We expect higher incomes to be affected more.
 
 - Self-employed earnings are much higher in the SHS compared to the HBAI. Also, the SHS doesn't allow negative earnings responses. The difference in self-employed earnings between surveys is probably due to the questionnaire wording and interview time spent on getting this information.
 
-- can we calculate better confidence intervals for the HBAI data using the resamples dataset that DWP provide?
+- The bootstrapping mechanism that calculates the 95% confidence intervals of HBAI median incomes draws sub-samples from the survey sample via simple random sampling. However, it should draw the samples in the same way as the original sample was drawn, using the fairly complex sampling design of the FRS. This might widen the C.I.s even further. It may be possible to calculate more accurate confidence intervals for the HBAI data using a resamples dataset that DWP provide; however, this might be time consuming and is unlikely to add much new information.
 
-- how important is children's income? SHS doesn't collect information on this. Ipsos Mori report showed it made up 1% of single parents' income
-
-- SHS doesn't ask about children's benefits such as child DLA. However, benefit income by household type doesn't look particularly bad for households with children. Might need to look into this further for any breakdowns of child poverty by disability.
+- The SHS doesn't collect information on children's incomes. An Ipsos Mori report showed that children's income made up 1% of single parents' income in the FRS, and that it was even less important for couples households with children. Similarly, the SHS doesn't ask about children's benefits such as child DLA, but this might be captured via the parents' incomes. Disability benefit incomes for households with children don't look particularly bad. 
 
 - Many pensioners in the SHS do not report that they receive state pension. Is this due to the question wording? Maybe model state pension instead of imputing it?
 
@@ -881,7 +865,8 @@ all <- tidydata %>%
 
 waa <- tidydata %>%
   filter(type == "ben",
-         pnwgt == 0) %>%
+         pnwgt == 0,
+         chwgt == 0) %>%
   group_by(survey) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
             mean = wtd.mean(amount, weights = hhwgt),
@@ -892,7 +877,24 @@ waa <- tidydata %>%
          mean = comma(mean, prefix = "£", accuracy = 1),
          total = comma(total, scale = 1E-6, prefix = "£", suffix = " million"),
          households = comma(households, accuracy = 10000),
-         group = "Working-age households") %>%
+         group = "Working-age households with no children") %>%
+  select(group, everything())
+
+waakids <- tidydata %>%
+  filter(type == "ben",
+         pnwgt == 0,
+         chwgt > 0) %>%
+  group_by(survey) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            total = sum(amount*equ*hhwgt),
+            households = sum(hhwgt),
+            sample = n()) %>%
+  mutate(median =  comma(median, prefix = "£", accuracy = 1),
+         mean = comma(mean, prefix = "£", accuracy = 1),
+         total = comma(total, scale = 1E-6, prefix = "£", suffix = " million"),
+         households = comma(households, accuracy = 10000),
+         group = "Working-age households with children") %>%
   select(group, everything())
 
 pns <- tidydata %>%
@@ -911,7 +913,7 @@ pns <- tidydata %>%
          group = "Pensioner households") %>%
   select(group, everything()) 
 
-rbind(all, waa, pns) %>%
+rbind(all, waa, waakids, pns) %>%
   knitr::kable(align = "llrrrrr") %>%
   kable_styling("striped")
 
@@ -939,6 +941,7 @@ all <- tidydata %>%
 waa <- tidydata %>%
   filter(type == "ben",
          pnwgt == 0,
+         chwgt == 0,
          amount != 0) %>%
   group_by(survey) %>%
   summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
@@ -950,7 +953,25 @@ waa <- tidydata %>%
          mean = comma(mean, prefix = "£", accuracy = 1),
          total = comma(total, scale = 1E-6, prefix = "£", suffix = " million"),
          households = comma(households, accuracy = 10000),
-         group = "Working-age households") %>%
+         group = "Working-age households with no children") %>%
+  select(group, everything())
+
+waakids <- tidydata %>%
+  filter(type == "ben",
+         pnwgt == 0,
+         chwgt > 0,
+         amount != 0) %>%
+  group_by(survey) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            total = sum(amount*equ*hhwgt),
+            households = sum(hhwgt),
+            sample = n()) %>%
+  mutate(median =  comma(median, prefix = "£", accuracy = 1),
+         mean = comma(mean, prefix = "£", accuracy = 1),
+         total = comma(total, scale = 1E-6, prefix = "£", suffix = " million"),
+         households = comma(households, accuracy = 10000),
+         group = "Working-age households with children") %>%
   select(group, everything())
 
 pns <- tidydata %>%
@@ -970,77 +991,13 @@ pns <- tidydata %>%
          group = "Pensioner households") %>%
   select(group, everything()) 
 
-rbind(all, waa, pns) %>%
+rbind(all, waa, waakids, pns) %>%
   knitr::kable(align = "llrrrrr") %>%
   kable_styling("striped")
 
 ```
 
-### by income deciles - working-age households {#benincwa}
-
-```{r benefits_deciles_waa}
-
-# Benefits by hhld income decile
-
-# Note that HBAI bootstrap mechanism is SRS!
-
-HBAI_CI <- groupwiseMedian2(var = "amount",
-                group = "decile",
-                data = filter(tidydata, 
-                              type == "ben", 
-                              survey == "HBAI",
-                              pnwgt == 0) %>%
-                  mutate(weight = ppwgt),
-                conf = 0.95,
-                R = 100,
-                normal = TRUE,
-                basic = FALSE,
-                percentile = FALSE,
-                digits = 3)
-
-# SHS bootstrap mechanism includes council strata
-
-SHS_CI <- groupwiseMedian3(var = "amount",
-                group = "decile",
-                data = filter(tidydata, 
-                              type == "ben", 
-                              survey == "SHS",
-                              pnwgt == 0) %>%
-                  mutate(weight = ppwgt),
-                conf = 0.95,
-                R = 100,
-                normal = TRUE,
-                basic = FALSE,
-                percentile = FALSE,
-                digits = 3)
-
-SHS_CI$survey <- "SHS"
-HBAI_CI$survey <- "HBAI"
-
-rbind(HBAI_CI, SHS_CI) %>%
-  mutate(Median = ifelse(n < 50, NA, Median),
-         Normal.lower = ifelse(n < 50, NA, Normal.lower),
-         Normal.upper = ifelse(n < 50, NA, Normal.upper),
-         decile = factor(decile)) %>%
-  filter(!is.na(Median)) %>%
-  ggplot() +
-  geom_point(aes(x = decile, y = Median, colour = survey), size = 2) +
-  geom_segment(aes(x = decile,
-                   xend = decile,
-                 y = Normal.lower, 
-                 yend = Normal.upper,
-                 colour = survey),
-               size = 3,
-               alpha = 0.5) +
-    scale_colour_manual(values = cols_survey) +
-    labs(x = NULL,
-         y = "Median and 95% C.I",
-         title = str_wrap('Working-age adults - weekly median equivalised benefit income by household income decile', 70),
-         subtitle = str_wrap('Includes households with and without benefit income; excludes households with pensioners', 80)) +
-  scale_y_continuous(labels = comma_format(prefix = "£")) +
-  coord_flip(ylim = c(-100, 400))
-
-```
+### by decile and benefit type {#benincdec}
 
 We combined the following disability and carers' benefits into "Disability":
 
@@ -1057,117 +1014,63 @@ I included Carer’s Allowance in this list as I expect most carers to live in t
 
 ```{r benefits_types_decile_waa}
 
-mainbens <- tidybens_agg %>%
-  filter(survey == "HBAI") %>%
-  mutate(type = fct_collapse(type, Disability = str_trunc(disbens, 30)),
-         type = fct_reorder(type, desc(amount))) %>%
-  group_by(type) %>%
-  summarise(amount = sum(amount)) %>%
-  head(length(cols_bens)) %>%
-  select(type) %>% 
-  pull()
-
-names(cols_bens) <- mainbens
-
 tidybens %>%
-  filter(pnwgt == 0) %>%
+  filter(pnwgt == 0,
+         chwgt == 0) %>%
   mutate(type = factor(type),
          type = fct_collapse(type, Disability = str_trunc(disbens, 30))) %>%
-  count(survey, decile, type, wt = hhwgt*amount*equ, name = "total") %>%
+  group_by(survey, decile, type) %>%
+  summarise(mean = wtd.mean(amount, weights = hhwgt),
+            total = sum(hhwgt*amount*equ),
+            sample = n()) %>%
+  ungroup() %>%
   group_by(survey, decile) %>%
   filter(type %in% type[order(-total)[1:5]]) %>%
   ungroup() %>%
   mutate(decile = factor(decile),
          type = fct_reorder(type, total)) %>%
-  ggplot(aes(x = decile, y = total, fill = type)) +
+  ggplot(aes(x = decile, y = mean, fill = type)) +
   geom_col() +
   scale_fill_manual(values = cols_bens) +
   facet_wrap(~survey, nrow = 2) +
-  labs(title = "What are the main benefits in each income decile?", 
-       subtitle = str_wrap("Aggregated weekly benefit income of the five most common benefits in each income decile; excludes households with pensioners", 80),
+  labs(title = "Working-age households with no children - main benefits", 
+       subtitle = str_wrap("Weekly equivalised mean benefit income of the five largest benefits in each income decile; includes households with and without any benefit income", 80),
        x = NULL, y = NULL) +
-  scale_y_continuous(labels = comma_format(scale = 1E-6, suffix = " million")) +
+  scale_y_continuous(labels = comma_format(prefix = "£")) +
   theme(legend.position = "right",
         panel.grid.major.x = element_blank())
 
 ```
 
-### by income deciles - pensioner households {#benincpn}
+```{r benefits_types_decile_waakids}
 
-```{r benefits_deciles_pn}
-
-# Benefits by hhld income decile
-
-# Note that HBAI bootstrap mechanism is SRS!
-
-HBAI_CI <- groupwiseMedian2(var = "amount",
-                group = "decile",
-                data = filter(tidydata, 
-                              type == "ben", 
-                              survey == "HBAI",
-                              pnwgt > 0) %>%
-                  mutate(weight = ppwgt),
-                conf = 0.95,
-                R = 100,
-                normal = TRUE,
-                basic = FALSE,
-                percentile = FALSE,
-                digits = 3)
-
-# SHS bootstrap mechanism includes council strata
-
-SHS_CI <- groupwiseMedian3(var = "amount",
-                group = "decile",
-                data = filter(tidydata, 
-                              type == "ben", 
-                              survey == "SHS",
-                              pnwgt > 0) %>%
-                  mutate(weight = ppwgt),
-                conf = 0.95,
-                R = 100,
-                normal = TRUE,
-                basic = FALSE,
-                percentile = FALSE,
-                digits = 3)
-
-SHS_CI$survey <- "SHS"
-HBAI_CI$survey <- "HBAI"
-
-rbind(HBAI_CI, SHS_CI) %>%
-  mutate(Median = ifelse(n < 50, NA, Median),
-         Normal.lower = ifelse(n < 50, NA, Normal.lower),
-         Normal.upper = ifelse(n < 50, NA, Normal.upper),
-         decile = factor(decile)) %>%
-  filter(!is.na(Median)) %>% 
-  ggplot() +
-  geom_point(aes(x = decile, y = Median, colour = survey), size = 2) +
-  geom_segment(aes(x = decile,
-                   xend = decile,
-                 y = Normal.lower, 
-                 yend = Normal.upper,
-                 colour = survey),
-               size = 3,
-               alpha = 0.5) +
-    scale_colour_manual(values = cols_survey) +
-    labs(x = NULL,
-         y = "Median and 95% C.I",
-         title = 'Pensioner hhlds - weekly median benefit income by household income decile',
-         subtitle = str_wrap('Includes households with pensioners only; includes households with and without benefit income', 80)) +
+tidybens %>%
+  filter(pnwgt == 0,
+         chwgt > 0) %>%
+  mutate(type = factor(type),
+         type = fct_collapse(type, Disability = str_trunc(disbens, 30))) %>%
+  group_by(survey, decile, type) %>%
+  summarise(mean = wtd.mean(amount, weights = hhwgt),
+            total = sum(hhwgt*amount*equ),
+            sample = n()) %>%
+  ungroup() %>%
+  group_by(survey, decile) %>%
+  filter(type %in% type[order(-total)[1:5]]) %>%
+  ungroup() %>%
+  mutate(decile = factor(decile),
+         type = fct_reorder(type, total)) %>%
+  ggplot(aes(x = decile, y = mean, fill = type)) +
+  geom_col() +
+  scale_fill_manual(values = cols_bens) +
+  facet_wrap(~survey, nrow = 2) +
+  labs(title = "Working-age households with children - main benefits", 
+       subtitle = str_wrap("Weekly equivalised mean benefit income of the five largest benefits in each income decile; includes households with and without any benefit income", 80),
+       x = NULL, y = NULL) +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
-  coord_flip(ylim = c(-100, 400))
+  theme(legend.position = "right",
+        panel.grid.major.x = element_blank())
 
 ```
-
-We combined the following disability and carers' benefits into "Disability":
-
-- Personal Independence Payment
-- Disability Living Allowance
-- Employment and Support Allowance
-- Attendance Allowance
-- Carer's Allowance
-- Incapacity Benefit
-- Severe Disablement Allowance
-- Industrial Injuries Disablement Benefit
 
 ```{r benefits_types_decile_pn}
 
@@ -1175,25 +1078,28 @@ tidybens %>%
   filter(pnwgt > 0) %>%
   mutate(type = factor(type),
          type = fct_collapse(type, Disability = str_trunc(disbens, 30))) %>%
-  count(survey, decile, type, wt = hhwgt*amount*equ, name = "total") %>%
+  group_by(survey, decile, type) %>%
+  summarise(mean = wtd.mean(amount, weights = hhwgt),
+            total = sum(hhwgt*amount*equ),
+            sample = n()) %>%
+  ungroup() %>%
   group_by(survey, decile) %>%
   filter(type %in% type[order(-total)[1:5]]) %>%
   ungroup() %>%
   mutate(decile = factor(decile),
          type = fct_reorder(type, total)) %>%
-  ggplot(aes(x = decile, y = total, fill = type)) +
+  ggplot(aes(x = decile, y = mean, fill = type)) +
   geom_col() +
   scale_fill_manual(values = cols_bens) +
   facet_wrap(~survey, nrow = 2) +
-  labs(title = "What are the main benefits in each income decile?", 
-       subtitle = str_wrap("Aggregated weekly benefit income of the five most common benefits in each income decile; includes pensioner households only", 80),
+  labs(title = "Pensioner households - main benefits", 
+       subtitle = str_wrap("Weekly equivalised mean benefit income of the five largest benefits in each income decile; includes households with and without any benefit income", 80),
        x = NULL, y = NULL) +
-  scale_y_continuous(labels = comma_format(scale = 1E-6, suffix = " million")) +
+  scale_y_continuous(labels = comma_format(prefix = "£")) +
   theme(legend.position = "right",
         panel.grid.major.x = element_blank())
 
 ```
-
 
 ### by household type {#benhhtype}
 
@@ -1417,6 +1323,34 @@ tidydata %>%
 
 ```
 
+```{r benefits_eco_types, fig.asp = 0.8}
+
+tidybens %>%
+  mutate(type = factor(type),
+         type = fct_collapse(type, Disability = str_trunc(disbens, 30))) %>%
+  group_by(survey, HIHemp, type) %>%
+  summarise(mean = wtd.mean(amount, weights = hhwgt),
+            total = sum(hhwgt*amount*equ),
+            sample = n()) %>%
+  ungroup() %>%
+  group_by(survey, HIHemp) %>%
+  filter(type %in% type[order(-total)[1:5]]) %>%
+  ungroup() %>%
+  mutate(HIHemp = factor(HIHemp),
+         type = fct_reorder(type, total)) %>%
+  ggplot(aes(x = HIHemp, y = mean, fill = type)) +
+  geom_col() +
+  scale_fill_manual(values = cols_bens) +
+  facet_wrap(~survey, nrow = 2) +
+  labs(title = "Main benefits by economic status", 
+       subtitle = str_wrap("Weekly equivalised mean benefit income of the five largest benefits for each group; includes households with and without any benefit income", 80),
+       x = NULL, y = NULL) +
+  scale_y_continuous(labels = comma_format(prefix = "£")) +
+  coord_flip() +
+  theme(legend.position = "right",
+        panel.grid.major.y = element_blank())
+```        
+        
 ### by council area {#bencounc}
 
 Weekly benefit household income by council area, equivalised median and mean, aggegrated total and number of households (including all households; but excludes council areas with < 50 cases, and council areas where population differences between surveys are > 50%):
@@ -1609,6 +1543,54 @@ tidybens_agg %>%
 
 ```
 
+
+Weekly equivalised mean benefit amounts for each of the largest twelve benefits (includes all households):
+```{r ben_types_detailed_ave}
+
+tidybens %>%
+  mutate(type = as.character(type),
+         type = ifelse(type %in% str_trunc(disbens, 30), "Disability", type)) %>%
+  group_by(survey, type) %>%
+  summarise(mean = wtd.mean(amount, weights = hhwgt),
+            sample = n()) %>%
+  ungroup() %>%
+  filter(sample >= 50) %>%
+  select(-sample) %>%
+  mutate(type = factor(type),
+         type = fct_reorder2(type, survey, mean)) %>%
+  arrange(type) %>%
+  spread(survey, mean) %>%
+  mutate_at(c("HBAI", "SHS"), comma_format(prefix = "£", 0.01)) %>%
+  head(12L) %>%
+  knitr::kable(align = "lrr", col.names = c("", "HBAI mean amount", "SHS mean amount")) %>%
+  kable_styling("striped")
+
+```
+
+Weekly equivalised **mean** benefit amounts for each of the most generous benefits (includes only households that receive the benefit; sample >= 50):
+```{r ben_types_detailed_ave_inc}
+
+tidybens %>%
+  mutate(type = as.character(type),
+         type = ifelse(type %in% str_trunc(disbens, 30), "Disability", type)) %>%
+  filter(amount != 0) %>%
+  group_by(survey, type) %>%
+  summarise(mean = wtd.mean(amount, weights = hhwgt),
+            sample = n()) %>%
+  ungroup() %>%
+  filter(sample >= 50) %>%
+  select(-sample) %>%
+  mutate(type = factor(type),
+         type = fct_reorder2(type, desc(survey), mean)) %>%
+  arrange(type) %>%
+  spread(survey, mean) %>%
+  mutate(HBAI = ifelse(is.na(HBAI), "..", comma(HBAI, prefix = "£")),
+         SHS = ifelse(is.na(SHS), "..", comma(SHS, prefix = "£"))) %>%
+  head(20L) %>%
+  knitr::kable(align = "lrr", col.names = c("", "HBAI mean amount", "SHS mean amount")) %>%
+  kable_styling("striped")
+
+```
 ### State Pension {#typstatepen}
 
 See [Pensioners' incomes][Pensioners' incomes]
@@ -1656,6 +1638,30 @@ tidybens %>%
 ### Disability benefits - who gets them? {#diswho}
 
 Combined disability and carer's benefits, aggregated weekly amount, equivalised weekly mean and median, and number of households in receipt of a disability/carer's benefit:
+```{r disability_all}
+
+tidybens %>%
+  filter(type %in% disbens,
+         survey != "Admin",
+         amount != 0) %>%
+  group_by(survey) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            total = sum(amount*hhwgt*equ),
+            households = sum(hhwgt),
+            sample = n()) %>%
+  mutate(total = ifelse(survey == "HBAI" & sample < 50, "..", comma(total, scale = 1E-6, prefix = "£", suffix = " million")),
+         mean = ifelse(survey == "HBAI" & sample < 50, "..", comma(mean, prefix = "£")),
+         median = ifelse(survey == "HBAI" & sample < 50, "..", comma(median, prefix = "£")),
+         households = ifelse(survey == "HBAI" & sample < 100, "..", comma(households, 10000))) %>%
+  knitr::kable(align = "llrrrrr") %>%
+  kable_styling("striped")
+ 
+```
+
+Household types
+
+Combined disability and carer's benefits, aggregated weekly amount, equivalised weekly mean and median, and number of households in receipt of a disability/carer's benefit:
 ```{r disability_hhtype}
 
 tidybens %>%
@@ -1678,6 +1684,57 @@ tidybens %>%
   arrange(hhtype) %>%
   knitr::kable(align = "llrrrrr") %>%
   kable_styling("striped")
+ 
+```
+
+Economic status of the household head
+
+Combined disability and carer's benefits, aggregated weekly amount, equivalised weekly mean and median, and number of households in receipt of a disability/carer's benefit:
+```{r disability_eco}
+
+tidybens %>%
+  filter(type %in% disbens,
+         survey != "Admin",
+         amount != 0) %>%
+  group_by(survey, HIHemp) %>%
+  summarise(median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            mean = wtd.mean(amount, weights = hhwgt),
+            total = sum(amount*hhwgt*equ),
+            households = sum(hhwgt),
+            sample = n()) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(HIHemp = fct_reorder2(HIHemp, survey, total),
+         total = ifelse(survey == "HBAI" & sample < 50, "..", comma(total, scale = 1E-6, prefix = "£", suffix = " million")),
+         mean = ifelse(survey == "HBAI" & sample < 50, "..", comma(mean, prefix = "£")),
+         median = ifelse(survey == "HBAI" & sample < 50, "..", comma(median, prefix = "£")),
+         households = ifelse(survey == "HBAI" & sample < 100, "..", comma(households, 10000))) %>%
+  arrange(HIHemp) %>%
+  knitr::kable(align = "llrrrrr") %>%
+  kable_styling("striped")
+
+tidybens %>%
+  filter(type %in% disbens,
+         survey != "Admin",
+         amount != 0) %>%
+  group_by(survey, HIHemp) %>%
+  summarise(tot = sum(amount*hhwgt*equ),
+            mean = wtd.mean(amount, weights = hhwgt),
+            median = wtd.quantile(amount, probs = 0.5, weights = ppwgt),
+            sample = n(),
+            people = sum(ppwgt)) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  mutate(share = tot/sum(tot),
+         HIHemp = fct_reorder(HIHemp, share)) %>%
+  ggplot(aes(x = HIHemp, y = share, fill = survey)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = cols_survey) +
+  scale_y_continuous(label = percent_format(1)) +
+  labs(x = NULL, y = NULL,
+       title = str_wrap("Share of aggregated disability benefit income by economic status", 65)) +
+  coord_flip() +
+   theme(panel.grid.major.y = element_blank())
  
 ```
 
@@ -1806,6 +1863,7 @@ tidybens %>%
   kable_styling("striped")
 
 ```
+
 
 ## Single working-age adult benefit income {#singleadult}
 
@@ -2003,32 +2061,7 @@ tidydata %>%
 
 ### Pensioners' income sources {#pensources}
 
-The charts and table below show different aspects of pensioners' incomes for each of the three household types containing pensioners.
-
-The total aggregated weekly income and main income sources (earnings, benefits, occupational pensions, investments). This chart shows the total extent of income under- and overreporting, and which income components contribute the most to the differences in total income.
-```{r pensioners_sources_a}
-
-tidydata %>%
-  filter(hhtype %in% c("Single pensioner", "Two pensioners", "One adult, one pensioner"),
-         type %in% c("total", "earn", "ben", "occ", "inv")) %>%
-  group_by(survey, type, hhtype) %>%
-  summarise(tot = sum(amount*hhwgt*equ),
-            sample = n()) %>% 
-  filter(sample >=50) %>%
-  ggplot(aes(x = type, y = tot, fill = survey)) +
-  geom_col(position = 'dodge') +
-  scale_fill_manual(values = cols_survey) +
-  scale_y_continuous(labels = comma_format(scale = 1E-6,
-                                           prefix = "£", 
-                                           suffix = " m")) +
-  facet_wrap(vars(hhtype)) +
-  labs(x = NULL, y = NULL, 
-       title = str_wrap("Aggregated weekly income and main income sources for pensioner households", 70)) +
-   theme(panel.grid.major.x = element_blank())
-
-```
-
-The mean equivalised total income and income sources (includes all pensioner households). This chart shows differences in the average reported amount of each income type.
+Weekly mean equivalised total income and income sources (includes all pensioner households):
 ```{r pensiones_sources_b}
 
 tidydata %>%
@@ -2048,7 +2081,7 @@ tidydata %>%
    theme(panel.grid.major.x = element_blank())
 ```
 
-The number of pensioner households who report they receive each type of income. Income types based on fewer than 100 cases in the sample are excluded. This table shows how many more or less households report that they receive certain income types for each survey, and can therefore flag non-reporting of a particular income type. 
+Number of pensioner households who report they receive each type of income (income types based on fewer than 100 cases in the sample are excluded):
 ```{r pensioners_sources_c}
 
 tidydata %>%
@@ -2430,7 +2463,7 @@ tidydata %>%
 
 How much does each income component contribute to the difference in total income? The income components are earnings, benefits, occupational pensions, investment income, other, private benefits, and deductions.
 
-Aggregate weekly amount in each survey, the absolute difference between the surveys for each income component, and how much each component contributes to the difference in total aggregated income. Note that these contributions are based on absolute differences and are therefore all positive percentages. There are of course other ways to illustrative the relative importance of each income component:
+Aggregate weekly amount in each survey, the absolute difference between the surveys for each income component, and how much each component contributes to the difference in total aggregated income. Note that these contributions are based on absolute differences and are therefore all positive percentages. There are of course other ways to illustrate the relative importance of each income component:
 ```{r aggregate_components}
 
 tidydata %>%
@@ -2452,10 +2485,23 @@ tidydata %>%
 
 ```
 
+Weekly equivalised **mean** income amount in each survey (includes all households):
+```{r mean_components}
+
+tidydata %>%
+  group_by(survey, type) %>%
+  summarise(mean = comma(wtd.mean(amount, weights = hhwgt), prefix = "£")) %>%
+  spread(survey, mean) %>%
+  mutate(type = factor(type, levels = inctypes)) %>%
+  knitr::kable(align = "lrr") %>%
+  kable_styling("striped")
+
+```
+
 ### What drives the survey differences across the income distribution {#compdist}
 
-For each household income decile, we looked at the equivalised weekly median income of the main income components, earnings and benefits. This shows that it is _earnings_ that drive the total income distribution, resulting in lower SHS incomes in the lower income deciles, and higher SHS incomes in the top income deciles:
-```{r median_comp_quintiles, fig.asp = 0.8}
+For each household income decile, we looked at the equivalised weekly mean income of the main income components, earnings and benefits. This shows that it is _earnings_ that drive the total income distribution, resulting in lower SHS incomes in the lower income deciles, and higher SHS incomes in the top income deciles:
+```{r mean_comp_quintiles, fig.asp = 0.8}
 
 tidydata %>%
   filter(type %in% c("earn", "ben")) %>%
@@ -2464,12 +2510,12 @@ tidydata %>%
             mean = wtd.mean(amount, weights = hhwgt)) %>%
   ungroup() %>%
   mutate(decile = factor(decile)) %>%
-  ggplot(aes(x = decile, y = median, fill = survey)) +
+  ggplot(aes(x = decile, y = mean, fill = survey)) +
   geom_col(position = 'dodge') +
   scale_fill_manual(values = cols_survey) +
   scale_y_continuous(labels = comma_format(prefix = "£")) +
   labs(x = NULL, y = NULL,
-       title = str_wrap("Weekly median net equivalised household income for the main income types by income decile", 70),
+       title = str_wrap("Weekly mean net equivalised household income for the main income types by income decile", 70),
        subtitle = "Includes all households") +
   theme(panel.grid.major.x = element_blank()) +
   facet_wrap(~type, ncol = 1)
@@ -2711,7 +2757,7 @@ tidydata %>%
   geom_vline(xintercept = 0.6*HBAImedian, colour = cols_survey[1]) +
   geom_vline(xintercept = 0.6*SHSmedian, colour = cols_survey[2]) +
   geom_density(size = 1, alpha = 0.5, bw = 0.02) +
-  scale_x_log10(labels = comma_format(prefix = "£")) +
+  scale_x_log10(labels = comma_format(prefix = "£"), limits = c(20, 10000)) +
   scale_color_manual(values = cols_survey) +
   scale_fill_manual(values = cols_survey) +
   labs(title = "Net equivalised household income density distributions",
