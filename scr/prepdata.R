@@ -131,7 +131,6 @@ tidybens_agg <- tidybens %>%
   arrange(desc(type), survey)
 
 
-
 # Get some summary stats ----
 
 medianearnings <- tidydata %>%
@@ -187,11 +186,21 @@ popokcouncils <- tidydata %>%
 incdiff <- tidydata %>%
   filter(type != "total") %>%
   group_by(survey, type) %>%
-  summarise(amount = sum(amount*hhwgt*equ)) %>%
-  spread(survey, amount) %>%
+  summarise(mean = wtd.mean(amount, weights = hhwgt)) %>%
+  spread(survey, mean) %>%
   mutate(HBAIshare = percent(HBAI/sum(HBAI), 1),
+         reldiff = percent(SHS/HBAI - 1, 1),
          diff = abs(HBAI - SHS),
          diffcontr = percent(diff/sum(diff), 1))
+
+totdiff <- tidydata %>%
+  group_by(survey, type) %>%
+  summarise(mean = wtd.mean(amount, weights = hhwgt)) %>%
+  spread(survey, mean) %>%
+  head(1L) %>%
+  mutate(diff = percent(1- SHS/HBAI, accuracy = 1)) %>%
+  select(diff) %>% 
+  pull()
 
 # Get hhld shares by economic status
 
