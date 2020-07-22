@@ -202,6 +202,26 @@ totdiff <- tidydata %>%
   select(diff) %>% 
   pull()
 
+bencontr <- tidybens_agg %>%
+  mutate(type = as.character(type),
+         type = ifelse(type %in% str_trunc(disbens, 30), "Disability", type)) %>%
+  group_by(survey, type) %>%
+  summarise(amount = sum(amount)) %>%
+  ungroup() %>%
+  group_by(survey) %>%
+  gather(key, value, -survey, -type) %>%
+  unite(measure, c(key, survey)) %>%
+  spread(measure, value) %>%
+  mutate(diff = abs(amount_HBAI-amount_SHS),
+         HBAI_share = percent(amount_HBAI/sum(amount_HBAI, na.rm = TRUE), 1),
+         SHS_share = percent(amount_SHS/sum(amount_SHS, na.rm = TRUE), 1),
+         HBAI_capt = percent(amount_HBAI/amount_Admin, 1),
+         SHS_capt = percent(amount_SHS/amount_Admin, 1),
+         totdiff = sum(diff, na.rm = TRUE),
+         diffcontr = ifelse(is.na(diff), NA, percent(diff/totdiff, 1))) %>%
+  arrange(desc(diff)) %>%
+  filter(!is.na(diffcontr)) 
+
 # Get hhld shares by economic status
 
 ecoshares <- tidydata %>%
