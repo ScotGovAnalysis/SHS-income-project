@@ -59,6 +59,7 @@ tidyhbai <- hbai1819 %>%
          ch = DEPCHLDH,
          wa = round(pp*wawgt/ppwgt),
          pn = round(pp*pnwgt/ppwgt),
+         hcost = ehcost,
          tenure = ifelse(PTENTYP2 %in% c(1,2,3), PTENTYP2, 
                          ifelse(PTENTYP2 == 4, 3,
                                 ifelse(PTENTYP2 == 5, 4, 5))),
@@ -72,10 +73,10 @@ tidyhbai <- hbai1819 %>%
                                                                    ifelse(pp == 2 & wa == 1 & pn == 1, 8, 9)))))))),
          ID = row_number()) %>%
   select(ID, hhwgt, ppwgt, chwgt, wawgt, pnwgt, hhtype, HIHemp, pp, ch, wa, pn, 
-         total, earn, ben, privben, occ, inv, oth, ded, equ, SERNUM, tenure) %>%
+         total, earn, ben, privben, occ, inv, oth, ded, equ, SERNUM, tenure, hcost) %>%
   left_join(tidyhousehol, by = "SERNUM") %>%
   gather(key = type, value = amount, -ID, -SERNUM, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -pp, -ch, -wa, -pn, 
-         -council, -urbrur, -hhtype, - HIHemp, -equ, -tenure) %>%
+         -council, -urbrur, -hhtype, - HIHemp, -equ, -tenure, -hcost) %>%
   mutate(survey = "HBAI") %>%
   remove_labels() 
 
@@ -189,7 +190,7 @@ tidyhbaibens <- filter(tidyhbai, type == "ben") %>%
 tidyhbaibens <- tidyhbaibens %>%
   select(-type, -pp, -ch, -wa, -pn, -amount) %>%
   gather(type, amount, -ID, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -council, -urbrur,
-         -hhtype, -HIHemp, -survey, -equ, -tenure) %>%
+         -hhtype, -HIHemp, -survey, -equ, -tenure, -hcost) %>%
   mutate(amount = ifelse(is.na(amount), 0, amount/equ),
          survey = "HBAI") 
 

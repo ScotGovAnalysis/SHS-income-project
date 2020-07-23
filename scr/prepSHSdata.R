@@ -98,6 +98,7 @@ tidyshs <- hhold18 %>%
                          ifelse(TENURE == 2, 5,
                                 ifelse(TENURE == 3, 1,
                                        ifelse(TENURE == 4, 2, 3)))),
+         hcost = NA,
          hhtype = ifelse(pp == 1 & wa == 1, 1, 
                          ifelse(pp == 2 & wa == 2, 2, 
                                 ifelse(pp >= 3 & wa == pp & pn == 0, 3, 
@@ -110,11 +111,11 @@ tidyshs <- hhold18 %>%
   select(ID, hhwgt, ppwgt, chwgt, wawgt, pnwgt, 
          total, earn, ben, privben, occ, inv, oth, ded, equ,
          council, urbrur, hhtype, HIHemp, pp, ch, wa, pn, 
-         BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, tenure) %>%
+         BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, tenure, hcost) %>%
   remove_labels() %>%
   gather(key = type, value = amount, -ID, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, 
          -council, -urbrur, -hhtype, -HIHemp, -pp, -ch, -wa, -pn, -equ, 
-         -(BENINC01:BENINC40), -(BENINC01_OA1:BENINC40_OA3), -tenure) %>%
+         -(BENINC01:BENINC40), -(BENINC01_OA1:BENINC40_OA3), -tenure, -hcost) %>%
   mutate(survey = "SHS")
 
 
@@ -161,7 +162,7 @@ tidyshsbens <- tidyshsbens %>%
   left_join(bentypesSHS, by = "ID") %>%
   select(-type, -amount, -pp, -ch, -wa, -pn) %>%
   gather(type, amount, -ID, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -council, -urbrur,
-         -hhtype, -HIHemp, -survey, -equ, -tenure) %>%
+         -hhtype, -HIHemp, -survey, -equ, -tenure, -hcost) %>%
   mutate(amount = amount*7/(365*equ),
          survey = "SHS") 
 
