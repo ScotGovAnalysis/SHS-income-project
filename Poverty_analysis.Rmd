@@ -33,16 +33,39 @@ library(readxl)
 
 source("scr/functions.R")
 
-# Load strings and colour scheme
+# Load colour scheme and other strings
 
 source("scr/strings.R")
 source("scr/colours.R")
 
 # Load datasets
 
+adult_1819 <- readRDS("output/adult_1819.rds")
+househol_1819 <- readRDS("output/househol_1819.rds")
+benefits_1819 <- readRDS("output/benefits_1819.rds")
+hbai1819 <- readRDS("output/hbai1819.rds")
+person18 <- readRDS("output/person18.rds")
+hhold18 <- readRDS("output/hhold18.rds")
+
+# Create tidy datasets
+
 source("scr/prepSHSdata.R")
 source("scr/prepHBAIdata.R")
+
+# Combine all data
+
 source("scr/prepdata.R")
+
+# Change some theme elements (charts)
+
+theme_update(legend.position = "top",
+             legend.title = element_blank(),
+             panel.background = element_blank(),
+             panel.grid.major.x = element_line(colour = "grey95"),
+             panel.grid.minor.x = element_line(colour = "grey95"),
+             panel.grid.major.y = element_line(colour = "grey95"),
+             axis.ticks = element_blank(),
+             text = element_text(size=16))
 
 ```
 
@@ -157,69 +180,6 @@ tidydata %>%
 ```
 
 
-```{r poverty_hhtype}
-
-tidydata %>%
-  filter(type == "total") %>%
-  group_by(survey, low60bhc, hhtype) %>%
-  summarise(people = sum(ppwgt)) %>%
-  ungroup() %>%
-  group_by(survey, hhtype) %>%
-  mutate(rate = people/sum(people)) %>%
-  filter(low60bhc == 1) %>%
-  ungroup() %>%
-  group_by(survey) %>%
-  mutate(comp = people/sum(people)) %>%
-  mutate(hhtype = factor(hhtype, levels = hhtypenames),
-         hhtype = fct_rev(hhtype)) %>%
-  ggplot(aes(x = hhtype, y = comp, fill = survey)) +
-  geom_col(position = "dodge") +
-  geom_text(aes(y = comp + 0.02,
-                label = percent(comp, 1),
-                colour = survey),
-            position = position_dodge(width = 1)) +
-  scale_fill_manual(values = cols_survey) +
-  scale_colour_manual(values = cols_survey) +
-  theme(legend.title = element_blank(),
-        legend.position = "top",
-        axis.text.x = element_blank()) +
-  labs(x = NULL, y = NULL,
-       title = "Composition of people in relative poverty BHC by household type",
-       subtitle = "Assuming Scottish, survey-specific poverty thresholds") +
-  coord_flip()
-
-tidydata %>%
-  filter(type == "total") %>%
-  group_by(survey, low60bhc, hhtype) %>%
-  summarise(people = sum(ppwgt)) %>%
-  ungroup() %>%
-  group_by(survey, hhtype) %>%
-  mutate(rate = people/sum(people)) %>%
-  filter(low60bhc == 1) %>%
-  ungroup() %>%
-  group_by(survey) %>%
-  mutate(comp = people/sum(people)) %>%
-  mutate(hhtype = factor(hhtype, levels = hhtypenames),
-         hhtype = fct_rev(hhtype)) %>%
-  ggplot(aes(x = hhtype, y = rate, fill = survey)) +
-  geom_col(position = "dodge") +
-  geom_text(aes(y = rate + 0.02,
-                label = percent(rate, 1),
-                colour = survey),
-            position = position_dodge(width = 1)) +
-  scale_fill_manual(values = cols_survey) +
-  scale_colour_manual(values = cols_survey) +
-  theme(legend.title = element_blank(),
-        legend.position = "top",
-        axis.text.x = element_blank()) +
-  labs(x = NULL, y = NULL,
-       title = "Relative poverty rates BHC",
-       subtitle = "Assuming Scottish, survey-specific poverty thresholds") +
-  coord_flip()
-
-```
-
-
 ```{r poverty_hhtype_excl_pn}
 
 tidydata %>%
@@ -249,7 +209,7 @@ tidydata %>%
         axis.text.x = element_blank()) +
   labs(x = NULL, y = NULL,
        title = "Composition of people in relative poverty BHC by household type",
-       subtitle = "Excluding pensioner households; assuming Scottish, survey-specific poverty thresholds") +
+       subtitle = "Excluding pensioners; assuming Scottish, survey-specific poverty thresholds") +
   coord_flip()
 
 tidydata %>%
@@ -279,17 +239,85 @@ tidydata %>%
         axis.text.x = element_blank()) +
   labs(x = NULL, y = NULL,
        title = "Relative poverty rates BHC",
-       subtitle = "Excluding pensioner households; assuming Scottish, survey-specific poverty thresholds") +
+       subtitle = "Excluding pensioners; assuming Scottish, survey-specific poverty thresholds") +
+  coord_flip()
+
+tidydata %>%
+  filter(type == "total",
+         pnwgt == 0) %>%
+  group_by(survey, low60bhc, hhtype) %>%
+  summarise(people = sum(ppwgt)) %>%
+  filter(low60bhc == 1) %>%
+  ungroup() %>%
+  mutate(hhtype = factor(hhtype, levels = hhtypenames),
+         hhtype = fct_rev(hhtype)) %>%
+  ggplot(aes(x = hhtype, y = people, fill = survey)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = cols_survey) +
+  scale_colour_manual(values = cols_survey) +
+  theme(legend.title = element_blank(),
+        legend.position = "top",
+        axis.text.x = element_blank()) +
+  labs(x = NULL, y = NULL,
+       title = "Number of people in relative poverty rates BHC",
+       subtitle = "Excluding pensioners; assuming Scottish, survey-specific poverty thresholds") +
   coord_flip()
 
 ```
-<div class = "box">
 
-- HBAI poverty numbers slightly below official poverty numbers. This is largely due to using Scottish median for poverty threshold
-- SHS poverty is higher, in particular for pensioners, with poverty rates in clear contrast to the generally accepted picture of lower pensioner poverty
-
-</div>
 
 ## Area characteristics
 
 LA, urban/rural, SIMD deciles (??)
+
+```{r pov_council_numbers, fig.asp = 0.8}
+
+cilif <- read_excel("ext/docs/Cilif.xlsx") 
+  
+cilifcomparison <- tidydata %>%
+  filter(type == "total",
+         survey == "SHS") %>%
+  group_by(council, low60bhc) %>%
+  summarise(SHS = sum(chwgt),
+            sample = n()) %>%
+  ungroup() %>%
+  filter(low60bhc == 1) %>%
+  select(council, SHS, sample ) %>%
+  left_join(cilif, by = "council") %>%
+  mutate(council = fct_reorder(council, Cilif)) %>%
+  gather(source, children, -council, -sample)  %>%
+  arrange(source)
+
+cilifcomparison %>%
+  filter(sample >= 50) %>%
+  ggplot(aes(x = council, y = children, fill = source)) +
+    geom_col(position = "dodge") +
+    coord_flip() +
+    scale_fill_manual(values = wes_palettes[["Moonrise2"]]) +
+  labs(x = NULL, y = NULL,
+       title = "Number of children in relative poverty BHC by council, SHS, and Cilif")
+
+cor.test(cilifcomparison$children[1:32], cilifcomparison$children[33:64], method=c("pearson", "kendall", "spearman"))
+
+```
+
+```{r pov_council_rates, fig.asp = 0.8}
+
+tidydata %>%
+  filter(type == "total",
+         survey == "SHS") %>%
+  group_by(council, low60bhc) %>%
+  summarise(children = sum(chwgt),
+            sample = n()) %>%
+  ungroup() %>%
+  group_by(council) %>%
+  mutate(chrate = children/sum(children)) %>%
+  filter(low60bhc == 1) %>%
+  ungroup() %>%
+  mutate(council = fct_reorder(council, chrate)) %>%
+  filter(sample >= 50) %>%
+  ggplot(aes(x = council, y = chrate)) +
+  geom_col() +
+  coord_flip()
+
+```
