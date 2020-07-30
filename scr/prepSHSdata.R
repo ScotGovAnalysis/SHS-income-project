@@ -60,13 +60,26 @@ SHCScounciltaxbands <- read_excel("ext/docs/SHCS counciltaxbands.xlsx") %>%
 
 tidyshs <- hhold18 %>%
   select(UNIQID, MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, 
-         LA_GRWT, COUNCIL, SHS_6CLA, HIHECON, TENURE, COUNCILTAXBAND, HINCMINC, HH4) %>%
+         LA_GRWT, COUNCIL, SHS_6CLA, HIHECON, TENURE, COUNCILTAXBAND, HINCMINC, HH4, MD16DEC, HK2,
+         MATDEP1A_A:MATDEP1A_K) %>%
   left_join(personshs, by = "UNIQID") %>%
   remove_attributes(c("label", "format.sas")) %>%
   left_join(SHCScounciltaxbands, by = "UNIQID") %>%
   left_join(counciltax, by = "COUNCIL") %>%
-  mutate_at(vars(MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3), ~replace_na(., 0)) %>%
-  mutate(band = COUNCILTAXBAND,
+  mutate_at(vars(MSCINC01:MSCINC10, EARNINC, BENINC, BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, MATDEP1A_A:MATDEP1A_K), ~replace_na(., 0)) %>%
+  mutate(md1 = ifelse(MATDEP1A_A == 3, 1, 0),
+         md2 = ifelse(MATDEP1A_B == 3, 1, 0),
+         md3 = ifelse(MATDEP1A_C == 3, 1, 0),
+         md4 = ifelse(MATDEP1A_D == 3, 1, 0),
+         md5 = ifelse(MATDEP1A_F == 3, 1, 0),
+         md6 = ifelse(MATDEP1A_G == 3, 1, 0),
+         md7 = ifelse(MATDEP1A_I == 3, 1, 0),
+         md8 = ifelse(MATDEP1A_K == 3, 1, 0),
+         md = md1 + md2 + md3 + md4 + md5 + md6 + md7 + md8,
+         
+         finman = HK2,
+         simd = MD16DEC,
+         band = COUNCILTAXBAND,
          band = ifelse(band %in% c("A", "B", "C", "D", "E", "F", "G", "H"), band, ctb_matched),
          counciltax = ifelse(band == "A", A, 
                              ifelse(band == "B", B,
@@ -111,11 +124,11 @@ tidyshs <- hhold18 %>%
   select(ID, hhwgt, ppwgt, chwgt, wawgt, pnwgt, 
          total, earn, ben, privben, occ, inv, oth, ded, equ,
          council, urbrur, hhtype, HIHemp, pp, ch, wa, pn, 
-         BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, tenure, hcost) %>%
+         BENINC01:BENINC40, BENINC01_OA1:BENINC40_OA3, tenure, hcost, simd, finman, md) %>%
   remove_labels() %>%
   gather(key = type, value = amount, -ID, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, 
          -council, -urbrur, -hhtype, -HIHemp, -pp, -ch, -wa, -pn, -equ, 
-         -(BENINC01:BENINC40), -(BENINC01_OA1:BENINC40_OA3), -tenure, -hcost) %>%
+         -(BENINC01:BENINC40), -(BENINC01_OA1:BENINC40_OA3), -tenure, -hcost, -simd, -finman, -md) %>%
   mutate(survey = "SHS")
 
 
@@ -140,6 +153,11 @@ tidyshs$tenure <- decode(tidyshs$tenure,
                          search = tenurecodes, 
                          replace = tenurenames)
 
+tidyshs$finman <- decode(tidyshs$finman,
+                         search = finmancodes,
+                         replace = finmannames)
+
+
 # Create SHS benefit dataset ----
 
 tidyshsbens <- filter(tidyshs, type == "ben")
@@ -162,7 +180,7 @@ tidyshsbens <- tidyshsbens %>%
   left_join(bentypesSHS, by = "ID") %>%
   select(-type, -amount, -pp, -ch, -wa, -pn) %>%
   gather(type, amount, -ID, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -council, -urbrur,
-         -hhtype, -HIHemp, -survey, -equ, -tenure, -hcost) %>%
+         -hhtype, -HIHemp, -survey, -equ, -tenure, -hcost, -simd, -finman) %>%
   mutate(amount = amount*7/(365*equ),
          survey = "SHS") 
 

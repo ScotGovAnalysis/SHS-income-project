@@ -67,6 +67,15 @@ urbrurclasses <- c("Large Urban Areas",
                    "Remote Small Towns",
                    "Accessible Rural", 
                    "Remote Rural")
+
+
+urbrurclasses2 <- c("Large Urban Areas", 
+                   "Other Urban Areas",
+                   "Small Towns", 
+                   "Small Towns",
+                   "Rural", 
+                   "Rural")
+
 # Age group ----
 
 agegrouplevels <- c("People", "Children", "WorkingAgeAdults", "Pensioners")
@@ -261,3 +270,14 @@ tenurenames <- c("Rented from Council",
                  "Rented privately",
                  "Owned outright",
                  "Owned with mortgage")
+
+# Financial management ----
+
+finmancodes <- c(1,2,3,4,5,6)
+  
+finmannames <- c("Manage very well", 
+                 "Manage quite well", 
+                 "Get by alright", 
+                 "Do not manage very well",
+                 "Have some financial difficulties",
+                 "Are in deep financial trouble")

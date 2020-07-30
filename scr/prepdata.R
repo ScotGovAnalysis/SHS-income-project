@@ -4,6 +4,9 @@
 
 # Create hhld level dataset with different income components (using hhld weight) ----
 
+tidyhbai$finman <- NA
+tidyhbai$md <- NA
+
 tidydata <- rbind(tidyhbai, tidyshs) %>%
   mutate(survey = factor(survey, ordered = TRUE),
          n = 1)
@@ -21,6 +24,9 @@ tidydata$urbrur <- decode(tidydata$urbrur,
                           replace = urbrurclasses)
 
 tidydata$urbrur <- factor(tidydata$urbrur, levels = urbrurclasses)
+
+
+tidydata$finman <- factor(tidydata$finman, levels = finmannames, ordered = TRUE)
 
 
 # Get decile points ----
@@ -94,6 +100,7 @@ tidydata <- tidydata %>%
 
 # Create benefits dataset ----
 
+tidyhbaibens$finman <- NA
 tidybens <- rbind(tidyhbaibens, tidyshsbens) %>%
   mutate(survey = factor(survey, ordered = TRUE))
 
