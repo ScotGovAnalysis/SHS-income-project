@@ -85,13 +85,17 @@ theme_update(legend.position = "top",
 
 **Summary**
 
+This report assesses how closely income data collected in the Scottish Household Survey (SHS) matches that of the Household Below Average Incomes (HBAI), the "gold standard" for household income data in the UK. The purpose of this assessment is to understand whether SHS income data is accurate enough to allow household income and poverty analysis in Scotland where this is not possible using the HBAI or administrative data sources. Income and poverty analysis in Scotland is not possible with HBAI or admin data for certain subgroups of the population where the HBAI sample is too small, and where these subgroups are not identified in the administrative data. This is also the case for a wide range of contexts which are not covered or not covered in as much detail in the HBAI or admin data, such as travel patterns, social capital, satisfaction with services, house condition, digital inclusion and financial inclusion. 
+
+It should be noted however that by undertaking this work, we are not proposing a wholesale shift in reporting income and poverty statistics from HBAI to SHS income data; the HBAI will remain the main source of national (Scotland-level) poverty and household income statistics, with SHS statistics providing supplementary income and poverty analysis as highlighted above.
+
 We compared net household income data from the SHS 2018 with that from the HBAI 2018/19 by looking at the main income components as well as total income. 
 
-We found that overall, average **earnings** were reasonably similar between surveys, with SHS earnings slightly (but statistically significantly) higher than HBAI earnings. Note though that for lower household incomes, SHS earnings were slightly lower than HBAI earnings. While average earnings agreed well for households with employed household heads, earnings for the small number of households with a self-employed head were much higher in the SHS compared to the HBAI, probably due to differences in survey methodology. 
+We found that overall, average **earnings** were reasonably similar between surveys, with SHS earnings slightly higher than HBAI earnings. Note though that for lower household incomes, SHS earnings were slightly lower than HBAI earnings. While average earnings for households with employed household heads were comparable between the two surveys, earnings for the small number of households with a self-employed head were much higher in the SHS compared to the HBAI, probably due to differences in survey methodology. 
 
-Earnings drive total income of employed and self-employed households, the majority of households in Scotland. For example, households where the head is employed have fairly consistent earnings levels across the two surveys, and therefore their total income also matches well. In contrast, households with a self-employed head show very different earnings levels in the two surveys, and therefore also very different income levels. 
+Earnings determine total income of employed and self-employed households, the majority of households in Scotland. For example, households where the head is employed have fairly consistent earnings levels across the two surveys, and therefore their total income also matches well. In contrast, households with a self-employed head show very different earnings levels in the two surveys, and therefore also very different income levels. 
 
-Average **benefit income** was consistently lower in the SHS compared to the HBAI, caused by underreporting and non-reporting of benefits. The impact of under- and non-reporting of the State Pension dwarfed the impact of all other (also underreported) benefits and thereby affected almost all pensioner households. Underreporting of disability benefits affected households where these benefits are a major or the main income source, such as those who are economically inactive due to disability or longterm illness. 
+Average **benefit income** was consistently lower in the SHS compared to the HBAI, due to underreporting and non-reporting of benefits. The impact of under- and non-reporting of the State Pension dwarfed the impact of all other (also underreported) benefits and thereby affected almost all pensioner households. Underreporting of disability benefits affected households where these benefits are a major or the main income source, such as those who are economically inactive due to disability or longterm illness. 
 
 Benefit income drives total income of economically inactive and unemployed households. For example, pensioners' incomes largely consist of the State Pension and to a smaller degree, occupational pensions. Both are considerably lower in the SHS, and therefore total income of pensioners is lower. Similarly, a large part of total income of households with a disabled household head come from disability-related benefits, which are equally much lower in the SHS, resulting in too low total incomes.
 
@@ -99,9 +103,15 @@ The total income distribution is similar for both surveys, although the SHS dist
 
 Within the limited means of comparing regional incomes between surveys, we found no indication that there were any local areas with particularly large income discrepancies, and no reason to expect any.
 
-In conclusion, incomes between SHS and HBAI agree reasonably well, and we believe that the SHS produces very good income estimates considering its wide remit. However, there are some types of households which cause problems: The largest group among them are pensioner households; other groups are households that are economically inactive due to disability, and households with a self-employed household head. 
+In conclusion, incomes between SHS and HBAI compare reasonably well, and we believe that the SHS produces very good income estimates considering its wide remit. However, there are some types of households which cause problems due to underreporting of benefits and differences in self-employed earnings: The largest group among them are pensioner households; other groups are households that are economically inactive due to disability, and households with a self-employed household head. 
 
-The implications of all findings for poverty measurement are as follows: SHS income data enables us to calculate robust (BHC) poverty rates. These will be higher than those based on the HBAI due to the shape of the income distribution and due to pensioners' incomes which are too low. The differences between poverty estimates based on different surveys always need to be clearly communicated when publishing any estimates. It might also be best to exclude pensioners from any SHS based poverty analysis. Furthermore, when disaggregating statistics by economic status, one should be aware that poverty of self-employed households may be underestimated. And finally, regional poverty breakdowns should be possible where sample sizes allow, although it would be advisable to always include some measure of uncertainty. 
+The implications of all findings for poverty measurement are as follows: 
+
+- SHS income data enables us to calculate robust before housing costs (BHC) poverty rates. These will be higher than those based on the HBAI due to the shape of the income distribution and due to pensioners' incomes which are too low. 
+- The differences between poverty estimates based on different surveys always need to be clearly communicated when publishing any estimates. 
+- It might also be best to exclude pensioners from any SHS based poverty analysis. 
+- Furthermore, when disaggregating statistics by economic status, one should be aware that poverty of self-employed households may be underestimated. 
+- And finally, regional poverty breakdowns should be possible where sample sizes allow, although it would be advisable to always include some measure of uncertainty. 
 
 We would therefore recommend to continue to collect income data from all adults. We would also suggest to review how State Pension data is collected in the SHS, and whether changes to the questionnaire wording or data editing / imputation routines may improve the data quality for this key benefit.
 
@@ -109,14 +119,15 @@ We would therefore recommend to continue to collect income data from all adults.
 
 ## Questions for the QA group
 
-1. Looking at the summary above and the analysis on which it is based, would you come to the same conclusions?
+1. Looking at the summary above and the analysis on which it is based, do you come to the same conclusions?
 
-2. We propose to produce further analysis for your review where we compare SHS-based BHC poverty estimates (excluding pensioners) with HBAI poverty estimates by household type, economic status and tenure. In addition, we will compare SHS-based child poverty estimates with the recently published admin data-based child poverty estimates (CiLiF) by council area. 
-
-3. ...
-
+2. We propose to produce further analysis for your review where we compare SHS-based BHC poverty estimates (excluding pensioners) with HBAI poverty estimates. In addition, we will compare SHS-based child poverty estimates with the recently published admin data-based child poverty estimates (CiLiF). Do you have any views on this proposal?
 
 ## Introduction
+
+This report assesses how closely income data collected in the Scottish Household Survey (SHS) matches that of the Household Below Average Incomes (HBAI), the "gold standard" for household income data in the UK. The purpose of this assessment is to understand whether SHS income data is accurate enough to allow household income and poverty analysis in Scotland where this is not possible using the HBAI or administrative data sources. That's the case for certain subgroups of the population where the HBAI sample is too small, and where these subgroups are not identified in the administrative data. That's also the case for a wide range of contexts which are not covered in the HBAI or admin data, or not in as much detail, such as travel patterns, social capital, satisfaction with services, house condition, digital inclusion and financial inclusion. 
+
+Note though the HBAI will remain the main source of national (Scotland-level) poverty and household income statistics.
 
 From previous work done comparing SHS and HBAI data, we expect the average total income to be matching fairly well, even if the individual income components might not match well enough for detailed analysis due to the different remits of the two surveys and resulting methods. Here, we look at how the individual income components differ between the surveys and how that might affect different groups of the population differently.
 
@@ -129,6 +140,8 @@ Note that the income discussed here is net household income after benefits, dire
 For the analysis, 95% confidence intervals (C.I.) of the median were calculated using a bootstrapping method. For the HBAI, the bootstrapped C.I.s do not account for the complex survey design. They are therefore only illustrative and may be wider. The C.I.s calculated for the SHS take into account the survey design (stratification by council areas).
 
 In order to make appropriate comparisons across surveys, we recoded some common variables. For example, the definition of a child in the SHS was recoded to match that of the HBAI (i.e. includes 17-19 year-olds living at home, not married, and in full-time non-advanced education). Also, households in the SHS where the highest income householder (which is by definition the household head) is a student, but has earnings income and working hours, were recoded to full- or part-time employee households. This is because of differences in the definition of economic status between the two surveys. In the FRS ILO definition used here, students with jobs would be considered in work, whereas in SHS they would be considered students. After recoding, they will be considered in work in both surveys.
+
+Throughout the discussion in this chapter we refer to sections in chapter 2, **Annex: Charts and tables**. The Annex includes all charts and tables produced for this project. 
 
 ## Earnings higher 
 
@@ -184,7 +197,7 @@ Combined **disability and carers' benefits** are captured to `r filter(bencontr,
 
 **Universal Credit** and **Pension Credit** are both vastly underreported in the SHS, explaining another `r filter(bencontr, type =="Universal Credit") %>% select(diffcontr) %>% pull()` and `r filter(bencontr, type =="Pension Credit") %>% select(diffcontr) %>% pull()` of the total benefit income difference between HBAI and SHS. For both benefits, the received amounts are underreported. In addition, there are also fewer households in the SHS who report that they receive Pension Credit (sections \@ref(typover), \@ref(uc) and \@ref(pc)).
 
-## Investment income much lower
+## Investment income much lower {#invlower}
 
 Investment income makes up `r filter(incdiff, type == "inv") %>% select(HBAIshare) %>% pull()` of total income according to the HBAI. Investment income is hugely underreported in the SHS compared to the HBAI, even though we are using the HBAI data before top-income adjustments (which would correct top incomes upwards). This underreporting explains `r filter(incdiff, type == "inv") %>% select(diffcontr) %>% pull()` of the difference in total income (section \@ref(compover)).
 
@@ -194,7 +207,7 @@ The massively lower investment income in the SHS is largely due to the fact that
 
 **Single pensioner** and **pensioner couple** households get the major part of their income from benefits, which is mainly the State Pension. As the State Pension is underreported in the SHS (compared to the HBAI), household income is underrerported for these household types. The underreporting of State Pension is due to both, underreporting of the amount, and non-reporting of receiving the benefit. Many single pensioners in particular did not report that they received any State Pension at all. As for pensioner couple households, the numbers reporting that they did receive the State Pension was similar across surveys, but the average amount was lower in the SHS. It is possible that this is because only the State Pension of one person in the couple was reported in the SHS (section \@ref(pensources)). 
 
-In addition to differences in benefit income (which is mainly the state pension), there are also large differences in occupational pensions and investment income. The difference in investment income is mostly due to non-reporting of investment income in the SHS compared to the HBAI. It should be noted that most of investment income in Scotland goes to retired households, see also sections [Investment income much lower][Investment income much lower] and \@ref(investment). Similarly, fewer people in the SHS report any occupational pension income, although average occupational pension income for those who receive it is comparable (section \@ref(occpen)).
+In addition to differences in benefit income (which is mainly the state pension), there are also large differences in occupational pensions and investment income. The difference in investment income is mostly due to non-reporting of investment income in the SHS compared to the HBAI. It should be noted that most of investment income in Scotland goes to retired households (sections \@ref(invlower) and \@ref(investment)). Similarly, fewer people in the SHS report any occupational pension income, although average occupational pension income for those who receive it is comparable (section \@ref(occpen)).
 
 Households with **one working-age adult and one pensioner** get a major part of their income through earnings, followed by benefits and occupational pensions (section \@ref(pensources)). This means that this group is less affected by underreported benefit income than the two other pensioner household types, and we will see that the median total income of this group matches better across surveys compared to single pensioner or pensioner couple households (section \@ref(inchhtype)).
 
@@ -242,7 +255,7 @@ Households where the head is **self-employed** had very variable incomes and a h
 
 We looked in detail at the sources of income, but haven't fully addressed the following remaining issues:
 
-a) Housing costs. There are some differences between surveys in what's considered a housing cost. The main difference affects home owners with a mortgage: While the HBAI considers only the mortgage interest as a housing cost, the SHS also includes capital repayments. Either method is reasonable, but they will lead to quite different results for these households - we expect housing costs for home owners with a mortgage to be higher in the SHS, and income after housing cost lower, than in the HBAI. 
+a) Housing costs. There are some differences between surveys in what's considered a housing cost. The main difference affects home owners with a mortgage: While the HBAI considers only the mortgage interest as a housing cost, the SHS also includes capital repayments. Either method has merit, but each will lead to a quite different result for these households - we expect housing costs for home owners with a mortgage to be higher in the SHS, and income after housing cost lower, than in the HBAI. It appears not possible to strip out capital repayments from the SHS housing costs to align them with the HBAI.
 In addition to mortgages, the HBAI also includes rent, water and sewerage charges, and (structural) home insurance as housing costs. In the SHS, housing costs also include rent.
 SHS 2018 does not yet contain the housing cost variable. Once the SHS 2019 dataset is published in September, we can compare housing costs by tenure across surveys to understand the impact of the different definitions.
 
@@ -254,7 +267,7 @@ d) In the analysis here, we didn't use the usual HBAI BHC income variable on whi
 
 e) The bootstrapping mechanism that calculates the 95% confidence intervals of HBAI median incomes draws sub-samples from the survey sample via simple random sampling. However, in order to be precise, it should really draw the samples in the same way as the original sample was drawn, using the complex sampling design of the FRS. This might widen the C.I.s even further. It may be possible to calculate these more accurate confidence intervals for the HBAI data using a resamples dataset that DWP provide; however, this will be time consuming and is unlikely to add much new information.
 
-# Charts and tables
+# Annex: Charts and tables
 
 This part includes all tables and charts produced for the analysis. The survey data comes from the SHS 2018 and the HBAI 2018/19; and the administrative benefit data from StatXplore and the Scottish Government.
 
