@@ -46,5 +46,5 @@ cols_bens <- cols_types2[c(3, 5, 2, 8, 10,
  show_col(wes_palettes[[6]])
  
  cols_finman <- c("#0B775E", "#74A089", "#899DA4", "#FAEFD1", "#DC863B", "#C93312")
-# show_col(cols_finman)
+#show_col(cols_finman)
  

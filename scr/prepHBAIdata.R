@@ -44,7 +44,8 @@ tidyhbai <- hbai1819 %>%
          BENUNIT == 1) %>%
   left_join(HBAIweights, by = "SERNUM") %>%
   left_join(tidyadult, by = "SERNUM") %>%
-  mutate(equ = eqobhchh,
+  mutate(simd = NA,
+         equ = eqobhchh,
          earn = enternhh/equ,
          #earn = ifelse(enternhh >= 0, enternhh/equ, 0),
          ben = ebeninhh/equ,
@@ -73,10 +74,10 @@ tidyhbai <- hbai1819 %>%
                                                                    ifelse(pp == 2 & wa == 1 & pn == 1, 8, 9)))))))),
          ID = row_number()) %>%
   select(ID, hhwgt, ppwgt, chwgt, wawgt, pnwgt, hhtype, HIHemp, pp, ch, wa, pn, 
-         total, earn, ben, privben, occ, inv, oth, ded, equ, SERNUM, tenure, hcost) %>%
+         total, earn, ben, privben, occ, inv, oth, ded, equ, SERNUM, tenure, hcost, simd) %>%
   left_join(tidyhousehol, by = "SERNUM") %>%
   gather(key = type, value = amount, -ID, -SERNUM, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -pp, -ch, -wa, -pn, 
-         -council, -urbrur, -hhtype, - HIHemp, -equ, -tenure, -hcost) %>%
+         -council, -urbrur, -hhtype, - HIHemp, -equ, -tenure, -hcost, -simd) %>%
   mutate(survey = "HBAI") %>%
   remove_labels() 
 
@@ -190,7 +191,7 @@ tidyhbaibens <- filter(tidyhbai, type == "ben") %>%
 tidyhbaibens <- tidyhbaibens %>%
   select(-type, -pp, -ch, -wa, -pn, -amount) %>%
   gather(type, amount, -ID, -hhwgt, -ppwgt, -chwgt, -wawgt, -pnwgt, -council, -urbrur,
-         -hhtype, -HIHemp, -survey, -equ, -tenure, -hcost) %>%
+         -hhtype, -HIHemp, -survey, -equ, -tenure, -hcost, -simd) %>%
   mutate(amount = ifelse(is.na(amount), 0, amount/equ),
          survey = "HBAI") 
 

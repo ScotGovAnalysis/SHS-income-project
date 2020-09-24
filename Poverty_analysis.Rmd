@@ -1,19 +1,20 @@
 ---
-title: "SHS income project - poverty"
-output:
-  bookdown::gitbook:
-    config:
-      fontsettings:
-        family: sans
-        theme: white
-      sharing: no
-      toc:
-        collapse: section
-        scroll_highlight: yes
-    split_by: section+number
+title: "SHS income project - 2nd interim report (poverty analysis)"
 # output:
-#   bookdown::word_document2:
-#     reference_docx: template.docx
+#   bookdown::gitbook:
+#     config:
+#       fontsettings:
+#         family: sans
+#         theme: white
+#       sharing: no
+#       toc:
+#         collapse: section
+#         scroll_highlight: yes
+#     split_by: section+number
+output:
+  word_document:
+    reference_docx: template.docx
+    toc: yes
 ---
 
 ```{r setup, include = FALSE}
@@ -24,173 +25,231 @@ knitr::opts_chunk$set(fig.width = 10, fig.asp = 0.5,
                       echo = FALSE,
                       warning = FALSE)
 
-# Load packages
+# load data
 
-library(plyr) # needed for groupwiseMedian function
-library(tidyverse)
-library(naniar) # for dealing with missing values
-library(labelled) # to remove labels from imported data
-library(scales) # for comma and percent formats
-library(ggrepel) # for non-overlapping chart annotation
-library(Hmisc) # for weighted quartiles
-library(boot) # needed for groupwiseMedian function
-library(readxl) # import Excel files
-library(survey) # survey data analysis
-
-# Load functions
-
-source("scr/functions.R")
-
-# Load colour scheme and other strings
-
-source("scr/strings.R")
-source("scr/colours.R")
-
-# Load datasets
-
-adult_1819 <- readRDS("output/adult_1819.rds")
-househol_1819 <- readRDS("output/househol_1819.rds")
-benefits_1819 <- readRDS("output/benefits_1819.rds")
-hbai1819 <- readRDS("output/hbai1819.rds")
-person18 <- readRDS("output/person18.rds")
-hhold18 <- readRDS("output/hhold18.rds")
-
-cilif_council <- read_excel("ext/docs/Cilif.xlsx", sheet = "council")
-cilif_hhtype <- read_excel("ext/docs/Cilif.xlsx", sheet = "hhtype")
-cilif_work <- read_excel("ext/docs/Cilif.xlsx", sheet = "work")
-cilif_urbrur <- read_excel("ext/docs/Cilif.xlsx", sheet = "urbrur")
-
-# Create tidy datasets
-
-source("scr/prepSHSdata.R")
-source("scr/prepHBAIdata.R")
-
-# Combine all data
-
-source("scr/prepdata.R")
-
-# Change some theme elements (charts)
-
-theme_update(legend.position = "top",
-             legend.title = element_blank(),
-             panel.background = element_blank(),
-             panel.grid.major.x = element_blank(),
-             panel.grid.minor.x = element_blank(),
-             panel.grid.major.y = element_blank(),
-             axis.ticks = element_blank(),
-             text = element_text(size=16))
-
-# Prepare SHS survey data for poverty analysis
-
-## SHS survey design for child poverty
-
-SHSpov_ch <- tidydata %>%
-  filter(pnwgt == 0,
-         type == "total",
-         survey == "SHS") %>%
-  mutate(allchildren = sum(chwgt),
-         work = ifelse(HIHemp %in% c("Full-time Employee", "Part-time Employee", "Self-Employed"), 
-                       "In working families",
-                       "Not in working families"))
-
-SHSpov_ch$urbrur <- decode(SHSpov_ch$urbrur,
-                           search = urbrurclasses,
-                           replace = urbrurclasses2)
-
-SHSdesign_ch <- svydesign(id = ~ID, strata = ~council, weights = ~chwgt, data = SHSpov_ch, fpc = ~allchildren)
-
-## SHS survey design for working age poverty
-
-SHSpov_wa <- tidydata %>%
-  filter(pnwgt == 0,
-         type == "total",
-         survey == "SHS") %>%
-  mutate(alladults = sum(wawgt))
-
-SHSdesign_wa <- svydesign(id = ~ID, strata = ~council, weights = ~wawgt, data = SHSpov_wa, fpc = ~alladults)
-
-## SHS survey design for poverty excluding households with pensioners
-
-SHSpov_pp <- tidydata %>%
-  filter(pnwgt == 0,
-         type == "total",
-         survey == "SHS") %>%
-  mutate(allpeople = sum(ppwgt))
-
-SHSdesign_pp <- svydesign(id = ~ID, strata = ~council, weights = ~ppwgt, data = SHSpov_pp, fpc = ~allpeople)
-
+source("scr/prepPovertydata.R")
 
 ```
 
-# Introduction
+# Project summary
 
-Do SHS and FRS identify the same kind of households as being in poverty?
+A brief summary of the project initiation document to recall purpose and scope of the project.
 
-# Children, working-age adults and pensioners in relative poverty - comparison with HBAI
+The SHS income project is about assessing how accurately the Scottish Household Survey (SHS) measures household income, by comparing SHS data to data from Household Below Average Incomes (HBAI), the “gold standard” for household income data in the UK. 
 
-When looking at the number, composition and proportion of those in poverty, we can see that there are many more people in poverty in the SHS, largely driven by pensioners, whose poverty risk is exaggerated in the SHS.
+The **purpose** of this assessment is to understand whether SHS income data is accurate enough to allow household income and poverty analysis in Scotland where this is not possible using the HBAI or administrative data sources. For example, income and poverty analysis in Scotland is not possible with HBAI or admin data for certain subgroups of the population where the HBAI sample is too small, and where these subgroups are not identified in the administrative data. This is also the case for a wide range of contexts which are not covered or not covered in as much detail in the HBAI or admin data, such as travel patterns, social capital, satisfaction with services, house condition, digital inclusion and financial inclusion.
 
-Numbers in relative poverty:
+It should be noted that by undertaking this work, we are not proposing a wholesale shift in reporting income and poverty statistics from HBAI to SHS income data; the HBAI will remain the main source of national (Scotland-level) poverty and household income statistics, with SHS statistics providing supplementary income and poverty analysis where not available from HBAI or administrative data.
+
+The **scope** of this project is to assess the accuracy of the new SHS income variable, and whether it measures income accurately enough to produce poverty estimates. Further improvements of the income variable are not in scope; however, we are making suggestions to the SHS team for potential improvements that do not require new survey questions.
+
+The **stages** of this project are as follows:
+
+- We shared the project initiation document in early May 2020. 
+- The 1st interim report, containing detailed income analysis, was shared on 30 July 2020, with detailed comments received from Ailie Clarkson and Nick Bailey. 
+- This is the 2nd interim report plan, containing poverty analysis.
+- A final project report will describe the analysis undertaken and the conclusions drawn in terms of strengths and limitations of SHS income data.
+
+# Income analysis summary
+
+A brief summary of the income analysis paper and comments.
+
+In the 1st interim report (shared on 30 July), we compared net household income data from the SHS 2018 with that from the HBAI 2018/19 by looking at the main income components as well as total income. Below is the summary of our findings and the implications.
+
+We found that overall, average earnings were reasonably similar between surveys, with SHS earnings slightly higher than HBAI earnings. Note though that for lower household incomes, SHS earnings were slightly lower than HBAI earnings. While average earnings for households with employed household heads were comparable between the two surveys, earnings for the small number of households with a self-employed head were much higher in the SHS compared to the HBAI, probably due to differences in survey methodology.
+
+Earnings determine total income of employed and self-employed households, the majority of households in Scotland. For example, households where the head is employed have fairly consistent earnings levels across the two surveys, and therefore their total income also matches well. In contrast, households with a self-employed head show very different earnings levels in the two surveys, and therefore also very different income levels.
+
+Average benefit income was consistently lower in the SHS compared to the HBAI, due to underreporting and non-reporting of benefits. The impact of under- and non-reporting of the State Pension dwarfed the impact of all other (also underreported) benefits and thereby affected almost all pensioner households. Underreporting of disability benefits affected households where these benefits are a major or the main income source, such as those who are economically inactive due to disability or longterm illness.
+
+Benefit income drives total income of economically inactive and unemployed households. For example, pensioners’ incomes largely consist of the State Pension and to a smaller degree, occupational pensions. Both are considerably lower in the SHS, and therefore total income of pensioners is lower. Similarly, a large part of total income of households with a disabled household head come from disability-related benefits, which are equally much lower in the SHS, resulting in too low total incomes.
+
+The total income distribution is similar for both surveys, although the SHS distribution is slightly wider than the HBAI equivalent. As a result, a larger proportion of the population sit below the SHS poverty threshold in the SHS income distribution.
+
+Within the limited means of comparing regional incomes between surveys, we found no indication that there were any local areas with particularly large income discrepancies, and no reason to expect any.
+
+In conclusion, incomes between SHS and HBAI compare reasonably well, and we believe that the SHS produces very good income estimates considering its wide remit. However, there are some types of households which cause problems due to underreporting of benefits and differences in self-employed earnings: The largest group among them are pensioner households; other groups are households that are economically inactive due to disability, and households with a self-employed household head.
+
+The implications of all findings for poverty measurement are as follows:
+
+- SHS income data enables us to calculate robust before housing costs (BHC) poverty rates. These will be higher than those based on the HBAI due to the shape of the income distribution and due to pensioners’ incomes which are too low.
+- The differences between poverty estimates based on different surveys always need to be clearly communicated when publishing any estimates.
+- It might also be best to exclude pensioners from any SHS based poverty analysis.
+- Furthermore, when disaggregating statistics by economic status, one should be aware that poverty of self-employed households may be underestimated.
+- And finally, regional poverty breakdowns should be possible where sample sizes allow, although it would be advisable to always include some measure of uncertainty.
+
+The members of the QA group found that the analysis undertaken was thorough, they considered the findings plausible and agreed with the conclusions.
+
+More re comments ...
+
+# Poverty analysis summary
+
+A summary of the results and conclusions of the poverty analysis. These are based on the tables and charts in Annex 1 (HBAI comparison) and Annex 2 (CiLIF comparison).
+
+
+
+# Project conclusions
+
+Key conclusions; suggestions for further work (not part of this project)
+
+We would therefore recommend to continue to collect income data from all adults. We would also suggest to review how State Pension data is collected in the SHS, and whether changes to the questionnaire wording or data editing / imputation routines may improve the data quality for this key benefit.
+
+- suggestions for future work which is outwith the scope of this project (improving pension income reporting and consider imputation; improved council tax imputation)
+
+We looked in detail at the sources of income, but haven’t fully addressed the following remaining issues:
+
+a)	Housing costs. There are some differences between surveys in what’s considered a housing cost. The main difference affects home owners with a mortgage: While the HBAI considers only the mortgage interest as a housing cost, the SHS also includes capital repayments. Either method has merit, but each will lead to a quite different result for these households - we expect housing costs for home owners with a mortgage to be higher in the SHS, and income after housing cost lower, than in the HBAI. It appears not possible to strip out capital repayments from the SHS housing costs to align them with the HBAI. In addition to mortgages, the HBAI also includes rent, water and sewerage charges, and (structural) home insurance as housing costs. In the SHS, housing costs also include rent. SHS 2018 does not yet contain the housing cost variable. Once the SHS 2019 dataset is published in September, we can compare housing costs by tenure across surveys to understand the impact of the different definitions.
+
+b)	Self-employed earnings are much higher in the SHS compared to the HBAI. Checking with SHS datas from previous years shows that this high level of self-employed earnings is consistent across years. The difference between surveys could be caused by questionnaire wording, survey time spent on self-employed earnings, or different definitions of self-employment. As households with a self-employed household head make up only 7% of all households (according to SHS 2018) this issue is not a priority. However, if QA group members have expertise in this area we would be grateful to hear about it.
+
+c)	The SHS doesn’t collect information on children’s incomes. An Ipsos Mori report showed that children’s income made up 1% of single parents’ income in the FRS, and that it was less important for couples households with children. Children’s incomes include earnings, trust funds, scholarships, bursaries or grants. Since median incomes appear to agree fairly well across surveys for both household types, we decided not to pursue this issue any further.
+
+d)	In the analysis here, we didn’t use the usual HBAI BHC income variable on which the official income and poverty statistics are based, but income without top-income adjustments. The reason for this is that the HBAI top-income adjusted figures are only available for gross earnings, but we’re comparing net earnings. However, the effect on the median of total income is small. The HBAI median without top-income adjustment is £515, whereas the top-income adjusted median is £517. Lower incomes will be affected less by this lack of top-income adjustment, and therefore we decided not to pursue this issue any further.
+
+e)	The bootstrapping mechanism that calculates the 95% confidence intervals of HBAI median incomes draws sub-samples from the survey sample via simple random sampling. However, in order to be precise, it should really draw the samples in the same way as the original sample was drawn, using the complex sampling design of the FRS. This might widen the C.I.s even further. It may be possible to calculate these more accurate confidence intervals for the HBAI data using a resamples dataset that DWP provide; however, this will be time consuming and is unlikely to add much new information.
+
+
+
+# Projects outputs
+
+Details of the remaining output, the final report, which will be published.
+
+The main output from this project is a report of the analysis undertaken to understand the quality of the SHS income variable and the conclusions drawn in terms of strengths and limitations of the new SHS income variable.
+
+The conclusions also make a recommendation as to whether the additional income questions should remain in the SHS questionnaire.
+
+Within the report, brief guidance on strengths and limitations of the new SHS income variable will be produced for SHS users. This guidance explains how poverty analysis based on the SHS income variable might differ from official statistics and why, and when to use SHS income data rather than the conventional, more robust income datasets. (Also, what the definitional housing costs differences are and how they will affect poverty rates, even though we haven't looked in detail at housing cost data quality (Ipsos Mori might have, check their report))
+
+A non-technical summary of the report will be provided for the wider stakeholder group.
+
+# Annex 1: HBAI and SHS - relative poverty
+
+In the analysis that follows, we compared SHS-derived poverty estimates to HBAI-derived poverty estimates. The HBAI estimates used here differ from official statistics in two ways:
+
+- they use a poverty threshold based on the Scottish median rather than the UK median
+- they are based on a household income that doesn't include children's incomes and is not adjusted for top-income underreporting
+
+_**Should I do this, or use official stats??**_
+
+More people are in poverty in the SHS compared to the HBAI. This is largely driven by pensioners, whose poverty risk is exaggerated in the SHS. However, if we exclude households with pensioners, we still have slightly more working-age adults and children in poverty in the SHS than in the HBAI. We therefore also expect slightly higher poverty rates in the SHS in the analysis that follows.
+
+(Note that 'adults' in the tables below refer to working-age adults.)
+
 ```{r poverty_numbers}
 
 tidydata %>%
   filter(type == "total") %>%
   group_by(survey, low60bhc) %>%
-  summarise(people = comma(sum(ppwgt), 10000),
+  summarise(total = comma(sum(ppwgt), 10000),
             children = comma(sum(chwgt), 10000),
             adults = comma(sum(wawgt), 10000),
             pensioners = comma(sum(pnwgt), 10000)) %>%
   filter(low60bhc == 1) %>%
   select(-low60bhc) %>%
-  knitr::kable(align = "lrrrr")
+  knitr::kable(align = "lrrrr", caption = "Numbers in relative poverty")
 
 ```
 
-Composition of those in relative poverty:
 ```{r poverty_composition}
 
 tidydata %>%
   filter(type == "total") %>%
   group_by(survey, low60bhc) %>%
-  summarise(people = sum(ppwgt),
+  summarise(total = sum(ppwgt),
             children = sum(chwgt),
             adults = sum(wawgt),
             pensioners = sum(pnwgt)) %>%
-  mutate(children = percent(children/people, 1),
-         adults = percent(adults/people, 1),
-         pensioners = percent(pensioners/people, 1),
-         people = percent(1, 1) ) %>%
+  mutate(children = percent(children/total, 1),
+         adults = percent(adults/total, 1),
+         pensioners = percent(pensioners/total, 1),
+         total = percent(1, 1) ) %>%
   filter(low60bhc == 1) %>%
   select(-low60bhc) %>%
-  knitr::kable(align = "lrrrr")
+  knitr::kable(align = "lrrrr", caption = "Composition of those in relative poverty")
 
 ```
 
-Proportion of individuals in relative poverty:
 ```{r poverty_rates}
 
 tidydata %>%
   filter(type == "total") %>%
   group_by(survey, low60bhc) %>%
-  summarise(people = sum(ppwgt),
+  summarise(total = sum(ppwgt),
             children = sum(chwgt),
             adults = sum(wawgt),
             pensioners = sum(pnwgt)) %>%
-  mutate(people = percent(people/sum(people), 1),
+  mutate(total = percent(total/sum(total), 1),
          children = percent(children/sum(children), 1),
          adults = percent(adults/sum(adults), 1),
          pensioners = percent(pensioners/sum(pensioners), 1)) %>%
   filter(low60bhc == 1) %>%
   select(-low60bhc) %>%
-  knitr::kable(align = "lrrrr")
+  knitr::kable(align = "lrrrr", caption = "Proportion of individuals in relative poverty")
+
+
+```
+
+**Households with pensioners are excluded from the analysis that follows.** This also reduces the number of children and working-age adults in poverty, as some of them live in households with pensioners.
+
+```{r poverty_numbers_exc}
+
+tidydata %>%
+  filter(type == "total",
+         pnwgt == 0) %>%
+  group_by(survey, low60bhc) %>%
+  summarise(total = comma(sum(chwgt + wawgt), 10000),
+            children = comma(sum(chwgt), 10000),
+            adults = comma(sum(wawgt), 10000)) %>%
+  filter(low60bhc == 1) %>%
+  select(-low60bhc) %>%
+  knitr::kable(align = "lrrrr", caption = "Numbers in relative poverty")
+
+```
+
+```{r poverty_composition_exc}
+
+tidydata %>%
+  filter(type == "total",
+         pnwgt == 0) %>%
+  group_by(survey, low60bhc) %>%
+  summarise(total = sum(chwgt+wawgt),
+            children = sum(chwgt),
+            adults = sum(wawgt)) %>%
+  mutate(children = percent(children/total, 1),
+         adults = percent(adults/total, 1),
+         total = percent(1, 1) ) %>%
+  filter(low60bhc == 1) %>%
+  select(-low60bhc) %>%
+  knitr::kable(align = "lrrrr", caption = "Composition of those in relative poverty")
+
+```
+
+```{r poverty_rates_exc}
+
+tidydata %>%
+  filter(type == "total",
+         pnwgt == 0) %>%
+  group_by(survey, low60bhc) %>%
+  summarise(total = sum(chwgt + wawgt),
+            children = sum(chwgt),
+            adults = sum(wawgt)) %>%
+  mutate(total = percent(total/sum(total), 1),
+         children = percent(children/sum(children), 1),
+         adults = percent(adults/sum(adults), 1)) %>%
+  filter(low60bhc == 1) %>%
+  select(-low60bhc) %>%
+  knitr::kable(align = "lrrrr", caption = "Proportion of individuals in relative poverty")
 
 
 ```
 
 
-# Comparison with HBAI (excluding pensioners)
-
 ## by household type 
+
+For this analysis, note that
+
+a) we expect SHS poverty rates to be slightly higher than HBAI poverty rates, and
+b) we expect HBAI-based confidence intervals to be at least as wide as the SHS-based confidence intervals.
 
 ```{r pov_hhtype}
 
@@ -243,6 +302,13 @@ tidydata %>%
 
 ## by economic status
 
+For this analysis, note that
+
+a) we expect SHS poverty rates in general to be slightly higher than HBAI poverty rates,
+b) we expect HBAI-based confidence intervals to be at least as wide as the SHS-based confidence intervals,
+c) self-employed incomes are higher in the SHS, and therefore contrary to a), we expect the poverty rate to be lower for this group, and
+d) households who depend on benefits such as disability-related ones tend to underreport income in the SHS compared to the HBAI; we therefore expect poverty rates to be higher in the SHS for these groups.
+
 ```{r pov_eco}
 
 SHS_pp_rate <- svyby(~low60bhc, ~HIHemp, SHSdesign_pp, svymean, vartype=c("ci","ci")) %>%
@@ -293,6 +359,11 @@ tidydata %>%
 ```
 
 ## by council area
+
+For this analysis, note that
+
+a) we expect SHS poverty rates in general to be slightly higher than HBAI poverty rates, and
+b) we expect HBAI-based confidence intervals to be at least as wide as the SHS-based confidence intervals.
 
 ```{r pov_council, fig.asp = 0.9}
 
@@ -345,6 +416,11 @@ tidydata %>%
 
 ## by urban/rural area
 
+For this analysis, note that
+
+a) we expect SHS poverty rates in general to be slightly higher than HBAI poverty rates, and
+b) we expect HBAI-based confidence intervals to be at least as wide as the SHS-based confidence intervals.
+
 ```{r pov_urb}
 
 SHS_pp_rate <- svyby(~low60bhc, ~urbrur, SHSdesign_pp, svymean, vartype=c("ci","ci")) %>%
@@ -396,6 +472,11 @@ tidydata %>%
 
 ## by tenure
 
+For this analysis, note that
+
+a) we expect SHS poverty rates in general to be slightly higher than HBAI poverty rates, and
+b) we expect HBAI-based confidence intervals to be at least as wide as the SHS-based confidence intervals.
+
 ```{r pov_tenure}
 
 SHS_pp_rate <- svyby(~low60bhc, ~tenure, SHSdesign_pp, svymean, vartype=c("ci","ci")) %>%
@@ -445,9 +526,11 @@ tidydata %>%
   
 ```
 
-# Child poverty - comparison with CiLIF
+# Annex 2: CiLIF and SHS - relative child poverty
 
-Number of children in relative poverty:
+Children in low-income families (CiLIF) is DWP and HMRC's new admin-data based local child poverty measure. CiLIF numbers of children in relative poverty were calibrated to match HBAI numbers broken down by UK region, work status, and family type.
+
+
 ```{r cilif_all}
 
 allcilif <- cilif_council %>%
@@ -470,16 +553,16 @@ tidydata %>%
                      "-",
                      comma(SHS_CI[2], 10000),
                      ")")) %>%
-  knitr::kable(align = "rrr")
+  knitr::kable(align = "rrr", caption = "Number of children in relative poverty")
   
 
 ```
 
-Note that the CiLIF figure by definition matches the official child poverty estimate for Scotland (200,000 children), which comes from the HBAI. The HBAI estimate in the table above however is based on a Scotland-data based poverty line and a slightly different definition of household income (it excludes children's incomes and is not adjusted for top incomes).
+By definition, the CiLIF figure matches the official child poverty estimate for Scotland (200,000 children), which comes from the HBAI. The HBAI estimate in the table above (190,000) however is based on a different poverty line (derived from Scottish data only) and a slightly different definition of household income (it excludes children's incomes and is not adjusted for top incomes).
 
 ## by family type
 
-Number of children in relative poverty:
+
 ```{r cilif_hhtype}
 
 svyby(~low60bhc, ~hhtype, SHSdesign_ch, svytotal, vartype=c("ci","ci")) %>%
@@ -493,13 +576,14 @@ svyby(~low60bhc, ~hhtype, SHSdesign_ch, svytotal, vartype=c("ci","ci")) %>%
                      ")"),
          CiLIF = comma(Cilif)) %>%
   select(hhtype, SHS, CiLIF) %>%
-  knitr::kable(align = "lrr")
+  knitr::kable(align = "lrr", caption = "Number of children in relative poverty")
 
 ```
 
 ## by work status
 
-Number of children in relative poverty:
+Note that the term 'working' refers to paid work.
+
 ```{r cilif_eco}
 
 svyby(~low60bhc, ~work, SHSdesign_ch, svytotal, vartype=c("ci","ci")) %>%
@@ -512,13 +596,12 @@ svyby(~low60bhc, ~work, SHSdesign_ch, svytotal, vartype=c("ci","ci")) %>%
                      ")"),
          CiLIF = comma(Cilif)) %>%
   select(work, SHS, CiLIF) %>%
-  knitr::kable(align = "lrr")
+  knitr::kable(align = "lrr", caption = "Number of children in relative poverty")
 
 ```
 
 ## by council area
 
-Number of children in relative poverty:
 ```{r cilif_council, fig.asp = 0.8}
 
 cp <- tidydata %>%
@@ -567,7 +650,6 @@ cilifcomparison %>%
 
 ## by urban/rural area
 
-Number of children in relative poverty:
 ```{r cilif_urbrur}
 
 cilif_urbrur <- cilif_urbrur %>%
@@ -587,122 +669,146 @@ svyby(~low60bhc, ~urbrur, SHSdesign_ch, svytotal, vartype=c("ci","ci")) %>%
                      ")"),
          CiLIF = comma(Cilif)) %>%
   select(urbrur, SHS, CiLIF) %>%
-  knitr::kable(align = "lrr")
+  knitr::kable(align = "lrr", caption = "Number of children in relative poverty")
 
 ```
 
-# Comparison with SIMD
+<!-- # Other comparisons - don't include in paper -->
 
-```{r cpov_simd_ci}
+<!-- Comparing SHS income with SIMD quintile, financial management perception, material deprivation -->
 
-cp <- tidydata %>%
-  filter(type == "total",
-         survey == "SHS",
-         pnwgt == 0) %>%
-  mutate(simd = factor(simd),
-         simdquint = fct_collapse(simd, 
-                             "1" = c("1","2"),
-                             "2" = c("3", "4"),
-                             "3" = c("5", "6"),
-                             "4" = c("7", "8"),
-                             "5" = c("9", "10"))) %>%
-  group_by(simdquint) %>%
-  mutate(allchildren = sum(chwgt),
-         sample = n()) %>%
-  ungroup()
+<!-- ## with SIMD -->
 
-SHSdesign <- svydesign(id = ~1, strata = ~council, weights = ~chwgt, data = cp, fpc = ~allchildren)
+<!-- Should this be SIMD income domain? -->
 
-cprates <- svyby(~low60bhc, ~simdquint, SHSdesign, svymean, vartype=c("se","ci","ci"))
+<!-- ```{r cpov_simd_ci} -->
 
-cprates %>%
- ggplot(aes(x = simdquint, y =  low60bhc, ymin = ci_l, ymax = ci_u)) +
-  geom_point() +
-  geom_errorbar() +
-  geom_text(aes(y = 0.6, label = str_c(percent(low60bhc, 1), " (", percent(ci_l, 1), "-", percent(ci_u, 1), ")")),
-            hjust = 0) +
-  labs(x = NULL, y = NULL,
-       title = "Proportion of children in relative poverty BHC by SIMD quintile",
-       subtitle = "Excludes households with pensioners") +
-  scale_y_continuous(limits = c(-0.1, 0.8), labels = NULL) +
-  coord_flip()
+<!-- cp <- tidydata %>% -->
+<!--   filter(type == "total", -->
+<!--          survey == "SHS", -->
+<!--          pnwgt == 0) %>% -->
+<!--   mutate(simd = factor(simd), -->
+<!--          simdquint = fct_collapse(simd,  -->
+<!--                              "1" = c("1","2"), -->
+<!--                              "2" = c("3", "4"), -->
+<!--                              "3" = c("5", "6"), -->
+<!--                              "4" = c("7", "8"), -->
+<!--                              "5" = c("9", "10"))) %>% -->
+<!--   group_by(simdquint) %>% -->
+<!--   mutate(allchildren = sum(chwgt), -->
+<!--          sample = n()) %>% -->
+<!--   ungroup() -->
 
-```
+<!-- SHSdesign <- svydesign(id = ~1, strata = ~council, weights = ~chwgt, data = cp, fpc = ~allchildren) -->
 
-# Comparison with financial attitudes
+<!-- cprates <- svyby(~low60bhc, ~simdquint, SHSdesign, svymean, vartype=c("se","ci","ci")) -->
 
-```{r managing_financially_pov_exc}
+<!-- cprates %>% -->
+<!--  ggplot(aes(x = simdquint, y =  low60bhc, ymin = ci_l, ymax = ci_u)) + -->
+<!--   geom_point() + -->
+<!--   geom_errorbar() + -->
+<!--   geom_text(aes(y = 0.6, label = str_c(percent(low60bhc, 1), " (", percent(ci_l, 1), "-", percent(ci_u, 1), ")")), -->
+<!--             hjust = 0) + -->
+<!--   labs(x = NULL, y = NULL, -->
+<!--        title = "Proportion of children in relative poverty BHC by SIMD quintile", -->
+<!--        subtitle = "Excludes households with pensioners") + -->
+<!--   scale_y_continuous(limits = c(-0.1, 0.8), labels = NULL) + -->
+<!--   coord_flip() -->
 
-tidydata %>%
-  filter(survey == "SHS",
-         type == "total",
-         !is.na(finman),
-         pnwgt == 0) %>%
-  group_by(low60bhc, finman) %>%
-  summarise(fm = sum(ppwgt)) %>%
-  ungroup() %>%
-  group_by(low60bhc) %>%
-  mutate(people = sum(fm),
-         fmrate = fm/people) %>%
-  ungroup() %>%
-  mutate(low60bhc = factor(low60bhc)) %>%
-  ggplot(aes(x = low60bhc, y = fmrate, fill = finman)) + 
-  geom_col(position = "stack", colour = "white") +
-  coord_flip() +
-  scale_x_discrete(labels = c("Not in poverty", "In poverty")) +
-  scale_y_continuous(labels = percent_format()) +
-  scale_fill_manual(values = cols_finman) +
-  labs(x = NULL, y = NULL,
-       title = "How households are managing financially by poverty status",
-       subtitle = "Excludes households with pensioners, but income deciles based on all households") +
-  theme(legend.position = "right")
+<!-- ``` -->
 
-```
+<!-- ## with perception of own financial management -->
 
-```{r managing_financially_exc}
+<!-- ```{r managing_financially_pov_exc} -->
 
-tidydata %>%
-  filter(survey == "SHS",
-         type == "total",
-         !is.na(finman),
-         pnwgt == 0) %>%
-  group_by(decile, finman) %>%
-  summarise(fm = sum(ppwgt)) %>%
-  ungroup() %>%
-  group_by(decile) %>%
-  mutate(people = sum(fm),
-         fmrate = fm/people) %>%
-  ungroup() %>%
-  mutate(decile = factor(decile)) %>%
-  ggplot(aes(x = decile, y = fmrate, fill = finman)) + 
-  geom_col(position = "stack", colour = "white") +
-  coord_flip() +
-  scale_y_continuous(labels = percent_format()) +
-  scale_fill_manual(values = cols_finman) +
-  labs(x = NULL, y = NULL,
-       title = "How households are managing financially by income decile",
-       subtitle = "Excludes households with pensioners, but income deciles based on all households") +
-  theme(legend.position = "right")
+<!-- tidydata %>% -->
+<!--   filter(survey == "SHS", -->
+<!--          type == "total", -->
+<!--          !is.na(finman), -->
+<!--          pnwgt == 0) %>% -->
+<!--   group_by(low60bhc, finman) %>% -->
+<!--   summarise(fm = sum(ppwgt)) %>% -->
+<!--   ungroup() %>% -->
+<!--   group_by(low60bhc) %>% -->
+<!--   mutate(people = sum(fm), -->
+<!--          fmrate = fm/people) %>% -->
+<!--   ungroup() %>% -->
+<!--   mutate(low60bhc = factor(low60bhc)) %>% -->
+<!--   ggplot(aes(x = low60bhc, y = fmrate, fill = finman)) +  -->
+<!--   geom_col(position = "stack", colour = "white") + -->
+<!--   coord_flip() + -->
+<!--   scale_x_discrete(labels = c("Not in poverty", "In poverty")) + -->
+<!--   scale_y_continuous(labels = percent_format()) + -->
+<!--   scale_fill_manual(values = cols_finman) + -->
+<!--   labs(x = NULL, y = NULL, -->
+<!--        title = "How households are managing financially by poverty status", -->
+<!--        subtitle = "Excludes households with pensioners, but income deciles based on all households") + -->
+<!--   theme(legend.position = "right") -->
 
-```
+<!-- ``` -->
 
-# Comparison with material deprivation
+<!-- ```{r managing_financially_exc} -->
 
-```{r matdep}
+<!-- tidydata %>% -->
+<!--   filter(survey == "SHS", -->
+<!--          type == "total", -->
+<!--          !is.na(finman), -->
+<!--          pnwgt == 0) %>% -->
+<!--   group_by(decile, finman) %>% -->
+<!--   summarise(fm = sum(ppwgt)) %>% -->
+<!--   ungroup() %>% -->
+<!--   group_by(decile) %>% -->
+<!--   mutate(people = sum(fm), -->
+<!--          fmrate = fm/people) %>% -->
+<!--   ungroup() %>% -->
+<!--   mutate(decile = factor(decile)) %>% -->
+<!--   ggplot(aes(x = decile, y = fmrate, fill = finman)) +  -->
+<!--   geom_col(position = "stack", colour = "white") + -->
+<!--   coord_flip() + -->
+<!--   scale_y_continuous(labels = percent_format()) + -->
+<!--   scale_fill_manual(values = cols_finman) + -->
+<!--   labs(x = NULL, y = NULL, -->
+<!--        title = "How households are managing financially by income decile", -->
+<!--        subtitle = "Excludes households with pensioners, but income deciles based on all households") + -->
+<!--   theme(legend.position = "right") -->
 
-tidydata %>%
-  filter(survey == "SHS",
-         type == "total") %>%
-  group_by(decile, md) %>%
-  summarise(mdhh = sum(hhwgt)) %>%
-  group_by(decile) %>%
-  mutate(allhouseholds = sum(mdhh),
-         rate = mdhh/allhouseholds)  %>%
+<!-- ``` -->
 
-  ggplot(aes(x = decile, y = rate, fill = md)) +
-  geom_col()
+<!-- ## with material deprivation -->
 
-```
+<!-- ```{r matdep} -->
+
+<!-- tidydata %>% -->
+<!--   filter(survey == "SHS", -->
+<!--          type == "total", -->
+<!--          pnwgt == 0) %>% -->
+<!--   group_by(decile, md) %>% -->
+<!--   summarise(mdhh = sum(hhwgt)) %>% -->
+<!--   group_by(decile) %>% -->
+<!--   mutate(allhouseholds = sum(mdhh), -->
+<!--          rate = mdhh/allhouseholds, -->
+<!--          md = factor(md, levels = c(0:8), labels = c("Can afford all",  -->
+<!--                                                      "Cannot afford 1 or 2 items",  -->
+<!--                                                      "Cannot afford 1 or 2 items",  -->
+<!--                                                      "Cannot afford 3-5 items",  -->
+<!--                                                      "Cannot afford 3-5 items",  -->
+<!--                                                      "Cannot afford 3-5 items",  -->
+<!--                                                      "Cannot afford 6-8 items",  -->
+<!--                                                      "Cannot afford 6-8 items",  -->
+<!--                                                      "Cannot afford 6-8 items"))) %>% -->
+<!--   ungroup() %>% -->
+<!--   mutate(decile = factor(decile)) %>% -->
+<!--   ggplot(aes(x = decile, y = rate, fill = md)) + -->
+<!--   geom_col() + -->
+<!--   scale_fill_manual(values = cols_finman[3:6]) + -->
+<!--   coord_flip() + -->
+<!--   theme(legend.position = "right") + -->
+<!--   scale_y_continuous(labels = percent_format()) + -->
+<!--   labs(x = NULL, y = NULL, -->
+<!--        title = "How many basic necessities households cannot afford by income decile", -->
+<!--        subtitle = "Excludes households with pensioners, but income deciles based on all households")  -->
+
+<!-- ``` -->
 
 
 
