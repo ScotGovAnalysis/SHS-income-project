@@ -43,6 +43,25 @@ source("scr/prepHBAIdata.R")
 
 source("scr/prepdata.R")
 
+tidydata <- filter(tidydata,
+                   type == "total",
+                   survey != "Admin") %>%
+  select(-hcost, -type, -finman, -md, -n, -equ, -pp, -ch, -wa, -pn)
+
+# Get (original) HBAI poverty flag
+
+hbai_orig <- hbai1819 %>%
+  filter(GVTREGN == 12,
+         BENUNIT == 1) %>%
+  mutate(ID = row_number(),
+         survey = "HBAI",
+         low60bhc_orig = low60bhc) %>%
+  select(ID, survey, low60bhc_orig)
+
+tidydata <- left_join(tidydata, hbai_orig, by = c("ID", "survey")) %>%
+  mutate(low60bhc = ifelse(survey == "HBAI", low60bhc_orig, low60bhc))
+
+
 # Change some theme elements (charts)
 
 theme_update(legend.position = "top",
@@ -51,19 +70,28 @@ theme_update(legend.position = "top",
              panel.grid.major.x = element_blank(),
              panel.grid.minor.x = element_blank(),
              panel.grid.major.y = element_blank(),
+             axis.line.x = element_line(),
              axis.ticks = element_blank(),
-             text = element_text(size=16))
+             text = element_text(size=18))
 
 # Prepare SHS survey data for poverty analysis
 
+## SHS survey design for ch, wa, pn, pp; including all hhlds
+
+data <- tidydata %>%
+  filter(survey == "SHS") %>%
+  mutate(allch = sum(chwgt),
+         allwa = sum(wawgt),
+         allpn = sum(pnwgt),
+         allpp = sum(ppwgt),
+         chwawgt = chwgt + wawgt,
+         allchwa = sum(chwawgt))
+
 ## SHS survey design for child poverty
 
-SHSpov_ch <- tidydata %>%
-  filter(pnwgt == 0,
-         type == "total",
-         survey == "SHS") %>%
-  mutate(allchildren = sum(chwgt),
-         work = ifelse(HIHemp %in% c("Full-time Employee", "Part-time Employee", "Self-Employed"), 
+SHSpov_ch <- data %>%
+  filter(survey == "SHS") %>%
+  mutate(work = ifelse(HIHemp %in% c("Full-time Employee", "Part-time Employee", "Self-Employed"), 
                        "In working families",
                        "Not in working families"))
 
@@ -71,24 +99,12 @@ SHSpov_ch$urbrur <- decode(SHSpov_ch$urbrur,
                            search = urbrurclasses,
                            replace = urbrurclasses2)
 
-SHSdesign_ch <- svydesign(id = ~ID, strata = ~council, weights = ~chwgt, data = SHSpov_ch, fpc = ~allchildren)
+SHSdesign_ch <- svydesign(id = ~ID, strata = ~council, weights = ~chwgt, data = SHSpov_ch, fpc = ~allch)
 
-## SHS survey design for working age poverty
+## SHS survey design for working-age adults, children + waa, pensioners, all people
 
-SHSpov_wa <- tidydata %>%
-  filter(pnwgt == 0,
-         type == "total",
-         survey == "SHS") %>%
-  mutate(alladults = sum(wawgt))
+SHSdesign_wa <- svydesign(id = ~ID, strata = ~council, weights = ~wawgt, data = data, fpc = ~allwa)
+SHSdesign_chwa <- svydesign(id = ~ID, strata = ~council, weights = ~chwawgt, data = data, fpc = ~allchwa)
+SHSdesign_pn <- svydesign(id = ~ID, strata = ~council, weights = ~pnwgt, data = data, fpc = ~allpn)
+SHSdesign_pp <- svydesign(id = ~ID, strata = ~council, weights = ~ppwgt, data = data, fpc = ~allpp)
 
-SHSdesign_wa <- svydesign(id = ~ID, strata = ~council, weights = ~wawgt, data = SHSpov_wa, fpc = ~alladults)
-
-## SHS survey design for poverty excluding households with pensioners
-
-SHSpov_pp <- tidydata %>%
-  filter(pnwgt == 0,
-         type == "total",
-         survey == "SHS") %>%
-  mutate(allpeople = sum(ppwgt))
-
-SHSdesign_pp <- svydesign(id = ~ID, strata = ~council, weights = ~ppwgt, data = SHSpov_pp, fpc = ~allpeople)
