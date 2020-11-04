@@ -1,16 +1,5 @@
 ---
 title: "SHS income project - 2nd interim report"
-# output:
-#   bookdown::gitbook:
-#     config:
-#       fontsettings:
-#         family: sans
-#         theme: white
-#       sharing: no
-#       toc:
-#         collapse: section
-#         scroll_highlight: yes
-#     split_by: section+number
 output:
   word_document:
     reference_docx: template.docx
@@ -57,7 +46,7 @@ We found that overall, average earnings were reasonably similar between surveys,
 
 Earnings determine total income of employed and self-employed households, the majority of households in Scotland. For example, households where the head is employed have fairly consistent earnings levels across the two surveys, and therefore their total income also matches well. In contrast, households with a self-employed head show very different earnings levels in the two surveys, and therefore also very different income levels.
 
-Average benefit income was consistently lower in the SHS compared to the HBAI, due to underreporting and non-reporting of benefits. The impact of under- and non-reporting of the State Pension dwarfed the impact of all other (also underreported) benefits and thereby affected almost all pensioner households. Underreporting of disability benefits affected households where these benefits are a major or the main income source, such as those who are economically inactive due to disability or longterm illness.
+Average benefit income was consistently lower in the SHS compared to the HBAI, due to underreporting and non-reporting of benefits. The impact of under- and non-reporting of the State Pension dwarfed the impact of all other (also underreported) benefits and thereby affected almost all pensioner households. Underreporting of disability benefits affected households where these benefits are a major or the main income source, such as those who are economically inactive due to disability or long-term illness.
 
 Benefit income drives total income of economically inactive and unemployed households. For example, pensioners’ incomes largely consist of the State Pension and to a smaller degree, occupational pensions. Both are considerably lower in the SHS, and therefore total income of pensioners is lower. Similarly, a large part of total income of households with a disabled household head come from disability-related benefits, which are equally much lower in the SHS, resulting in too low total incomes.
 
@@ -65,7 +54,7 @@ The total income distribution is similar for both surveys, although the SHS dist
 
 Within the limited means of comparing regional incomes between surveys, we found no indication that there were any local areas with particularly large income discrepancies, and no reason to expect any.
 
-In conclusion, incomes between SHS and HBAI compare reasonably well, and we believe that the SHS produces very good income estimates considering its wide remit. However, there are some types of households which cause problems due to underreporting of benefits and differences in self-employed earnings: The largest group among them are pensioner households; other groups are households that are economically inactive due to disability, and households with a self-employed household head.
+In conclusion, incomes between SHS and HBAI compare reasonably well, and we believe that the SHS produces very good income estimates considering its wide remit. However, there are some types of households where income estimates are problematic due to underreporting of benefits and differences in self-employed earnings: The largest group among them are pensioner households; other groups are households that are economically inactive due to disability, and households with a self-employed household head.
 
 The implications of the findings for poverty measurement are as follows:
 
@@ -81,13 +70,13 @@ The members of the QA group found that the income analysis undertaken was thorou
 
 This section summarises the poverty analysis in the [Annex][ANNEX].
 
-We compared relative poverty estimates before housing costs (BHC) that are based on SHS income data with those based on HBAI income data^[In contrast to the income analysis shared previously, the HBAI income variable used here is the 'standard' income used in official statistics, and the HBAI poverty threshold is based on the UK median.] and CiLIF data. CiLIF (Children in low-income families)^[https://www.gov.uk/government/publications/children-in-low-income-families-local-area-statistics-background-information-and-methodology/background-information-and-methodology-children-in-low-income-families-local-area-statistics] is DWP and HMRC's new admin-data based local child poverty measure. CiLIF numbers of children in relative poverty were calibrated to match (three-year-averaged) HBAI numbers broken down by UK region, work status, family type, and child age.
+We compared relative poverty estimates before housing costs (BHC) that are based on SHS income data with those based on HBAI income data^[In contrast to the income analysis shared previously, the HBAI income variable used here is the 'standard' income used in official statistics, and the HBAI poverty threshold is based on the UK median.] and CiLIF data (Children in low-income families)^[https://www.gov.uk/government/publications/children-in-low-income-families-local-area-statistics-background-information-and-methodology/background-information-and-methodology-children-in-low-income-families-local-area-statistics]. CiLIF is DWP and HMRC's new admin-data based local child poverty measure. CiLIF numbers of children in relative poverty were calibrated to match (three-year-averaged) HBAI numbers broken down by UK region, work status, family type, and child age.
 
 ## SHS and HBAI {-}
 
 While we would expect poverty rates and numbers to differ slightly when using different data sources, we need to test that the SHS and HBAI identify the same household characteristics to be associated with a high (and a low) poverty risk. As we will show, this is the case.
 
-We found that more people are in poverty in the SHS compared to the HBAI. This is largely driven by pensioners, whose poverty risk is exaggerated in the SHS (as discussed in the [Income analysis summary][Income analysis summary]). However, we also have slightly more working-age adults and children in poverty in the SHS than in the HBAI, and similarly, higher poverty rates. 
+We found that more people are in poverty in the SHS compared to the HBAI. This is largely driven by pensioners, whose poverty risk is exaggerated in the SHS (as discussed in the [Income analysis summary][Income analysis summary]). However, we also have slightly more working-age adults and children in poverty in the SHS than in the HBAI, and similarly, higher poverty rates. The composition of children and working-age adults in poverty is similar across surveys.
 
 Disaggregating the Scottish child and working-age population by household type, economic status, tenure, council area (where available) and urban/rural area shows good agreement between SHS and HBAI. While poverty rates are generally slightly higher in the SHS, those groups of the population who have an elevated poverty risk in the HBAI also have an elevated poverty risk in the SHS. 
 
@@ -97,7 +86,7 @@ All other discrepancies between disaggregated groups in the SHS and HBAI are lik
 
 ## SHS and CiLIF {-}
 
-SHS and CilIF child poverty estimates for all children also match well. We therefore expect child poverty numbers to be comparable as well in the disaggregated data that follows.
+SHS and CiLIF child poverty estimates for all children also match well. We therefore expect child poverty numbers to be comparable as well in the disaggregated data that follows.
 
 Disaggregating child poverty numbers by family type, family work status, council area and urban/rural area shows very good agreement between SHS and CiLIF numbers. There are only two discrepancies: the number of children in poverty who live in non-working families (more children in poverty in the SHS), and those who live in East Renfrewshire (fewer children in poverty in the SHS). Non-working families are likely to depend on benefits, which are underreported in the SHS. This contributes to the higher numbers in poverty in the SHS. There is no obvious reason for East Renfrewhsire to have fewer children in poverty in the SHS, but the estimate is based on only 40 cases and may not less robust than those for larger council areas.
 
@@ -127,7 +116,7 @@ We also have the following suggestions for the SHS:
 
 And finally, further work (outwith the scope of this project) could be done in these areas:
 
-- Housing costs: The SHS includes a housing cost variable which could be used to produce after housing cost (AHC) income and poverty measures. There are some differences between surveys in what’s considered a housing cost. The main difference affects home owners with a mortgage: While the HBAI considers the mortgage interest a housing cost but not capital repayments, the SHS includes both. Either method has merit, but each will lead to a quite different result for these households: We expect housing costs for home owners with a mortgage to be higher in the SHS compared to the HBAI; therefore AHC poverty will be higher for this group as well. Further work might involve a comparison of housing costs across surveys, investigating the impact of the different definitions on AHC poverty estimates, and finding ways to clearly communicate the differences between HBAI- and SHS-based housing costs.
+- Housing costs: The SHS includes a housing cost variable which could be used to produce after housing cost (AHC) income and poverty measures. There are some differences between surveys in what is considered a housing cost. The main difference affects home owners with a mortgage: While the HBAI considers the mortgage interest a housing cost but not capital repayments, the SHS includes both. Either method has merit, but each will lead to a quite different result for these households: We expect housing costs for home owners with a mortgage to be higher in the SHS compared to the HBAI; therefore AHC poverty will be higher for this group as well. Further work might involve a comparison of housing costs across surveys, investigating the impact of the different definitions on AHC poverty estimates, and finding ways to clearly communicate the differences between HBAI- and SHS-based housing costs.
 -	Self-employed earnings: Self-employed earnings are much higher in the SHS compared to the HBAI. Checking with SHS data from previous years shows that this high level of self-employed earnings is consistent across years. The difference between surveys could be caused by questionnaire wording, survey time spent on self-employed earnings, or different definitions of self-employment. Further work could investigate the causes of the difference further.
 
 # Next steps
@@ -140,7 +129,9 @@ The final output from this project is a report of the analysis undertaken to und
 
 ## HBAI and SHS - relative poverty
 
-In the analysis that follows, we compare SHS-derived poverty estimates (SHS 2018 data) to HBAI-derived poverty estimates (HBAI 2018/19 data). Note that we use the standard HBAI poverty definition which is based on UK median income^[The 'standard' HBAI income variable is used to produce official income and poverty statistics. It differs in two important ways from the SHS income variable: First, in includes children's incomes, and second, it is adjusted for top incomes underreporting.] and the standard HBAI income variable (as opposed to the more comparable HBAI income variable that was used in the detailed income analysis done previously). The SHS-based poverty estimates are based on Scottish median income.
+In the analysis that follows, we compare SHS-derived poverty estimates (SHS 2018 data) to HBAI-derived poverty estimates (HBAI 2018/19 data)^[While the different reporting periods may contribute to differences in the income distributions, we expect this contribution to be small compared to, for example, questionnaire differences.]. Note that we use the standard HBAI poverty definition which is based on UK median income^[The 'standard' HBAI income variable is used to produce official income and poverty statistics. It differs in two important ways from the SHS income variable: First, in includes children's incomes, and second, it is adjusted for top incomes underreporting.] and the standard HBAI income variable (as opposed to the more comparable HBAI income variable that was used in the detailed income analysis done previously). The SHS-based poverty estimates are based on Scottish median income.
+
+Ranges show the 95% confidence intervals for SHS-based estimates. We did not calculate the equivalent HBAI confidence intervals but they are likely to be wider, as they are based on smaller samples.
 
 The tables below show that there are more people in poverty in the SHS compared to the HBAI. This is largely driven by pensioners, whose poverty risk is exaggerated in the SHS (as discussed in [Income analysis summary][Income analysis summary]). However, if we exclude pensioners, we still have slightly more^[When comparing central estimates, more people are in relative poverty in the SHS than the HBAI. While we cannot accurately calculate uncertainty estimates for HBAI data, we don't expect the differences for working-age adults and children to be statistically significant. We expect uncertainty around HBAI-based estimates to be at least as large as uncertainty around SHS-based estimates, as sample sizes are smaller in the HBAI.] working-age adults and children in poverty in the SHS than in the HBAI. We therefore also expect slightly higher poverty rates in the SHS in the analysis that follows.
 
@@ -256,6 +247,31 @@ tidydata %>%
          HBAI = percent(HBAI, 1)) %>%
   left_join(SHS, by = "group") %>%
   knitr::kable(align = "lrr", caption = "Relative poverty rates (excluding pensioners)")
+
+```
+
+```{r poverty_comp_exc}
+
+tidydata %>%
+  filter(survey != "Admin") %>%
+  group_by(survey, low60bhc) %>%
+  summarise(children = sum(chwgt),
+            adults = sum(wawgt),
+            total = sum(chwgt + wawgt)) %>%
+  filter(low60bhc == 1) %>%
+  mutate(ch = children/total,
+         ad = adults/total,
+         all = 1) %>%
+  select(survey, ch, ad, all) %>%
+  gather(group, comp, -survey) %>%
+  spread(survey, comp) %>%
+  arrange(HBAI) %>%
+  mutate(group = ifelse(group == "ch", "Children", 
+                        ifelse(group == "ad", "Working-age adults", "Total")),
+         HBAI = percent(HBAI, 1),
+         SHS = percent(SHS, 1)) %>%
+  
+  knitr::kable(align = "lrr", caption = "Composition of groups in relative poverty (excluding pensioners)")
 
 ```
 
@@ -541,7 +557,7 @@ By definition, the CiLIF figure matches the official child poverty estimate for 
 
 Child poverty rates are not available for CiLIF because we don't have accurate estimates of the dependent child population^[A dependent child is any person aged 0-15, or aged 16-19 who is still in full-time non-advanced education and living at home.] for the disaggegrations included below.
 
-We can see that SHS and CilIF child poverty estimates match fairly well. We therefore expect child poverty numbers in the disaggregated data that follows to be comparable as well. (Note that the analysis compares SHS 2018 data and CiliF 2016-19 data.)
+We can see that SHS and CiLIF child poverty estimates match fairly well. We therefore expect child poverty numbers in the disaggregated data that follows to be comparable as well. (Note that the analysis compares SHS 2018 data and CiliF 2016-19 data.)
 
 
 ```{r cilif_all}
