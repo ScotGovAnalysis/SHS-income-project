@@ -29,22 +29,15 @@ names(cols_survey) = c("HBAI", "SHS", "Admin")
 cols_types <- c(wes_palettes[["IsleofDogs1"]], "grey20")
 names(cols_types) <- inctypes[-1]
 
-cols_types2 <- c(wes_palettes[["FantasticFox1"]], 
-                 wes_palettes[["Rushmore1"]], 
+cols_types2 <- c(wes_palettes[["FantasticFox1"]],
+                 wes_palettes[["Rushmore1"]],
                  wes_palettes[["GrandBudapest1"]],
                  wes_palettes[["Zissou1"]],
                  wes_palettes[["Cavalcanti1"]],
                  wes_palettes[["Moonrise1"]])
 
-# show_col(cols_types2)
-
-cols_bens <- cols_types2[c(3, 5, 2, 8, 10, 
+cols_bens <- cols_types2[c(3, 5, 2, 8, 10,
                            6, 16, 12, 1, 21,
                            22, 13, 27, 24, 9)]
-# show_col(cols_bens)
 
- show_col(wes_palettes[[6]])
- 
- cols_finman <- c("#0B775E", "#74A089", "#899DA4", "#FAEFD1", "#DC863B", "#C93312")
-#show_col(cols_finman)
- 
+cols_finman <- c("#0B775E", "#74A089", "#899DA4", "#FAEFD1", "#DC863B", "#C93312")
