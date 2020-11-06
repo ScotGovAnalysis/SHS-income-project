@@ -1300,6 +1300,34 @@ ch39 <- tidydata %>%
 
 # chart 40 ----
 
+HBAI_CI <- groupwiseMedian2(var = "amount",
+                            group = "council",
+                            data = filter(tidydata,
+                                          type == "total",
+                                          survey == "HBAI",
+                                          council %in% popokcouncils) %>%
+                              mutate(weight = ppwgt),
+                            conf = 0.95,
+                            R = 100,
+                            normal = TRUE,
+                            basic = FALSE,
+                            percentile = FALSE,
+                            digits = 3)
+
+SHS_CI <- groupwiseMedian3(var = "amount",
+                           group = "council",
+                           data = filter(tidydata,
+                                         type == "total",
+                                         survey == "SHS",
+                                         council %in% popokcouncils) %>%
+                             mutate(weight = ppwgt),
+                           conf = 0.95,
+                           R = 100,
+                           normal = TRUE,
+                           basic = FALSE,
+                           percentile = FALSE,
+                           digits = 3)
+
 SHS_CI$survey <- "SHS"
 HBAI_CI$survey <- "HBAI"
 

@@ -1250,19 +1250,6 @@ tb42 <- tidydata %>%
 
 # table 43 ----
 
-HBAI_CI <- groupwiseMedian2(var = "amount",
-                            group = "council",
-                            data = filter(tidydata,
-                                          type == "total",
-                                          survey == "HBAI",
-                                          council %in% popokcouncils) %>%
-                              mutate(weight = ppwgt),
-                            conf = 0.95,
-                            R = 100,
-                            normal = TRUE,
-                            basic = FALSE,
-                            percentile = FALSE,
-                            digits = 3)
 HBAI_CI_all <- groupwiseMedian2(var = "amount",
                                 data = filter(tidydata,
                                               type == "total",
@@ -1278,19 +1265,6 @@ HBAI_CI_all <- groupwiseMedian2(var = "amount",
   select(survey, Median, n, Conf.level, Normal.lower, Normal.upper)
 
 # SHS bootstrap mechanism includes council strata
-SHS_CI <- groupwiseMedian3(var = "amount",
-                           group = "council",
-                           data = filter(tidydata,
-                                         type == "total",
-                                         survey == "SHS",
-                                         council %in% popokcouncils) %>%
-                             mutate(weight = ppwgt),
-                           conf = 0.95,
-                           R = 100,
-                           normal = TRUE,
-                           basic = FALSE,
-                           percentile = FALSE,
-                           digits = 3)
 SHS_CI_all <- groupwiseMedian3(var = "amount",
                                data = filter(tidydata,
                                              type == "total",
