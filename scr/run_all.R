@@ -38,9 +38,30 @@ tidyhbaibens <- readRDS("output/tidyhbaibens.rds")
 
 source("scr/prepdata.R", encoding = "UTF-8")
 source("scr/prepPovertydata.R", encoding = "UTF-8")
-source("scr/charts_tables.R", encoding = "UTF-8")
+source("scr/tables.R", encoding = "UTF-8")
+source("scr/charts.R", encoding = "UTF-8")
 
-# produce word document
+# remove no longer needed data
+keep <- c("bencontr",
+          "incdiff",
+          "totdiff",
+          "SHSmedian",
+          "HBAImedian",
+          "ecoshares",
+          paste0("ch0", seq(1,9)),
+          paste0("ch", seq(10,50)),
+          paste0("tb0", seq(1,9)),
+          paste0("tb", seq(10,50)),
+          "ch16b")
+
+rm(list = setdiff(ls(), keep))
+
+# produce word document - final report
 rmarkdown::render(input = "Final report.Rmd",
+                  output_format = "word_document",
+                  encoding = "UTF-8")
+
+# produce word document - Annex
+rmarkdown::render(input = "Final report technical annex.Rmd",
                   output_format = "word_document",
                   encoding = "UTF-8")

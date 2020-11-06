@@ -1,0 +1,769 @@
+---
+title: "SHS Income Project - Final Report - Technical Annex"
+output:
+  word_document:
+    reference_docx: template2.docx
+    toc: yes
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+
+# Set global chunk options
+knitr::opts_chunk$set(
+	echo = FALSE,
+	fig.asp = 0.5,
+	fig.width = 10,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+# Income
+
+We compared SHS 2018 income data (the new, broader definition, which includes income from other adults in the household) with HBAI 2018/19 income data. For the HBAI data, we used net income without the top-income adjustment. Except for this, the HBAI income definition we used is the same as that used for official household income and poverty statistics. This definition includes some components that are not available in the SHS, such as child income, and deductions (council tax, pension contributions, maintenance and child support payments, parental contributions to students living away from home, and student loan repayments). Of the deductions, council tax is the only information (indirectly) available in the SHS, and we deducted it from SHS household income. We calculated council tax using the council tax bands and imputing single-person discounts. Some council tax bands were added manually by the SHCS team. Where the council tax band was missing (half of the households in Shetland in the 2018 dataset, but only small numbers in other council areas), we assigned council tax band B, the most common band.
+
+We also looked at aggregated administrative data on benefits to quantify the amount of benefit underreporting in the SHS (and the HBAI).
+
+Note that the income discussed here is net household income after benefits, direct taxes and national insurance contributions, and not taking housing costs into account (= before housing cost). We equivalised all incomes to account for household size, using the modified OECD scale, except when looking at aggregated incomes.
+
+For the analysis, 95% confidence intervals (C.I.) of the median were calculated using a bootstrapping method. For the HBAI, the bootstrapped C.I.s do not account for the complex survey design. They are therefore only illustrative and may be wider. The C.I.s calculated for the SHS take into account the survey design (stratification by council areas).
+
+## Earnings higher
+
+Median and mean earnings are higher in the SHS compared to the HBAI, driven by both, slightly higher average employed earnings, and much higher average self-employed earnings (sections \@ref(earnsumm) and \@ref(earneco)).
+
+Median earnings of households where the head is **employed** (both, full- or part-time) match fairly well between surveys, but those where the head is **self-employed** have much higher earnings in the SHS. Checking with SHS data from previous years shows that this high level of self-employed earnings is consistent across years. This level may be much higher than in the HBAI because the SHS doesn't accept negative earnings responses. However, even when negative earnings in the HBAI were set to zero, the large difference in self-employed earnings persisted. It is possible that it is caused by questionnaire wording and survey time spent on self-employed earnings (section \@ref(earneco)).
+
+Median earnings for some **household types** match fairly well between surveys, for example two adult households with and without children and single adult households, but single parent households slightly less so. Three+ adult households and those with one working-age adult and one pensioner differ considerably and show a wide variability in the HBAI. The latter group appears to have many cases in the HBAI with zero earnings, leading to a median of £0 (section \@ref(earnhhtype)).
+
+Across household **income deciles**, median earnings in the SHS are higher than in the HBAI for higher incomes (deciles 5-10), but lower for deciles 2-4 (where the relative poverty threshold sits), and zero for the bottom decile, same as HBAI earnings. Note that HBAI earnings vary a lot in the lower deciles (section \@ref(earndec)).
+
+Looking at **council areas**, note that HBAI data cannot be meaningfully analysed at a sub-Scotland level, as the weighting regime for the survey doesn’t account for geography within Scotland. However, if we do compare those council areas where household numbers are similar between SHS and HBAI (difference < 50%), median earnings match fairly well across surveys (section \@ref(earncounc)).
+
+Earnings are the largest source of income for economically active households, and therefore earnings patterns determine income patterns for these households. For example, average earnings of households with a self-employed head are much higher in the SHS compared to the HBAI, and we will see later that total income for these households is also considerably higher in the SHS (sections \@ref(earneco) and \@ref(inceco)).
+
+## Benefits lower
+
+Generally, the reported benefit income is lower in the SHS than in the HBAI. The lower benefit income in the SHS explains `r filter(incdiff, type == "ben") %>% select(diffcontr) %>% pull()` of the mean total income difference between these two surveys (section \@ref(compover)). (Note that when comparing benefit incomes, one should keep in mind that benefits in the HBAI are already underreported (to varying degrees, section \@ref(typover)). The lower benefit income in the SHS is caused by one or a combination of the following:
+
+* households not reporting they receive a benefit even though they do (= non-reporting)
+* households not reporting all the benefits they receive (= non-reporting)
+* households reporting a lower benefit amount then they actually receive (= underreporting)
+
+Median benefit income across the two surveys matches best for those **household types** that don't get many benefits, such as working-age adult households without any children, where the median benefit income is zero in both surveys, but also working-age households with children, where average benefit income is only slightly lower in the SHS. Working-age households (defined here as households with no adults above state pension age) receive on average much lower benefits compared to pensioner households (section \@ref(bensumm)).
+
+For **Working-age households without children**, average benefit income in the top four income deciles is very small and mainly made up of disability benefits and Housing Benefit. In the lower income deciles, average benefit income increases and is made up increasingly (with lower incomes) with Housing Benefit. Other common benefits in the lower income deciles are Univeral Credit, disability benefits, Tax Credits, Council Tax Reduction and Income Support. Households in the second decile have the highest benefit income, whereas the benefit income of the bottom income decile is much lower, a common feature of survey-based income data, and probably partly due to various reporting errors. For **Working-age households with children**, Child Benefit is the main benefit, and reported aross all incomes. In the lower income deciles, Tax Credits dominate the benefit variety, followed by Housing Benefit and Universal Credit. When comparing benefit income for working-age households across the two surveys, it appears that average benefit amounts for most benefit types are lower in the SHS (section \@ref(benincdec)). We will see later that almost all benefits are underreported in the SHS compared to the HBAI (section \@ref(typover)).
+
+**Pensioner households** have on average a much higher benefit income than working-age households (section \@ref(bensumm)) due to the State Pension (section \@ref(statepen)), which is the largest benefit income source and dwarfes income from other benefits such as Housing Benefit, Pension Credit and disability benefits. The average benefit income of pensioner households in the SHS is lower compared to the HBAI (section \@ref(bensumm)). The lower benefit income in the SHS is partly due to underreporting of the amount of state pension received. This can affect households with two pensioners twice as much compared to those with only one pensioner. In addition, many pensioners in the SHS do not report receiving any state pension at all (section \@ref(statepen)). In fact, almost all pensioner households in the HBAI report receipt of a benefit, but not so in the SHS: many pensioner households do not report receipt of any benefits (sections \@ref(bensumm) and \@ref(statepen)). More detail on the income sources of pensioner households is available in section [Pensioners’ incomes too low][Pensioners’ incomes too low].
+
+Looking at household **economic status**, median benefit incomes for households where the highest income householder is a full-time employee or self-employed match well between surveys and show a small benefit amount and little variability. There is more variability and discrepancy in median benefit incomes for part-time employee households, with the average SHS benefit amounts lower. All other groups show considerable differences in median benefit incomes, with the SHS amount also consistently lower. We have seen the reasons for this for retired households earlier. As for households with a **permanently sick/disabled household** head, under- and non-reporting of Universal Credit and Tax Credits explains the benefit income difference (sections \@ref(beneco), \@ref(uc) and \@ref(tc)). Non-reporting of benefits is identified by comparing the number of households who report they receive the benefit. Underreporting of benefits is identified when the median benefit amounts (of those who report them) differ.
+
+Looking across **council areas**, we need to remind ourselves that the HBAI is not designed for sub-Scotland level analysis, and household numbers in each council area are not designed to be accurate. However, removing those council areas with very large (>50%) discrepancies in number of households, and also excluding council areas with too small sample sizes, we're left with less than half of the council areas for comparison across surveys. In these, benefit incomes match reasonably well, but with very wide 95% confidence intervals (C.I.s) (section \@ref(bencounc)).
+
+Benefits are the largest source of income for economically inactive households, such as pensioner households and those households that are inactive due to disability. Therefore, benefit underreporting hugely influences the total income for these households.
+
+In order to make appropriate comparisons across surveys, we recoded some common variables. For example, the definition of a child in the SHS was recoded to match that of the HBAI (i.e. includes 17-19 year-olds living at home, not married, and in full-time non-advanced education). Also, households in the SHS where the highest income householder (which is by definition the household head) is a student, but has earnings income and working hours, were recoded to full- or part-time employee households. This is because of differences in the definition of economic status between the two surveys. In the FRS ILO definition used here, students with jobs would be considered in work, whereas in SHS they would be considered students. After recoding, they will be considered in work in both surveys.
+
+Throughout the discussion in this chapter we refer to sections in chapter 2, **Annex: Charts and tables**. The Annex includes all charts and tables produced for this project.
+
+## Main benefit types
+
+The largest benefit by far is the State Pension, which makes up almost half of all benefit income (`r filter(bencontr, type =="State Pension") %>% select(HBAI_share) %>% pull()` based on HBAI data). This is followed by the combined disability and carers' benefits (`r filter(bencontr, type =="Disability") %>% select(HBAI_share) %>% pull()`), followed by Tax Credits (`r filter(bencontr, type =="Tax Credits") %>% select(HBAI_share) %>% pull()`), Housing Benefit (`r filter(bencontr, type =="Housing Benefit") %>% select(HBAI_share) %>% pull()`), Child Benefit (`r filter(bencontr, type =="Child Benefit") %>% select(HBAI_share) %>% pull()`), Universal Credit (`r filter(bencontr, type =="Universal Credit") %>% select(HBAI_share) %>% pull()`), Pension Credit (`r filter(bencontr, type =="Pension Credit") %>% select(HBAI_share) %>% pull()`), and many smaller benefits (section \@ref(typover)).
+
+All of the big benefits except for Housing Benefit are underreported in the SHS compared to the HBAI. (Note that the HBAI also underreports all of the big benefits compared to administrative data.) This could be due to underreporting of the amount received, not reporting a benefit, or a combination of both. Underreporting of State Pension and disability benefits together explains two thirds of the benefit income differences between the two surveys (section \@ref(typover)).
+
+The underreporting of (all but one) benefits means that those household types with a large share of their income coming from benefits will be affected more, and show a lower income in the SHS compared to the HBAI. This largely affects households with low or no earnings: pensioners, who receive a large part of their income through the state pension (and other, smaller benefits such as Pension Credit, Housing Benefit, disability and carers' benefits and Winter Fuel Payment), and households with disabled household members who receive mainly Housing Benefit, disability and carers' benefits and Universal Credit (section \@ref(beneco)). I expect it also affects other low-earnings households through Tax Credits and Universal Credit. These households will show too low an income in the SHS.
+
+To add more detail, **State Pension** is fairly well captured in the HBAI (covers `r filter(bencontr, type =="State Pension") %>% select(HBAI_capt) %>% pull()` of the aggregated admin data amount), but less so in the SHS (`r filter(bencontr, type =="State Pension") %>% select(SHS_capt) %>% pull()`) (section \@ref(typover)). This discrepancy explains `r filter(bencontr, type =="State Pension") %>% select(diffcontr) %>% pull()` of the total benefit income difference between HBAI and SHS. It originates in a smaller number of pensioner households in the SHS reporting that they receive the State Pension, but also slightly smaller average payments. It is also possible that in SHS pensioner couple households only the state pension of one householder is reported (section \@ref(statepen)).
+
+Combined **disability and carers' benefits** are captured to `r filter(bencontr, type =="Disability") %>% select(HBAI_capt) %>% pull()` in the HBAI, and only to `r filter(bencontr, type =="Disability") %>% select(SHS_capt) %>% pull()` in the SHS. These include Disability Living Allowance, Personal Independence Payment, Attendance Allowance, Employment Support Allowance, Carers' Allowance, Severe Disablement Allowance, and Industrial Injuries Disablement Benefit. I included Carers' Allowance in this list as I expect most carers to live in the same household as the person they care for. The discrepancy between HBAI and SHS disability benefit incomes explains a further `r filter(bencontr, type =="Disability") %>% select(diffcontr) %>% pull()` of the total benefit income difference between HBAI and SHS. Disability benefits in the SHS are subject to both, underreporting of the amount, and non-reporting of receipt. Underreporting can be identified by comparing the average benefit amounts, and non-reporting can be identified by comparing the numbers of households who report that they receive this benefit (sections \@ref(typover), \@ref(disimportant), and \@ref(diswho)). A large part of the disability benefits goes to pensioner households; however, single adult households are also important recipients of these benefits (section \@ref(diswho)).
+
+**Tax credits** are also underreported in the SHS compared to the HBAI, explaining a further `r filter(bencontr, type =="Tax Credits") %>% select(diffcontr) %>% pull()` of the benefit income difference between the surveys. A large part of this is part-time employee households underreporting the amount of Tax Credit they get. Both surveys vastly underreport Tax Credit compared to admin data (sections \@ref(typover) and \@ref(tc)).
+
+**Housing Benefit** is underreported to a similar degree in both surveys, but comparable between surveys and across tenures (sections \@ref(typover) and \@ref(hb)).
+
+**Child Benefit** income in the SHS is only slightly lower than in the HBAI, due to some households with two adults and children not reporting receipt of this benefit (sections \@ref(typover) and \@ref(cb)).
+
+**Universal Credit** and **Pension Credit** are both vastly underreported in the SHS, explaining another `r filter(bencontr, type =="Universal Credit") %>% select(diffcontr) %>% pull()` and `r filter(bencontr, type =="Pension Credit") %>% select(diffcontr) %>% pull()` of the total benefit income difference between HBAI and SHS. For both benefits, the received amounts are underreported. In addition, there are also fewer households in the SHS who report that they receive Pension Credit (sections \@ref(typover), \@ref(uc) and \@ref(pc)).
+
+## Investment income much lower {#invlower}
+
+Investment income makes up `r filter(incdiff, type == "inv") %>% select(HBAIshare) %>% pull()` of total income according to the HBAI. Investment income is hugely underreported in the SHS compared to the HBAI, even though we are using the HBAI data before top-income adjustments (which would correct top incomes upwards). This underreporting explains `r filter(incdiff, type == "inv") %>% select(diffcontr) %>% pull()` of the difference in total income (section \@ref(compover)).
+
+The massively lower investment income in the SHS is largely due to the fact that only very few households in the SHS report any investment income, even though they report on average higher amounts. Most of investment income is held by retired households, by working-age couple households, and by the richest households; these are therefore the groups whose total income is affected more by investment income underreporting (section \@ref(investment)).
+
+## Pensioners' incomes too low
+
+**Single pensioner** and **pensioner couple** households get the major part of their income from benefits, which is mainly the State Pension. As the State Pension is underreported in the SHS (compared to the HBAI), household income is underrerported for these household types. The underreporting of State Pension is due to both, underreporting of the amount, and non-reporting of receiving the benefit. Many single pensioners in particular did not report that they received any State Pension at all. As for pensioner couple households, the numbers reporting that they did receive the State Pension was similar across surveys, but the average amount was lower in the SHS. It is possible that this is because only the State Pension of one person in the couple was reported in the SHS (section \@ref(pensources)).
+
+In addition to differences in benefit income (which is mainly the state pension), there are also large differences in occupational pensions and investment income. The difference in investment income is mostly due to non-reporting of investment income in the SHS compared to the HBAI. It should be noted that most of investment income in Scotland goes to retired households (sections \@ref(invlower) and \@ref(investment)). Similarly, fewer people in the SHS report any occupational pension income, although average occupational pension income for those who receive it is comparable (section \@ref(occpen)).
+
+Households with **one working-age adult and one pensioner** get a major part of their income through earnings, followed by benefits and occupational pensions (section \@ref(pensources)). This means that this group is less affected by underreported benefit income than the two other pensioner household types, and we will see that the median total income of this group matches better across surveys compared to single pensioner or pensioner couple households (section \@ref(inchhtype)).
+
+And as mentioned before, **Pension Credit**, an income-related benefit for pensioners is subject to both, considerable underreporting of the amount, and non-reporting of receipt for SHS, compared to HBAI. This also contributes in a small part to the benefit income underreporting for pensioners (section \@ref(pc)).
+
+## Income components
+
+Total income is largely made up of earnings, followed by benefits (which include the state pension) and occupational pensions (section \@ref(compover)). The lower the total income, the less important earnings and the more important benefits become (section \@ref(compdec)).
+
+Overall, SHS total income is `r totdiff` lower than HBAI total income, even though the main component of total income, earnings, are higher in the SHS. However, this is more than offset by lower benefit and much lower investment income in the SHS, and then also from lower occupational pensions. Other income components are relatively small and therefore contribute less to the overall differences in income (section \@ref(compover)).
+
+We have seen that the lower benefit income mostly affects pensioners (through the state pension) and households with disabled household members (through disability benefits) (section \@ref(beneco)).
+
+We have also seen that most of the investment income goes to the wealthiest households. This will affect the income distribution most at the top, and might therefore not matter as much when looking at low income households. However, a large part of investment income goes to retired households, so this could exacerbate the income underreporting of these households even more (sections \@ref(investment) and \@ref(comptype)).
+
+Across the **income distribution**, earnings drive the difference between surveys, as they are the largest component of total income. Average SHS earnings are lower than HBAI earnings at the bottom end of the income distribution, but higher at the top end. (section \@ref(compdist)).
+
+As for **regional underreporting**, this is difficult to ascertain from comparison with HBAI data, because the HBAI's weighting regime doesn't allow sub-Scotland analysis. However, we would expect underreported incomes in those local areas that have a high share of their income coming from benefits, and also in local areas with many pensioners (whose main income source is the State Pension, a benefit).
+
+The six council areas with the highest benefit shares are, according to SHS data, Dumfries & Galloway, Inverclyde, North Ayrshire, East Ayrshire, West Dunbartonshire, and Dundee City (section \@ref(comparea)). The eight council areas with the largest proportion of pensioners are Na h-Eileanan Siar, Argyll & Bute, Dumfries & Galloway, South Ayrshire, Scottish Borders, Orkney Islands, Angus, and Perth & Kinross (section \@ref(ageprofile)).
+
+As for urban and rural areas, small towns and other (not large) urban areas have the highest shares of benefit income (section \@ref(comparea)). Remote small towns and remote rural areas on the other hand have the largest proportions of pensioners (section \@ref(ageprofile)).
+
+## Total income overall
+
+Having identified some issues in the measurement of the various income components, we will now see how these affect total income.
+
+The income **distributions** in the SHS and the HBAI look largely similar, with the SHS income distribution being slightly wider, and the SHS **median** slightly lower (`r comma(SHSmedian, prefix = "£")` versus `r comma(HBAImedian, prefix = "£")`). Near the relative poverty threshold, the SHS cumulative income curve is higher, meaning more households sit below that threshold in the SHS compared to the HBAI. This means that more people are considered to be in relative poverty when using the SHS dataset compared to the HBAI dataset (section \@ref(incdist)).
+
+Median incomes in the SHS are slightly higher than in the HBAI for higher income deciles; they level up in the sixth decile, and diverge towards lower incomes, with SHS incomes becoming markedly lower in the lowest decile. This shows that more households in the SHS have lower incomes compared to the HBAI, whereas the high income end of the distribution matches better between surveys. We have seen that this pattern is largely driven by earnings, the largest components of total income. In addition, the lower the income, the more important benefit income becomes, and the more affected total income is by benefit underreporting - although it appears that there is no benefit underreporting in the 3rd and 4th decile (sections \@ref(compdist) and \@ref(incdec)).
+
+Median income 95% confidence intervals (C.I.s) overlap to some degree for most of the 17 **council areas** where we compared surveys. We excluded those council areas where the HBAI household populations were too far off (> 50% compared to SHS household population) or the sample sizes in the HBAI too small. For some council areas, the difference in median total income was quite large though, such as East Dunbartonshire, Aberdeenshire, Stirling, and Moray. This is probably driven by differences in earnings. None of these areas were noted earlier for particularly high proportions of pensioners or benefit income shares. However, C.I.s for all council areas and for both surveys are fairly wide, showing much income variation within each council area (section \@ref(inccounc)).
+
+Median incomes match fairly well for **urban** and accessible rural areas. Median incomes in remote areas match slightly less well, but also have fairly wide C.I.s (section \@ref(incarea)).
+
+Median incomes of **working-age adults** and **children** match well, but **pensioners**' incomes are much lower in the SHS, and C.I.s do not overlap. We saw that this is largely due to underreporting and non-reporting of the State Pension, as well as occupational pensions and investment income (sections \@ref(incage) and \@ref(pensources)).
+
+Incomes for most **household types** match well, except, again, for pensioners, whose income is much lower in the SHS. Incomes of households with 3 or more working-age adults (and no children) have very wide C.I.s, indicating large variation of incomes in this group (section \@ref(inchhtype)).
+
+Incomes of households where the household head (the highest income householder) is a **full- or part-time employee** match fairly well, which is no surprise as income from employed earnings also matches fairly well. As expected, incomes of the **retired** don't match well, similarly to pensioners' incomes in the age group and household type breakdowns. Incomes of households with a **disabled** household head also don't match too well, due to undereporting of disability benefits, which are the main income source of these households (section \@ref(inceco)).
+
+Households where the head is **self-employed** had very variable incomes and a higher median in the SHS, driven by much higher earnings (sections \@ref(inceco) and \@ref(earneco)). This is consistent with SHS data from previous years. Reasons for the higher earnings of the self-employed in the SHS could include that the SHS may not fully account for self-employed losses, or not in the same way as the HBAI. For example, the SHS doesn't accept negative earnings responses. Also, the definitions of self-employment may differ between surveys. Note that households where the head is self-employed make up only `r filter(ecoshares, HIHemp == "Self-Employed") %>% select(share) %>% pull()` of all households (according to SHS 2018), so maybe this issue isn't very important.
+
+## Other issues
+
+We looked in detail at the sources of income, but haven't fully addressed the following remaining issues:
+
+a) Housing costs. There are some differences between surveys in what's considered a housing cost. The main difference affects home owners with a mortgage: While the HBAI considers only the mortgage interest as a housing cost, the SHS also includes capital repayments. Either method has merit, but each will lead to a quite different result for these households - we expect housing costs for home owners with a mortgage to be higher in the SHS, and income after housing cost lower, than in the HBAI. It appears not possible to strip out capital repayments from the SHS housing costs to align them with the HBAI.
+In addition to mortgages, the HBAI also includes rent, water and sewerage charges, and (structural) home insurance as housing costs. In the SHS, housing costs also include rent.
+SHS 2018 does not yet contain the housing cost variable. Once the SHS 2019 dataset is published in September, we can compare housing costs by tenure across surveys to understand the impact of the different definitions.
+
+b) Self-employed earnings are much higher in the SHS compared to the HBAI. Checking with SHS datas from previous years shows that this high level of self-employed earnings is consistent across years. The difference between surveys could be caused by questionnaire wording, survey time spent on self-employed earnings, or different definitions of self-employment. As households with a self-employed household head make up only 7% of all households (according to SHS 2018) this issue is not a priority. However, if QA group members have expertise in this area we would be grateful to hear about it.
+
+c) The SHS doesn't collect information on children's incomes. An Ipsos Mori report showed that children's income made up 1% of single parents' income in the FRS, and that it was less important for couples households with children. Children's incomes include earnings, trust funds, scholarships, bursaries or grants. Since median incomes appear to agree fairly well across surveys for both household types, we decided not to pursue this issue any further.
+
+d) In the analysis here, we didn't use the usual HBAI BHC income variable on which the official income and poverty statistics are based, but income without top-income adjustments. The reason for this is that the HBAI top-income adjusted figures are only available for gross earnings, but we're comparing net earnings. However, the effect on the median of total income is small. The HBAI median without top-income adjustment is `r comma(HBAImedian, prefix = "£", accuracy = 1)`, whereas the top-income adjusted median is £517. Lower incomes will be affected less by this lack of top-income adjustment, and therefore we decided not to pursue this issue any further.
+
+e) The bootstrapping mechanism that calculates the 95% confidence intervals of HBAI median incomes draws sub-samples from the survey sample via simple random sampling. However, in order to be precise, it should really draw the samples in the same way as the original sample was drawn, using the complex sampling design of the FRS. This might widen the C.I.s even further. It may be possible to calculate these more accurate confidence intervals for the HBAI data using a resamples dataset that DWP provide; however, this will be time consuming and is unlikely to add much new information.
+
+
+
+## Charts and tables
+
+This part includes all tables and charts produced for the analysis. The survey data comes from the SHS 2018 and the HBAI 2018/19; and the administrative benefit data from StatXplore and the Scottish Government.
+
+Tables and charts are subject to **suppressed data** where sample sizes are too small. For the HBAI, at least 50 cases in the sample are required to report on mean, median and total amounts, and at least 100 cases are required to report on number of individuals or households. Suppressed data in the tables is marked "..".
+
+Note that the 95% **confidence intervals** (C.I.s) of the median are based on a bootstrap methodology. For the HBAI, the boostrapped C.I.s do not account for the complex survey design. They are therefore only illustrative and may be wider. The C.I.s calculated for the SHS take into account the survey design (stratification by council areas).
+
+Note that the FRS is not designed to provide **sub-Scotland disaggregation**. The Scottish sample in the FRS is stratified into six regions, but the FRS _grossing regime_ doesn't look below Scotland-level. For the council area analysis below, we exclude those council areas where the household populations differ by more than 50% between FRS/HBAI and SHS.
+
+**Adults** refer to working-age adults without children unless otherwise stated. **Pensioners** refer to people above state-pension age. **Children** refer to dependent children.
+
+The **household head** is the person in the household with the highest income, or, where incomes are equal, the older person.
+
+### Earnings {#earnings}
+
+#### Summary stats {#earnsumm}
+
+Weekly net equivalised median (with 95% confidence interval) and mean household earnings, aggregated weekly earnings, and number of households (including all households):
+`r knitr::kable(tb01, align = "lrrrrrr")`
+
+Weekly net equivalised median (and 95% confidence interval) and mean household earnings, aggregated weekly earnings, and number of households reporting any earnings (excluding households with no earnings):
+`r knitr::kable(tb02, align = "lrrrrrr") `
+
+#### Earnings distribution {#earndist}
+
+```{r}
+ch01
+ch02
+```
+
+#### by economic status {#earneco}
+
+Weekly net equivalised median and mean household earnings, aggregated weekly earnings, and number of households by economic status of household head (including all households):
+`r knitr::kable(tb03, align = "llrrrrr")`
+
+Note that the 95% confidence intervals (C.I.s) of the median are based on a bootstrap methodology. For the HBAI, the boostrapped C.I.s do not account for the complex survey design. They are therefore only illustrative and may be wider. The C.I.s calculated for the SHS take into account the survey design (stratification by council areas).
+
+```{r}
+ch03
+```
+
+Weekly net equivalised median and mean household earnings, aggregated weekly earnings, and number of households reporting any earnings by economic status of household head (excluding households with no earnings):
+`r knitr::kable(tb04, align = "llrrrrr")`
+
+#### by household type {#earnhhtype}
+
+Weekly net equivalised median and mean household earnings, aggregated weekly earnings, and number of households by household type (all households):
+`r knitr::kable(tb05, align = "lrrrrrr")`
+
+Note that the 95% confidence intervals (C.I.s) of the median are based on a bootstrap methodology. For the HBAI, the boostrapped C.I.s do not account for the complex survey design. They are therefore only illustrative and may be wider. The C.I.s calculated for the SHS take into account the survey design (stratification by council areas).
+
+Adults refer to working-age adults without children unless otherwise stated. Pensioners refer to people above state-pension age. Children refer to dependent children.
+
+```{r}
+ch04
+```
+
+Weekly net equivalised median and mean household earnings, aggregated weekly earnings, and number of households reporting any earnings by household type (excluding households with no earnings):
+`r knitr::kable(tb06, align = "lrrrrrr")`
+
+#### by income decile {#earndec}
+
+Note that the 95% confidence intervals (C.I.s) of the median are based on a bootstrap methodology. For the HBAI, the boostrapped C.I.s do not account for the complex survey design. They are therefore only illustrative and may be wider. The C.I.s calculated for the SHS take into account the survey design (stratification by council areas).
+
+```{r}
+ch05
+```
+
+#### by council area {#earncounc}
+
+***
+
+Note that the FRS is not designed to provide sub-Scotland disaggregation. The Scottish sample in the FRS is stratified into six regions, but the FRS _grossing regime_ doesn't look below Scotland-level. For the council area analysis further below, we exclude those council areas where the household populations differ by more than 50% between FRS/HBAI and SHS.
+
+```{r fig.asp = 0.6}
+ch06
+```
+
+***
+
+Weekly net equivalised household earnings by council area (including all households, but excluding council areas where population differences are > 50%):
+`r knitr::kable(tb07, align = "llrrrrr")`
+
+Note that the FRS is not designed to provide sub-Scotland disaggregation. The Scottish sample in the FRS is stratified into six regions, but the FRS _grossing regime_ doesn't look below Scotland-level. For the council area analysis further below, we exclude those council areas where the household populations differ by more than 50% between FRS/HBAI and SHS.
+
+```{r fig.asp = 0.6}
+ch07
+```
+
+Weekly net equivalised household earnings by council area (excludes households with zero earnings, and council areas where population differences are > 50%):
+`r knitr::kable(tb08, align = "llrrrrr")`
+
+### Benefit income {#benefits}
+
+#### Summary stats {#bensumm}
+
+Weekly benefit household income, equivalised median and mean, aggregated total, and number of households (including all households):
+`r knitr::kable(tb09, align = "llrrrrr")`
+
+Weekly benefit household income, equivalised median and mean, aggregated total, and number of households receiving benefits (excludes households with no benefit income):
+`r knitr::kable(tb10, align = "llrrrrr")`
+
+#### by decile and benefit type {#benincdec}
+
+We combined the following disability and carers' benefits into "Disability":
+
+- Personal Independence Payment
+- Disability Living Allowance
+- Employment and Support Allowance
+- Attendance Allowance
+- Carer's Allowance
+- Incapacity Benefit
+- Severe Disablement Allowance
+- Industrial Injuries Disablement Benefit
+
+We included Carer’s Allowance in this list as I expect most carers to live in the same household as the person they care for.
+
+```{r}
+ch08
+ch09
+ch10
+```
+
+#### by household type {#benhhtype}
+
+Weekly household benefit income by household type, equivalised median and mean, aggregated total, and number of households  (including all households):
+`r knitr::kable(tb11, align = "llrrrrr")`
+
+Note that this chart excludes the Two adults with children group due to too many zero values in the HBAI sample for this group.
+
+```{r}
+ch11
+```
+
+Weekly household benefit income by household type, equivalised median and mean, aggregated total, and number of households with benefit income (excludes households with no benefit income):
+`r knitr::kable(tb12, align = "llrrrrr")`
+
+#### by economic status {#beneco}
+
+Weekly household benefit income by economic status of the household head, equivalised median and mean, aggregated total, and number of households (including all households):
+`r knitr::kable(tb13, align = "llrrrrr")`
+
+```{r}
+ch12
+```
+
+Weekly household benefit income by economic status of the household head, equivalised median and mean, aggregated total, and number of households with benefit income (excludes households with no benefit income):
+`r knitr::kable(tb14, align = "llrrrrr")`
+
+```{r fig.asp = 0.8}
+ch13
+```
+
+#### by council area {#bencounc}
+
+Weekly benefit household income by council area, equivalised median and mean, aggegrated total and number of households (including all households; but excludes council areas with < 50 cases, and council areas where population differences between surveys are > 50%):
+`r knitr::kable(tb15, align = "llrrrrr")`
+
+```{r fig.asp = 0.6}
+ch14
+```
+
+Weekly benefit household income by council area, equivalised median and mean, aggegrated total and number of households with benefit income (excludes households with no benefit income, council areas with < 50 cases, and council areas where population differences between surveys are > 50%):
+`r knitr::kable(tb16, align = "llrrrrr")`
+
+### Types of benefits {#types}
+
+#### Overview over all benefits {#typover}
+
+Aggregated weekly benefit amounts, and how much of the actual amounts (based on admin data) are captured by each survey:
+```{r}
+knitr::kable(tb17, align = "lrrrrrrrr", 
+                col.names = c("", "Admin (aggr.)", 
+                              "HBAI (aggr.)", 
+                              "SHS (aggr.)", 
+                              "HBAI (capt.)", 
+                              "SHS (capt.)"))
+```
+
+Aggregated weekly benefit amounts for each of the largest twelve benefits, each benefit's share of total benefit income (in the admin data and for each survey), how fully the _actual amounts_ (based on admin data) are captured by each survey, and how much each benefit contributes to the total benefit income difference between the two surveys:
+```{r}
+knitr::kable(tb18, align = "lrrrrrrrrr", 
+             col.names = c("", "Admin (aggr.)", "HBAI (aggr.)", "SHS (aggr.)", 
+                           "Admin (share)", "HBAI (share)", "SHS (share)", 
+                           "HBAI (capt.)", "SHS (capt.)", 
+                           "Contribution to HBAI-SHS difference"))
+```
+ 
+```{r fig.asp = 0.8}
+ch15
+```                            
+
+Weekly equivalised mean benefit amounts for each of the largest twelve benefits (includes all households):
+```{r} 
+knitr::kable(tb19, align = "lrr", 
+             col.names = c("", "HBAI mean amount", "SHS mean amount"))
+```
+
+Weekly equivalised **mean** benefit amounts for each of the most generous benefits (includes only households that receive the benefit; sample >= 50):
+```{r} 
+knitr::kable(tb20, align = "lrr", 
+             col.names = c("", "HBAI mean amount", "SHS mean amount"))
+```
+
+#### State Pension {#typstatepen}
+
+See [Pensioners' incomes][Pensioners' incomes]
+
+#### Disability benefits - which are the most important? {#disimportant}
+
+Disability benefits include:
+
+- Employment and Support Allowance
+- Disability Living Allowance
+- Personal Independence Payment
+- Attendance Allowance
+- Carer's Allowance
+- Severe Disablement Allowance
+- Industrial Injuries Disablement Benefit
+- Incapacity Benefit
+
+Further below, these benefits are combined into a single "Disability" category. I also included Carer’s Allowance in this list as I expect most carers to live in the same household as the person they care for.
+
+Individual disability benefits, aggregated weekly total, equivalised weekly median and mean, and numbers of households where someone received this benefit (excludes households who didn't report receiving this benefit):
+`r knitr::kable(tb21, align = "llrrrrr")`
+
+#### Disability benefits - who gets them? {#diswho}
+
+Combined disability and carer's benefits, aggregated weekly amount, equivalised weekly mean and median, and number of households in receipt of a disability/carer's benefit:
+`r knitr::kable(tb22, align = "llrrrrr")`
+
+Household types
+
+Combined disability and carer's benefits, aggregated weekly amount, equivalised weekly mean and median, and number of households in receipt of a disability/carer's benefit:
+`r knitr::kable(tb23, align = "llrrrrr")`
+
+Economic status of the household head
+
+Combined disability and carer's benefits, aggregated weekly amount, equivalised weekly mean and median, and number of households in receipt of a disability/carer's benefit:
+`r knitr::kable(tb24, align = "llrrrrr")`
+
+```{r}
+ch16
+```
+
+#### Tax credits {#tc}
+
+Tax credits, aggregated weekly amount, equivalised weekly mean and median, and number of households in receipt of tax credits by economic status of household head:
+`r knitr::kable(tb25, align = "llrrrrr")`
+
+#### Housing Benefit {#hb}
+
+Housing benefit, aggregated weekly amount, equivalised weekly mean and median, and number of households in receipt of housing benefit by tenure:
+`r knitr::kable(tb26, align = "llrrrrr")`
+
+#### Child Benefit {#cb}
+
+Child benefit, aggregated weekly amount, equivalised weekly mean and median, and number of households in receipt of child benefit by household type (excludes households without any children and those not reporting any child benefit):
+`r knitr::kable(tb27, align = "llrrrrr")`
+
+#### Universal credit {#uc}
+
+Universal Credit, aggregated weekly amount, equivalised weekly mean and median, and number of households in receipt of universal credit (excludes households with no universal credit):
+`r knitr::kable(tb28, align = "llrrrrr")`
+
+#### Pension credit {#pc}
+
+Pension Credit, aggregated weekly amount, equivalised weekly mean and median, and number of households in receipt of pension credit (excludes households with no pension credit):
+`r knitr::kable(tb29, align = "llrrrrr")`
+
+### Single working-age adult benefit income {#singleadult}
+
+Weekly benefit income (from all benefits) for single working-age adult households, aggregated total, equivalised median and mean, and number of single adult households (includes all households):
+`r knitr::kable(tb30, align = "lrrrrr")`
+
+Weekly benefit income (from all benefits) for single working-age adult households, aggregated total, equivalised median and mean, and number of single adult households receiving benefits (excludes households with no benefit income):
+`r knitr::kable(tb31, align = "lrrrrr")`
+
+Weekly benefit income for single working-age adult households from the largest benefits - aggregated total, equivalised median and mean, and number of single adult households receiving each benefit:
+`r knitr::kable(tb32, align = "llrrrrr")`
+
+### Investment income {#investment}
+
+Weekly investment income, equivalised mean and median, aggregated total, and number of households with investment income (excludes households with no investment income):
+`r knitr::kable(tb32, align = "llrrrr")`
+
+Weekly investment income, equivalised mean and median, aggregated total, and number of households with investment income (excludes households with no investment income):
+`r knitr::kable(tb33, align = "llrrrr")`
+
+Who has income from investments?
+
+```{r}
+ch16b
+ch17
+ch18
+```
+
+### Pensioners' incomes {#pensioners}
+
+#### Pensioners' income sources {#pensources}
+
+Weekly mean equivalised total income and income sources (includes all pensioner households):
+
+```{r}
+ch19
+```
+
+Number of pensioner households who report they receive each type of income (income types based on fewer than 100 cases in the sample are excluded):
+`r knitr::kable(tb34, align = "llrr")`
+
+#### Pensioners' benefit types {#penbens}
+
+```{r}
+ch20
+```
+
+#### State pension {#statepen}
+
+State Pension - aggregate weekly amount, equivalised weekly median and mean, and number of pensioner households (includes all pensioner households):
+`r knitr::kable(tb35, align = "lrrrrr")`
+`r knitr::kable(tb36, align = "llrrrrr")`
+
+State Pension - aggregate weekly amount, equivalised weekly median and mean, and number of pensioner households in receipt of State Pension (excluding households with no state pension):
+`r knitr::kable(tb37, align = "lrrrrr")`
+`r knitr::kable(tb38, align = "llrrrrr")`
+
+#### Occupational pensions {#occpen}
+
+Occupational Pensions - aggregate weekly amount, equivalised weekly median and mean, and number of households (includes all households):
+`r knitr::kable(tb39, align = "lllrrrrr")`
+
+```{r}
+ch21
+ch22
+ch23
+```
+
+Occupational Pensions - aggregate weekly amount, equivalised weekly median and mean, and number of households in receipt of occupational pensions (excluding households with no occupational pensions):
+`r knitr::kable(tb40, align = "lllrrrrr")`
+
+### Self-employed's incomes {#selfemp}
+
+Total weekly income and income sources of households with a self-employed household head - equivalised mean and median, aggregated total, and number of households (all households):
+`r knitr::kable(tb41, align = "llrrrrr")`
+
+### Income components {#components}
+
+#### Overview over income components {#compover}
+
+In each survey, how much does each income source contribute to total income? The income components are earnings, benefits, occupational pensions, investment income, other, private benefits, and deductions.
+
+```{r}
+ch24
+```
+
+And how much does each income component contribute to the _difference_ in total income?
+
+Equivalised weekly mean amount in each survey, the absolute difference between the surveys for each income component, and how much each component contributes to the difference in total mean income. Note that these contributions are based on absolute differences and are therefore all positive percentages. There are of course other ways to illustrate the relative importance of each income component:
+`r knitr::kable(tb42, align = "lrrrr")`
+
+#### What drives the survey differences across the income distribution {#compdist}
+
+For each household income decile, we looked at the equivalised weekly mean income of the main income components, earnings and benefits. This shows that it is _earnings_ that drive the total income distribution, resulting in lower SHS incomes in the lower income deciles, and higher SHS incomes in the top income deciles:
+
+```{r fig.asp = 0.8}
+ch25
+```
+
+#### Income sources by income decile {#compdec}
+
+```{r fig.asp = 0.8}
+ch26
+```
+
+```{r fig.asp = 1}
+ch27
+```
+
+#### Income sources by council area and urban/rural area {#comparea}
+
+```{r fig.asp = 0.9}
+ch28
+```
+
+```{r }
+ch29
+```
+
+#### Age profile of council areas and urban/rural areas {#ageprofile}
+
+```{r fig.asp = 0.9}
+ch30
+```
+
+```{r}
+ch31
+```
+
+#### Income sources by household type and economic status {#comptype}
+
+```{r}
+ch32
+ch33
+```
+
+### Total income {#income}
+#### Income distribution {#incdist}
+
+```{r}
+ch34
+ch35
+```
+
+#### Median income by income decile {#incdec}
+
+```{r}
+ch36
+ch37
+ch38
+ch39
+```
+
+#### Median income by council area {#inccounc}
+
+Weekly median net equivalised household income and 95% confidence interval of the median:
+`r knitr::kable(tb43, align = "lrrrrr")`
+
+```{r fig.asp = 0.7}
+ch40
+```
+
+#### Median income by urban/rural area {#incarea}
+
+```{r}
+ch41
+```
+
+#### Median income by age group {#incage}
+
+```{r}
+ch42
+```
+
+#### Median income by household type {#inchhtype}
+
+```{r}
+ch43
+```
+
+#### Median income by economic status of highest income householder {#inceco}
+
+```{r}
+ch44
+```
+
+# Poverty
+
+This section summarises the poverty analysis in the [Annex][ANNEX].
+
+We compared relative poverty estimates before housing costs (BHC) that are based on SHS income data with those based on HBAI income data^[In contrast to the income analysis shared previously, the HBAI income variable used here is the 'standard' income used in official statistics, and the HBAI poverty threshold is based on the UK median.] and CiLIF data (Children in low-income families)^[https://www.gov.uk/government/publications/children-in-low-income-families-local-area-statistics-background-information-and-methodology/background-information-and-methodology-children-in-low-income-families-local-area-statistics]. CiLIF is DWP and HMRC's new admin-data based local child poverty measure. CiLIF numbers of children in relative poverty were calibrated to match (three-year-averaged) HBAI numbers broken down by UK region, work status, family type, and child age.
+
+## SHS and HBAI
+
+While we would expect poverty rates and numbers to differ slightly when using different data sources, we need to test that the SHS and HBAI identify the same household characteristics to be associated with a high (and a low) poverty risk. As we will show, this is the case.
+
+We found that more people are in poverty in the SHS compared to the HBAI. This is largely driven by pensioners, whose poverty risk is exaggerated in the SHS (as discussed in the [Income analysis summary][Income analysis summary]). However, we also have slightly more working-age adults and children in poverty in the SHS than in the HBAI, and similarly, higher poverty rates. The composition of children and working-age adults in poverty is similar across surveys.
+
+Disaggregating the Scottish child and working-age population by household type, economic status, tenure, council area (where available) and urban/rural area shows good agreement between SHS and HBAI. While poverty rates are generally slightly higher in the SHS, those groups of the population who have an elevated poverty risk in the HBAI also have an elevated poverty risk in the SHS.
+
+While there is generally good agreement in the disaggregated poverty estimates between surveys, there are some discrepancies when disaggregating by economic status. These were expected and can be explained by the income data quality issues identified in the SHS income analysis: benefit underreporting contributes to fairly large differences in poverty rates between SHS and HBAI for inactive and retired households^[Poverty rates for retired, disabled and other inactive households are considerably higher in the SHS, but no significance testing was undertaken.], and similarly, the higher self-employed incomes in the SHS lead to much lower poverty rates in the SHS compared to the HBAI for this group.
+
+All other discrepancies between disaggregated groups in the SHS and HBAI are likely to be within the measurement uncertainty of the two surveys, with the SHS poverty rates generally slightly higher than the HBAI poverty rate.
+
+## SHS and CiLIF
+
+SHS and CiLIF child poverty estimates for all children also match well. We therefore expect child poverty numbers to be comparable as well in the disaggregated data that follows.
+
+Disaggregating child poverty numbers by family type, family work status, council area and urban/rural area shows very good agreement between SHS and CiLIF numbers. There are only two discrepancies: the number of children in poverty who live in non-working families (more children in poverty in the SHS), and those who live in East Renfrewshire (fewer children in poverty in the SHS). Non-working families are likely to depend on benefits, which are underreported in the SHS. This contributes to the higher numbers in poverty in the SHS. There is no obvious reason for East Renfrewhsire to have fewer children in poverty in the SHS, but the estimate is based on only 40 cases and may not less robust than those for larger council areas.
+
+The implications of all findings for poverty measurement are as follows:
+
+- The SHS income variable can produce reliable (BHC) poverty estimates for children and working-age adults, although some care needs to be taken when looking specifically at economically inactive or self-employed households.
+- SHS-based poverty estimates differ from the Official Statistics and can therefore not be compared directly
+- Guidance is required that clearly explains when to use which data source, with the Official Statistics taking priority over SHS-based poverty estimates.
+
+## Detailed poverty analysis
+
+### HBAI and SHS - relative poverty
+
+In the analysis that follows, we compare SHS-derived poverty estimates (SHS 2018 data) to HBAI-derived poverty estimates (HBAI 2018/19 data)^[While the different reporting periods may contribute to differences in the income distributions, we expect this contribution to be small compared to, for example, questionnaire differences.]. Note that we use the standard HBAI poverty definition which is based on UK median income^[The 'standard' HBAI income variable is used to produce official income and poverty statistics. It differs in two important ways from the SHS income variable: First, in includes children's incomes, and second, it is adjusted for top incomes underreporting.] and the standard HBAI income variable (as opposed to the more comparable HBAI income variable that was used in the detailed income analysis done previously). The SHS-based poverty estimates are based on Scottish median income.
+
+Ranges show the 95% confidence intervals for SHS-based estimates. We did not calculate the equivalent HBAI confidence intervals but they are likely to be wider, as they are based on smaller samples.
+
+The tables below show that there are more people in poverty in the SHS compared to the HBAI. This is largely driven by pensioners, whose poverty risk is exaggerated in the SHS (as discussed in [Income analysis summary][Income analysis summary]). However, if we exclude pensioners, we still have slightly more^[When comparing central estimates, more people are in relative poverty in the SHS than the HBAI. While we cannot accurately calculate uncertainty estimates for HBAI data, we don't expect the differences for working-age adults and children to be statistically significant. We expect uncertainty around HBAI-based estimates to be at least as large as uncertainty around SHS-based estimates, as sample sizes are smaller in the HBAI.] working-age adults and children in poverty in the SHS than in the HBAI. We therefore also expect slightly higher poverty rates in the SHS in the analysis that follows.
+
+`r knitr::kable(tb44, align = "lrr", caption = "Numbers in relative poverty")`
+
+**Pensioners are excluded from the analysis that follows.**
+
+```{r}
+knitr::kable(tb45, align = "lrr", 
+             caption = "Relative poverty rates (excluding pensioners)")
+
+knitr::kable(tb46, align = "lrr", 
+             caption = "Composition of groups in relative poverty (excluding pensioners)")
+```
+
+#### by household type
+
+For this analysis, note that
+
+a) we expect SHS poverty rates (central estimates) to be slightly higher than HBAI poverty rates, and
+b) we expect HBAI-based confidence intervals (not calculated) to be at least as wide as the SHS-based confidence intervals.
+
+```{r}
+ch45
+```
+
+#### by economic status
+
+For this analysis, note that
+
+a) we expect SHS poverty rates (central estimates) in general to be slightly higher than HBAI poverty rates,
+b) we expect HBAI-based confidence intervals (not calculated) to be at least as wide as the SHS-based confidence intervals,
+c) self-employed incomes are higher in the SHS, and therefore contrary to a), we expect the poverty rate to be lower for this group, and
+d) households who depend on benefits such as disability-related ones tend to underreport income in the SHS compared to the HBAI; we therefore expect poverty rates to be higher in the SHS for these groups.
+
+```{r}
+ch46
+```
+
+#### by council area
+
+For this analysis, note that
+
+a) we expect SHS poverty rates (central estimates) in general to be slightly higher than HBAI poverty rates, and
+b) we expect HBAI-based confidence intervals (not calculated) to be at least as wide as the SHS-based confidence intervals.
+
+```{r fig.asp = 0.9}
+ch47
+```
+
+#### by urban/rural area
+
+For this analysis, note that
+
+a) we expect SHS poverty rates (central estimates) in general to be slightly higher than HBAI poverty rates, and
+b) we expect HBAI-based confidence intervals (not calculated) to be at least as wide as the SHS-based confidence intervals.
+
+```{r}
+ch48
+```
+
+#### by tenure
+
+For this analysis, note that
+
+a) we expect SHS poverty rates (central estimates) in general to be slightly higher than HBAI poverty rates, and
+b) we expect HBAI-based confidence intervals (not calculated) to be at least as wide as the SHS-based confidence intervals.
+
+```{r}
+ch49
+```
+
+### CiLIF and SHS - relative child poverty
+
+Children in low-income families (CiLIF)^[https://www.gov.uk/government/publications/children-in-low-income-families-local-area-statistics-background-information-and-methodology/background-information-and-methodology-children-in-low-income-families-local-area-statistics] is DWP and HMRC's new admin-data based local child poverty measure. CiLIF numbers of children in relative poverty were calibrated to match (three-year-averaged) HBAI numbers broken down by UK region, work status, family type, and child age.
+
+By definition, the CiLIF figure matches the official child poverty estimate for Scotland (200,000 children), which is the three-year average of the HBAI-based number of children in relative poverty befre housing costs in Scotland. The HBAI estimate in the table below (180,000) however is the single-year estimate.
+
+Child poverty rates are not available for CiLIF because we don't have accurate estimates of the dependent child population^[A dependent child is any person aged 0-15, or aged 16-19 who is still in full-time non-advanced education and living at home.] for the disaggegrations included below.
+
+We can see that SHS and CiLIF child poverty estimates match fairly well. We therefore expect child poverty numbers in the disaggregated data that follows to be comparable as well. (Note that the analysis compares SHS 2018 data and CiliF 2016-19 data.)
+
+```{r}
+knitr::kable(tb47, align = "rrr", 
+             caption = "Number of children in relative poverty")
+```
+
+#### by family type
+
+```{r}
+knitr::kable(tb48, align = "lrr", 
+             caption = "Number of children in relative poverty")
+```
+
+#### by work status
+
+Note that the term 'working' refers to adults who are in paid employment or self-employment.
+
+```{r}
+knitr::kable(tb49, align = "lrr", 
+             caption = "Number of children in relative poverty")
+```
+
+#### by council area
+
+```{r fig.asp = 0.8}
+ch50
+```
+
+#### by urban/rural area
+
+```{r}
+knitr::kable(tb50, align = "lrr", 
+             caption = "Number of children in relative poverty")
+```
