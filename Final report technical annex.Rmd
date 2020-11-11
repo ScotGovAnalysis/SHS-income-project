@@ -1,7 +1,7 @@
 ---
 title: "SHS Income Project - Final Report - Technical Annex"
 output:
-  word_document:
+  bookdown::word_document2:
     reference_docx: template2.docx
     toc: yes
     toc_depth: 2
@@ -17,7 +17,28 @@ knitr::opts_chunk$set(
 	message = FALSE,
 	warning = FALSE
 )
+
+# load workspace and packages in case doc gets knitted directly
+load('mysession.RData')
+library(tidyverse)
+library(scales)
 ```
+
+# Introduction
+
+This is the technical annex to the final report of the Scottish Household Survey (SHS) income project. The SHS income project assessed in detail how accurately the SHS measures household income. To this end, we compared SHS data to data from the Households Below Average Income (HBAI) dataset, the “gold standard” for estimating household income data in the UK.
+
+The comparison showed that SHS-based income estimates are accurate enough to determine whether a household is in poverty (before housing costs). We therefore plan to include a poverty flag in the SHS dataset, enabling SHS data users to produce poverty breakdowns of any SHS-based measure of interest.
+
+This annex shows the detailed analysis done in charts and tables.
+
+***
+
+**Important note**
+
+The information in this report can only be used for assessing the quality of the SHS income data and for no other purpose. In particular, HBAI-based statistical estimates for areas within Scotland, such as individual council areas, are generally not considered robust.
+
+****
 
 # Income
 
@@ -655,17 +676,16 @@ Ranges show the 95% confidence intervals for SHS-based estimates. We did not cal
 
 The tables below show that there are more people in poverty in the SHS compared to the HBAI. This is largely driven by pensioners, whose poverty risk is exaggerated in the SHS (as discussed in [Income analysis summary][Income analysis summary]). However, if we exclude pensioners, we still have slightly more^[When comparing central estimates, more people are in relative poverty in the SHS than the HBAI. While we cannot accurately calculate uncertainty estimates for HBAI data, we don't expect the differences for working-age adults and children to be statistically significant. We expect uncertainty around HBAI-based estimates to be at least as large as uncertainty around SHS-based estimates, as sample sizes are smaller in the HBAI.] working-age adults and children in poverty in the SHS than in the HBAI. We therefore also expect slightly higher poverty rates in the SHS in the analysis that follows.
 
-`r knitr::kable(tb44, align = "lrr", caption = "Numbers in relative poverty")`
+Numbers in relative poverty:
+`r knitr::kable(tb44, align = "lrr")`
 
 **Pensioners are excluded from the analysis that follows.**
 
-```{r}
-knitr::kable(tb45, align = "lrr", 
-             caption = "Relative poverty rates (excluding pensioners)")
+Relative poverty rates (excluding pensioners):
+`r knitr::kable(tb45, align = "lrr")`
 
-knitr::kable(tb46, align = "lrr", 
-             caption = "Composition of groups in relative poverty (excluding pensioners)")
-```
+Composition of groups in relative poverty (excluding pensioners):
+`r knitr::kable(tb46, align = "lrr")`
 
 #### by household type
 
@@ -734,26 +754,20 @@ Child poverty rates are not available for CiLIF because we don't have accurate e
 
 We can see that SHS and CiLIF child poverty estimates match fairly well. We therefore expect child poverty numbers in the disaggregated data that follows to be comparable as well. (Note that the analysis compares SHS 2018 data and CiliF 2016-19 data.)
 
-```{r}
-knitr::kable(tb47, align = "rrr", 
-             caption = "Number of children in relative poverty")
-```
+Number of children in relative poverty:
+`r knitr::kable(tb47, align = "rrr")`
 
 #### by family type
 
-```{r}
-knitr::kable(tb48, align = "lrr", 
-             caption = "Number of children in relative poverty")
-```
+Number of children in relative poverty:
+`r knitr::kable(tb48, align = "lrr")`
 
 #### by work status
 
 Note that the term 'working' refers to adults who are in paid employment or self-employment.
 
-```{r}
-knitr::kable(tb49, align = "lrr", 
-             caption = "Number of children in relative poverty")
-```
+Number of children in relative poverty:
+`r knitr::kable(tb49, align = "lrr")`
 
 #### by council area
 
@@ -763,7 +777,5 @@ ch50
 
 #### by urban/rural area
 
-```{r}
-knitr::kable(tb50, align = "lrr", 
-             caption = "Number of children in relative poverty")
-```
+Number of children in relative poverty:
+`r knitr::kable(tb50, align = "lrr")`
